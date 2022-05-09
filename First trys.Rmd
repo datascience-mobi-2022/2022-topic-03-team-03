@@ -1,0 +1,58 @@
+---
+title: "Project3.3"
+author: "Simon"
+date: "3 5 2022"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Testing basics
+
+```{r}
+#load the data
+MS_Table <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+First <- MS_Table[1:10,]
+First #first 10 rows
+```
+
+```{r}
+#Dimension and Class
+dim(MS_Table)
+class(MS_Table)
+range(MS_Table)
+```
+
+```{r}
+#Col and Rownames 
+colnames(MS_Table) # Fractions
+rownames(First) # Proteinnames
+```
+
+```{r}
+#Rowmeans
+rowMeans(First)
+which(rowMeans(MS_Table) == 0) #nur eine Zeile ohne Werte
+
+```
+
+```{r}
+# 0 zu NA 
+First[First == 0] <- NA
+summary(First)
+First
+MS_Table[MS_Table == 0] <- NA
+```
+
+
+```{r}
+#new range
+min (MS_Table, na.rm = TRUE)
+max(MS_Table, na.rm = TRUE)
+
+```
