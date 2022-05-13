@@ -38,6 +38,8 @@ rownames(First) # Proteinnames
 #Rowmeans
 rowMeans(First)
 which(rowMeans(MS_Table) == 0) #nur eine Zeile ohne Werte
+which( colMeans(MS_Table) == 0)
+class (which( colMeans(MS_Table) == 0))
 
 ```
 
