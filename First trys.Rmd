@@ -38,9 +38,11 @@ rownames(First) # Proteinnames
 #Rowmeans
 rowMeans(First)
 which(rowMeans(MS_Table) == 0) #nur eine Zeile ohne Werte
-which( colMeans(MS_Table) == 0)
-class (which( colMeans(MS_Table) == 0))
 
+```
+```{r}
+#colmeans 
+which(colMeans(MS_Table) == 0)
 ```
 
 ```{r}
@@ -58,3 +60,71 @@ min (MS_Table, na.rm = TRUE)
 max(MS_Table, na.rm = TRUE)
 
 ```
+
+```{r}
+#reorganise the coulums
+# if necessary install.packages("tidyverse")
+library(tidyverse)
+# Controll
+HeLa_Ctrl = MS_Table %>% select(contains("Ctrl")) 
+HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
+HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
+HeLa_Ctrl3 = HeLa_Ctrl %>% select(contains("Rep3"))
+
+# RNAse
+HeLa_RNAse = MS_Table %>% select(contains("RNA"))
+HeLa_ordered = data.frame(HeLa_Ctrl, HeLa_RNAse)
+HeLa_RNAse1 = HeLa_RNAse %>% select(contains("Rep1"))
+HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
+HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
+
+```
+
+```{r}
+range(HeLa_Ctrl, na.rm = TRUE)
+
+range(HeLa_RNAse, na.rm = TRUE)
+``` 
+
+```{r}
+# Indices
+indices <-c(1:25)
+
+# Plot first protein in DataFrame
+
+plot(x = indices, y = HeLa_Ctrl1[1,], type = 'l', col = 'darkgreen')
+  lines(x = indices, y = HeLa_RNAse1 [1,], type = 'l', col = 'red')
+  legend(x = "topright",                      # Position
+       legend = c("ctrl", "RNase"),           # Legend texts
+       col = c('darkgreen', 'red'),           # Line colors
+       lwd = 2)                               # Line width
+```
+
+```{r}
+# Plot first ten proteins in DataFrame
+
+for(i in c(1:10)) {
+  plot(x = indices, y = HeLa_Ctrl1[i,], type = 'l', col = 'darkgreen')
+  lines(x = indices, y = HeLa_RNAse1[i,], type = 'l', col = 'red')
+  legend(x = "topright",
+       legend = c("ctrl", "RNase"),
+       col = c('darkgreen', 'red'),
+       lwd = 2)                   
+}
+```
+
+--> Within the first ten there appears to be no shifting protein as the curves seem almost identical upon first glance
+
+
+## Plotting a "sure" shift protein
+
+```{r}
+plot(x = indices, y = HeLa_Ctrl1["SIN3A",], type = 'l', col = 'darkgreen')
+  lines(x = indices, y = HeLa_RNAse1["SIN3A",], type = 'l', col = 'red')
+  legend(x = "topright",                      
+       legend = c("ctrl", "RNase"),         
+       col = c('darkgreen', 'red'),           
+       lwd = 2)                              
+```
+--> Shift is visible, although quite wonky ;)
+--> It becomes evident that normalization is needed (compare Fig 3 Maiwen Molecular Cell)!
