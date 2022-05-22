@@ -16,15 +16,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 #load the data
-MS_Table <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
-First <- MS_Table[1:10,]
+Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+First <- Raw_data[1:10,]
 First #first 10 rows
 ```
 
 ```{r}
 #Dimension and Class
-dim(MS_Table)
-class(MS_Table)
+dim(Raw_data)
+class(Raw_data)
 range(MS_Table)
 ```
 
@@ -50,8 +50,39 @@ which(colMeans(MS_Table) == 0)
 First[First == 0] <- NA
 summary(First)
 First
-MS_Table[MS_Table == 0] <- NA
+Data_NA = MS_Table[MS_Table == 0] <- NA
 ```
+```{r}
+#something like fraction
+HeLa_Fractions  <- Raw_data[- trash, ]
+
+
+Fraction1_Ctrl <- HeLa_Fractions[,1:3]
+Fraction1_RNAse <- HeLa_Fractions[,4:6]
+Fraction2_Ctrl <- HeLa_Fractions[,7:9]
+Fraction2_RNAse <- HeLa_Fractions[,10:12]
+Fraction3_Ctrl <- HeLa_Fractions[,13:15]
+Fraction3_RNAse <- HeLa_Fractions[,16:18]
+Fraction4_Ctrl <- HeLa_Fractions[,19:21]
+Fraction4_RNAse <- HeLa_Fractions[,22:24]
+Fraction5_Ctrl <- HeLa_Fractions[,25:27]
+Fraction6_RNAse <- HeLa_Fractions[,28:30]
+Fraction6_Ctrl <- HeLa_Fractions[,31:33]
+Fraction7_RNAse <- HeLa_Fractions[,34:36]
+Fraction7_Ctrl <- HeLa_Fractions[,37:39]
+Fraction14_RNAse <- HeLa_Fractions[,40:42]
+Fraction15_Ctrl <- HeLa_Fractions[,43:45]
+Fraction16_RNAse <- HeLa_Fractions[,46:48]
+Fraction17_Ctrl <- HeLa_Fractions[,49:51]
+Fraction18_RNAse <- HeLa_Fractions[,52:54]
+Fraction19_Ctrl <- HeLa_Fractions[,55:57]
+Fraction20_RNAse <- HeLa_Fractions[,58:60]
+Fraction21_Ctrl <- HeLa_Fractions[,61:63]
+Fraction22_RNAse <- HeLa_Fractions[,64:66]
+Fraction23_Ctrl <- HeLa_Fractions[,67:69]
+Fraction24_RNAse <- HeLa_Fractions[,70:72]
+Fraction25_Ctrl <- HeLa_Fractions[,73:75]
+````
 
 
 ```{r}
@@ -128,3 +159,9 @@ plot(x = indices, y = HeLa_Ctrl1["SIN3A",], type = 'l', col = 'darkgreen')
 ```
 --> Shift is visible, although quite wonky ;)
 --> It becomes evident that normalization is needed (compare Fig 3 Maiwen Molecular Cell)!
+
+```{r}
+which(colMeans(HeLa_RNAse) == 0)
+which(colMeans(HeLa_Ctrl) == 0)
+````
+## Dataset with Na safe with different name otherwise named integer
