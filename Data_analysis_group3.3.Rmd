@@ -9,8 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-#Frage: Falls das jemand über einen Link oder mit ~ hinbekommt
+###Raw data
+```{r label = Load the Data}
+#Frage: Falls das jemand über einen Link oder mit ~ hinbekommt, ansonsten Niklas 
 
 #load the data
 Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
@@ -30,7 +31,9 @@ colnames(Raw_data) # Fractions
 rownames(First) # Proteinnames
 ```
 
-```{r}
+###Normalisation
+
+```{r label = reorganise coulums}
 #reorganise the coulums
 # if necessary install.packages("tidyverse")
 library(tidyverse)
@@ -49,7 +52,8 @@ HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
 HeLa_ordered = data.frame(HeLa_Ctrl1,HeLa_RNAse1, HeLa_Ctrl2, HeLa_RNAse2, HeLa_Ctrl3, HeLa_RNAse3) # crtl, RNAse
 ```
 
-```{r}
+
+```{r label = rows of 0}
 # Rows of 0
 which(rowMeans(Raw_data) == 0) #nur eine Zeile komplett ohne Werte
 which(rowMeans(HeLa_RNAse) == 0) #2 Reihen ohne Werte
@@ -67,7 +71,11 @@ dim(HeLa_cleaned) #dataset without rows of 0
 
 ```
 
-```{r}
+```{r NA}
+HeLa_cleaned_NA [HeLa_cleaned == 0] <- NA
+```
+
+```{r label = clean up}
 #clean up datasets
 # Controll
 HeLa_Ctrl = HeLa_cleaned %>% select(contains("Ctrl")) 
@@ -82,7 +90,8 @@ HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
 HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
 ```
 
-```{r}
+
+```{r label = Fractions}
 #select the fractions
 HeLa_Fractions  <- Raw_data[- trash, ]
 
@@ -164,7 +173,7 @@ Fraction25_RNAse <- HeLa_Fractions[,148:150]
 
 ```
 
-```{r}
+```{r mean}
 #mean 
 mean_bestof3 <- function(x) {
 				if( (abs(x[1]-x[2])<abs(x[1]-x[3])) && (abs(x[1]-x[2])<abs(x[2]-x[3])) ) {
@@ -244,7 +253,7 @@ mean_RNAse25 <- apply(Fraction25_RNAse, 1,mean_bestof3)
 mean_HeLa <- data.frame(mean_Ctrl1, mean_RNAse1, mean_Ctrl2, mean_RNAse2, mean_Ctrl3,mean_RNAse3, mean_Ctrl4, mean_RNAse4,  mean_Ctrl5, mean_RNAse5, mean_Ctrl6, mean_RNAse6, mean_Ctrl7, mean_RNAse7, mean_Ctrl8, mean_RNAse8, mean_Ctrl9, mean_RNAse9, mean_Ctrl10, mean_RNAse10, mean_Ctrl11, mean_RNAse11, mean_Ctrl12, mean_RNAse12, mean_Ctrl13, mean_RNAse13, mean_Ctrl14, mean_RNAse14, mean_Ctrl15, mean_RNAse15, mean_Ctrl16, mean_RNAse16, mean_Ctrl17, mean_RNAse17, mean_Ctrl18, mean_RNAse18, mean_Ctrl19, mean_RNAse19, mean_Ctrl20, mean_RNAse20, mean_Ctrl21, mean_RNAse21, mean_Ctrl22, mean_RNAse22, mean_Ctrl23, mean_RNAse23, mean_Ctrl24, mean_RNAse24, mean_Ctrl25, mean_RNAse25)
 ```
 
-```{r}
+```{r sd}
 #Standardabweichung berechnen
 sd_Ctrl1 <- apply(Fraction1_Ctrl, 1,sd)
 sd_Ctrl2 <- apply(Fraction2_Ctrl, 1,sd)
@@ -319,9 +328,11 @@ sd_HeLa <- data.frame(sd_Ctrl1, sd_RNAse1, sd_Ctrl2, sd_RNAse2, sd_Ctrl3,sd_RNAs
 ##Frage2: ist es überhaupt sinnvoll die raus zu werfen wenn wir die "Ausreiserprobe" rausgeworfen haben?
 ```
 
-```{r}
-#Skallieren/ in Prozente umrechnen
-#Anmerkung: Das ist das was wir unter normieren gelistet hatten  Proteinamount/RowSum
-#Falls jemand Zeit hat kann er/sie sich da gerne ransetzten wenn nicht versuch ichs Mo mal
+```{r Anteile}
+
+proportions <- apply(mean_HeLa, 1, proportions)
+
+#Frage: warum dreht es die Matrix bei der Funktion 
+
 ```
 #Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
