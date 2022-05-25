@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #Frage: Falls das jemand über einen Link oder mit ~ hinbekommt, ansonsten Niklas 
 
 #load the data
-Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+Raw_data <- read.table("/Users/maike/Desktop/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 First <- Raw_data[1:10,]
 First #first 10 rows
 ```
@@ -72,7 +72,7 @@ dim(HeLa_cleaned) #dataset without rows of 0
 ```
 
 ```{r NA}
-HeLa_cleaned_NA [HeLa_cleaned == 0] <- NA
+HeLa_cleaned_NA[HeLa_cleaned == 0] <- NA
 ```
 
 ```{r label = clean up}
@@ -336,3 +336,32 @@ proportions <- apply(mean_HeLa, 1, proportions)
 
 ```
 #Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
+
+```{r maxima}
+#absolute/global maxima
+#hier muss proportions noch in 2 Matrizen aufgeteilt werden (Ctrl und RNAse) und der Code dann auf beide angewendet werden
+#HeLa_Ctrl_prop = proportions %>% select(contains("Ctrl"))
+#HeLa_Ctrl_RNAse = proportions %>% select(contains("RNAse"))
+absolute_max <- apply(proportions, 2, max)
+absolute_max
+
+#local maxima
+find_peaks <- function (x, m = 3){
+     shape <- diff(sign(diff(x, na.pad = FALSE)))
+     pks <- sapply(which(shape < 0), FUN = function(i){
+        z <- i - m + 1
+        z <- ifelse(z > 0, z, 1)
+        w <- i + m + 1
+        w <- ifelse(w < length(x), w, length(x))
+        if(all(x[c(z : i, (i + 2) : w)] <= x[i + 1])) return(i + 1) else return(numeric(0))
+    })
+     pks <- unlist(pks)
+     pks
+}
+
+```
+```{r}
+local_max <- apply(proportions, 2, find_peaks)
+local_max
+```
+
