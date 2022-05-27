@@ -367,7 +367,7 @@ proportions <- apply(mean_HeLa, 1, proportions)
 
 #Frage: warum dreht es die Matrix bei der Funktion 
 
-```
+
 Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
 
 
