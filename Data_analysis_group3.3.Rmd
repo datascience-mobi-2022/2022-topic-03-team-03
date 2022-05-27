@@ -220,9 +220,9 @@ mean_bestof3 <- function(x) {
 
 mean_20 <- function(x) {
               mean <- mean(x)
-             if (abs(x[1] - mean) > 0.7 * mean) { x[1] <- NA}
-              if (abs(x[2] - mean) > 0.7 * mean) { x[2] <- NA}
-       if (abs(x[3] - mean) > 0.7 * mean) { x[3] <- NA}
+             if (abs(x[1] - mean) > 0.2 * mean) { x[1] <- NA}
+              if (abs(x[2] - mean) > 0.2 * mean) { x[2] <- NA}
+       if (abs(x[3] - mean) > 0.2 * mean) { x[3] <- NA}
           
                 mean(x, na.rm = TRUE) }
 ```
