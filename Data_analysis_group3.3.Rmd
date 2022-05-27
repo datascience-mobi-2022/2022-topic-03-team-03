@@ -11,10 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ###Raw data
 ```{r label = Load the Data}
-#Frage: Falls das jemand über einen Link oder mit ~ hinbekommt, ansonsten Niklas 
 
 #load the data
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+
 First <- Raw_data[1:10,]
 First #first 10 rows
 ```
@@ -27,8 +27,8 @@ range(Raw_data)
 
 ```{r}
 #Col and Rownames 
-colnames(Raw_data) # Fractions
-rownames(First) # Proteinnames
+colNames <- colnames(Raw_data) # Fractions
+rowNames <- rownames(First) # Proteinnames
 ```
 
 ###Normalisation
@@ -55,9 +55,9 @@ HeLa_ordered = data.frame(HeLa_Ctrl1,HeLa_RNAse1, HeLa_Ctrl2, HeLa_RNAse2, HeLa_
 
 ```{r label = rows of 0}
 # Rows of 0
-which(rowMeans(Raw_data) == 0) #nur eine Zeile komplett ohne Werte
-which(rowMeans(HeLa_RNAse) == 0) #2 Reihen ohne Werte
-which(rowMeans(HeLa_Ctrl) == 0)# 4Reihen ohne Werte
+# which(rowMeans(Raw_data) == 0) #nur eine Zeile komplett ohne Werte
+# which(rowMeans(HeLa_RNAse) == 0) #2 Reihen ohne Werte
+# which(rowMeans(HeLa_Ctrl) == 0)# 4Reihen ohne Werte
 trash <- c(which(rowMeans(HeLa_Ctrl) == 0),which(rowMeans(HeLa_RNAse) == 0))
 trash <- trash[-5] #kommt in beiden Reihen vor 
 trash # 5 Proteine die wir nicht nutzen können
@@ -71,8 +71,11 @@ dim(HeLa_cleaned) #dataset without rows of 0
 ```
 
 ```{r NA}
+
 HeLa_cleaned_NA <- HeLa_cleaned # make a copy
 HeLa_cleaned_NA[HeLa_cleaned_NA == 0] <- NA # Replace 0 with NA
+# HeLa_cleaned_NA[HeLa_cleaned == 0] <- NA
+
 ```
 
 ```{r label = clean up}
@@ -90,10 +93,40 @@ HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
 HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
 ```
 
+```{r Anteile}
+#Rowpercent
+ rowPercent <- function(dataframe){
+     dt <- dataframe
+     lastrow <- dim(dataframe)[1]
+     for(i in 1:lastrow){
+         RowSum <- rowSums (dataframe[i,])
+         dt[i,] <- (dataframe[i,]/RowSum)*100      
+     }
+     return(dt)
+ }
+
+#Colpercent
+colPercent <- function(dataframe){
+     dt <- dataframe
+     lastcol <- dim(dataframe)[2]
+     for(i in 1:lastcol){
+         ColSum <- colSums (dataframe[,i, drop = FALSE])
+         dt[,i] <- (dataframe[,i]/ColSum)*100      
+     }
+     return(dt)
+ }
+```
+
+```{r}
+#Spalten normalisieren
+
+Norm_HeLa <- colPercent(HeLa_cleaned)
+
+```
 
 ```{r label = Fractions}
 #select the fractions
-HeLa_Fractions  <- Raw_data[- trash, ]
+HeLa_Fractions  <- Norm_HeLa
 
 
 Fraction1_Ctrl <- HeLa_Fractions[,1:3]
@@ -328,8 +361,8 @@ sd_HeLa <- data.frame(sd_Ctrl1, sd_RNAse1, sd_Ctrl2, sd_RNAse2, sd_Ctrl3,sd_RNAs
 ##Frage2: ist es überhaupt sinnvoll die raus zu werfen wenn wir die "Ausreiserprobe" rausgeworfen haben?
 ```
 
-```{r Anteile}
 
+<<<<<<< HEAD
 proportions <- apply(mean_HeLa, 1, proportions)
 
 #Frage: warum dreht es die Matrix bei der Funktion 
@@ -453,3 +486,5 @@ apply(mean_HeLa[1:10,], 1, hist)
 The histograms of the first ten proteins show that lower protein concentrations are by far more prominent than greater content. However, sometimes greater values are observed that will probably account for the maxima.
 
 
+=======
+>>>>>>> 7e781383ba689b3a6300c85a4ac9860848874035
