@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #Frage: Falls das jemand über einen Link oder mit ~ hinbekommt, ansonsten Niklas 
 
 #load the data
-Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 First <- Raw_data[1:10,]
 First #first 10 rows
 ```
@@ -68,11 +68,11 @@ trash # 5 Proteine die wir nicht nutzen können
 #remove failed proteins
 HeLa_cleaned <- HeLa_ordered[- trash, ]
 dim(HeLa_cleaned) #dataset without rows of 0
-
 ```
 
 ```{r NA}
-HeLa_cleaned_NA [HeLa_cleaned == 0] <- NA
+HeLa_cleaned_NA <- HeLa_cleaned # make a copy
+HeLa_cleaned_NA[HeLa_cleaned_NA == 0] <- NA # Replace 0 with NA
 ```
 
 ```{r label = clean up}
@@ -335,4 +335,121 @@ proportions <- apply(mean_HeLa, 1, proportions)
 #Frage: warum dreht es die Matrix bei der Funktion 
 
 ```
-#Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
+Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
+
+
+
+## Checking on the normalization
+
+Next, the results of the clean-up were compared. We plotted the data pre- and post-normalization for six proteins. Three of which were sure "shifters" and three that were found not to be RNA-dependent.
+
+"Shifters": SIN3A (transcriptional repressor), HDAC1 (Histone deacetylase 1), HNRPU (Heterogeneous nuclear ribonucleoprotein U)
+
+"Non-shifters": ASNS (Asparagine synthetase), MCM2 (DNA replication licensing factor MCM2), MCM3 (DNA replication licensing factor MCM3)
+
+```{r Comparing pre- and post-normalization}
+fraction_index <- c(1:25)
+test_vect1r <- runif(25, 0, 10000)
+test_vect1c <- runif(25, 0, 10000)
+test_vect2r <- runif(25, 0, 0.4)
+test_vect2c <- runif(25, 0, 0.4)
+
+# Repeat the following code block for the six test proteins ctrl vs RNase and pre vs post normalization
+
+par(mfrow = c(1,2))
+
+plot(fraction_index, test_vect1c, type = 'l', col = 'forestgreen',
+     xlab = "Fractions",
+     ylab = "Protein amount [arbitrary unit]",
+     ylim = c(0,10000))
+  lines(x = fraction_index, y = test_vect1r, type = 'l', col = 'firebrick2')
+  legend(x = "topright",                      # Position
+       legend = c("ctrl", "RNase"),           # Legend texts
+       col = c('darkgreen', 'red'),           # Line colors
+       lwd = 2)                               # Line width
+
+plot(fraction_index, test_vect2c, type = 'l', col = 'forestgreen',
+     xlab = "Fractions",
+     ylab = "Protein amount [%]",
+     ylim = c(0,0.7))
+  lines(x = fraction_index, y = test_vect2r, type = 'l', col = 'firebrick2')
+  legend(x = "topright",            
+       legend = c("ctrl", "RNase"),           
+       col = c('darkgreen', 'red'),         
+       lwd = 2) 
+```
+The scale should represent percentages now with the area under the curve equaling 1. Furthermore, peaks should become more visible as well as first "shifts".
+
+
+## Test if data is normally distributed
+
+### Shapiro-Wilk test
+
+- n should be greater than 3 and no greater than 5000 (we are looking at 150 values per protein)
+- in the sample there shouldn't be identical values (exclude from test)
+- H0 says that the data is normally distributed
+- significance level α = 5 % --> H0 is rejected, if p < α
+
+```{r Shapiro-Wilk test on raw data}
+# Calculate p-values per row (per protein)
+shapiro_testing <- function(x) {
+  if (diff(range(x)) == 0) 
+      list()
+  else shapiro.test(x)
+}
+
+Raw_data_shapiro <- apply(Raw_data, 1, shapiro_testing)
+
+# Create vector of p-values
+shapiro_p_raw <- unlist(lapply(Raw_data_shapiro, function(x) {x$p.value}))
+
+# Look at mean p-value
+mean(shapiro_p_raw)
+```
+
+And now for the cleaned data
+
+```{r Shapiro wilk test on cleaned data}
+# Calculate p-values per row (per protein)
+Cleaned_data_shapiro <- apply(mean_HeLa, 1, shapiro_testing)
+
+# Create vector of p-values
+shapiro_p_clean <- unlist(lapply(Cleaned_data_shapiro, function(x) {x$p.value}))
+
+# Look at mean p-value
+mean(shapiro_p_clean)
+```
+
+Following the Shapiro-Wilk test, the data is found to be *not normally distributed*. This shall be challenged by further tests.
+
+### Graph via qqplot
+
+```{r qqplot on raw data}
+# Function for qqplot and 
+qqplot_line <-  function(x) {
+  qqnorm(x)
+  qqline(x, col ="red")
+}
+
+# Plot first ten proteins
+apply(Raw_data[1:10,], 1, qqplot_line)
+```
+
+```{r qqplot on cleaned data}
+# Plot first ten proteins
+apply(mean_HeLa[1:10,], 1, qqplot_line)
+```
+A look at the first ten rows (proteins) of the dataset shows that especially for the first and last quantiles, the data and theoretical normally distributed values aren't in allignment. Therefore this test suggests, that the data is *not normally distributed*. 
+
+### Histogramm
+
+```{r histogramm for raw data}
+apply(Raw_data[1:10,], 1, hist)
+```
+
+```{r histogramm for cleaned data}
+apply(mean_HeLa[1:10,], 1, hist)
+```
+The histograms of the first ten proteins show that lower protein concentrations are by far more prominent than greater content. However, sometimes greater values are observed that will probably account for the maxima.
+
+
