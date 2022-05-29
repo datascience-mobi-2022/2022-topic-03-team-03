@@ -131,7 +131,29 @@ Norm_Ctrl_3 <- rowPercent(HeLa_Ctrl3)
 Norm_RNAse_1 <- rowPercent(HeLa_RNAse1)
 Norm_RNAse_2 <- rowPercent(HeLa_RNAse2)
 Norm_RNAse_3 <- rowPercent(HeLa_RNAse3)
+
 ```
+
+```{r}
+Norm_HeLa <- data.frame(Norm_Ctrl_1, Norm_Ctrl_2, Norm_Ctrl_3, Norm_RNAse_1, Norm_RNAse_2, Norm_RNAse_3)
+# vector <- for (i in 0:24 ) {
+           a <- 1 +i
+          b <- 26 +i
+         c <- 51 +i 
+         d <- 76 + i
+          e <- 101 + i 
+         f <- 126 + i
+      print(a)
+      print(b)
+      print(c)
+      print(d)
+      print(e)
+      print(f)}
+
+vector <- c(1, 26, 51, 76, 101, 126, 2, 27, 52, 77, 102, 127, 3, 28, 53, 78, 103, 128, 4, 29, 54, 79, 104, 129, 5, 30, 55, 80, 105, 130, 6, 31, 56, 81, 106, 131, 7, 32, 57, 82, 107, 132, 8, 33, 58, 83, 108, 133, 9, 34, 59, 84, 109, 134, 10, 35, 60, 85, 110, 135, 11, 36, 61, 86, 111, 136, 12, 37, 62, 87, 112, 137, 13, 38, 63, 88, 113, 138, 14, 39, 64, 89, 114, 139, 15, 40, 65, 90, 115, 140, 16, 41, 66, 91, 116, 141, 17, 42, 67, 92, 117, 142, 18, 43, 68, 93, 118, 143, 19, 44, 69, 94, 119, 144, 20, 45, 70, 95, 120, 145, 21, 46, 71, 96, 121, 146, 22, 47, 72, 97, 122, 147, 23, 48, 73, 98, 123, 148, 24, 49, 74, 99, 124, 149, 25, 50, 75, 100, 125, 150)
+
+Norm_HeLa <- Norm_HeLa[ , vector]
+``` 
 
 ```{r label = Fractions}
 #select the fractions
