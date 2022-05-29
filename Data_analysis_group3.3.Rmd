@@ -317,10 +317,10 @@ out3 # Fraktionen die wir so raus kicken
 ```{r label = clean up}
 #clean up datasets
 # Control
-HeLa_Ctrl = mean_HeLa %>% select(contains("Ctrl")) 
+HeLa_Ctrl_mean = mean_HeLa %>% select(contains("Ctrl")) 
 
 # RNAse
-HeLa_RNAse = mean_HeLa %>% select(contains("RNA"))
+HeLa_RNAse_mean = mean_HeLa %>% select(contains("RNA"))
 
 ```
 
@@ -405,35 +405,56 @@ Next, the results of the clean-up were compared. We plotted the data pre- and po
 
 ```{r Comparing pre- and post-normalization}
 fraction_index <- c(1:25)
-test_vect1r <- runif(25, 0, 10000)
-test_vect1c <- runif(25, 0, 10000)
-test_vect2r <- runif(25, 0, 0.4)
-test_vect2c <- runif(25, 0, 0.4)
 
 # Repeat the following code block for the six test proteins ctrl vs RNase and pre vs post normalization
 
-par(mfrow = c(1,2))
+# Function to create comparison plots
 
-plot(fraction_index, test_vect1c, type = 'l', col = 'forestgreen',
-     xlab = "Fractions",
-     ylab = "Protein amount [arbitrary unit]",
-     ylim = c(0,10000))
-  lines(x = fraction_index, y = test_vect1r, type = 'l', col = 'firebrick2')
-  legend(x = "topright",                      # Position
+compare_pre_post <- function(protein, y_limit_pre, y_limit_post) {
+
+  par(mfrow = c(1,2))
+
+  plot(fraction_index, HeLa_Ctrl1[protein,], type = 'l', col = 'forestgreen', # Control pre
+      xlab = "Fractions",
+      ylab = "Protein amount [arbitrary unit]",
+      ylim = c(0,y_limit_pre),
+      main = paste(protein, "pre-normalization"))
+   lines(x = fraction_index, y = HeLa_RNAse1[protein,], type = 'l', col = 'firebrick2') # RNase pre
+   legend(x = "topright",                      # Position
        legend = c("ctrl", "RNase"),           # Legend texts
-col = c('darkgreen', 'red'),           # Line colors
+  col = c('darkgreen', 'red'),           # Line colors
        lwd = 2)                               # Line width
 
-plot(fraction_index, test_vect2c, type = 'l', col = 'forestgreen',
+  plot(fraction_index, HeLa_Ctrl_mean[protein,], type = 'l', col = 'forestgreen', # Control post
      xlab = "Fractions",
-     ylab = "Protein amount [%]",
-     ylim = c(0,0.7))
-  lines(x = fraction_index, y = test_vect2r, type = 'l', col = 'firebrick2')
+     ylab = "Protein amount",
+     ylim = c(0,y_limit_post),
+     main = paste(protein, "post-normalization"))
+  lines(x = fraction_index, y = HeLa_RNAse_mean[protein,], type = 'l', col = 'firebrick2') # RNase post
   legend(x = "topright",            
        legend = c("ctrl", "RNase"),           
        col = c('darkgreen', 'red'),         
        lwd = 2) 
+}
 ```
+
+Now we will apply the function to our selection of proteins:
+
+```{r}
+# Shifters
+compare_pre_post("SIN3A_HUMAN", 3500000, 0.1) #SIN3A
+compare_pre_post("HDAC1_HUMAN", 6000000, 0.11) #HDAC1
+compare_pre_post("HDAC2_HUMAN", 6500000, 0.15) #HDAC2
+compare_pre_post("RFC2_HUMAN", 2500000, 0.05) #UPF1
+
+# Non-Shifters
+compare_pre_post("ASNS_HUMAN", 2500000, 0.02) #ASNS
+compare_pre_post("MCM2_HUMAN", 15000000, 0.5) #MCM2
+compare_pre_post("MCM3_HUMAN", 17000000, 0.3) #MCM3
+
+```
+
+
 The scale should represent percentages now with the area under the curve equaling 1. Furthermore, peaks should become more visible as well as first "shifts".
 
 
