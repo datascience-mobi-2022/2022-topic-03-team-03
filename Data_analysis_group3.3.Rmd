@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #Frage: Falls das jemand über einen Link oder mit ~ hinbekommt, ansonsten Niklas 
 
 #load the data
-Raw_data <- read.table("/Users/maike/Desktop/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 First <- Raw_data[1:10,]
 First #first 10 rows
 ```
@@ -31,13 +31,13 @@ colnames(Raw_data) # Fractions
 rownames(First) # Proteinnames
 ```
 
-###Normalisation
+###Normalization
 
 ```{r label = reorganise coulums}
-#reorganise the coulums
+#reorganize the coulumns
 # if necessary install.packages("tidyverse")
 library(tidyverse)
-# Controll
+# Control
 HeLa_Ctrl = Raw_data %>% select(contains("Ctrl")) 
 HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
 HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
@@ -72,12 +72,13 @@ dim(HeLa_cleaned) #dataset without rows of 0
 ```
 
 ```{r NA}
-HeLa_cleaned_NA[HeLa_cleaned == 0] <- NA
+HeLa_cleaned_NA <- HeLa_cleaned # make a copy
+HeLa_cleaned_NA[HeLa_cleaned_NA == 0] <- NA # Replace 0 with NA
 ```
 
 ```{r label = clean up}
 #clean up datasets
-# Controll
+# Control
 HeLa_Ctrl = HeLa_cleaned %>% select(contains("Ctrl")) 
 HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
 HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
@@ -184,73 +185,100 @@ mean_bestof3 <- function(x) {
 
 ```
 
+
+```{r}
+# 20% Mean Function
+mean_20 <- function(x) {
+              mean <- mean(x)
+             if (abs(x[1] - mean) > 0.2 * mean) { x[1] <- NA}
+              if (abs(x[2] - mean) > 0.2 * mean) { x[2] <- NA}
+       if (abs(x[3] - mean) > 0.2 * mean) { x[3] <- NA}
+          
+                mean(x, na.rm = TRUE) }
+```
+
+```{r Standardabweichung}
+# Use sd to single out outliers
+
+mean_sd <- function(x) {
+        m <- mean(x)
+        s <- sd(x)
+       for (i in 1:3)
+        if (( (m - 3 * s) > x[i]) || ((m + 3 * s) < x[i])) { x[i] <- NA}
+ mean(x, na.rm =TRUE) }
+        
+   
+
+ Test <- Fraction1_Ctrl[1:5,]
+ Mean_Test <- apply(Test, 1, mean_sd)
+ Mean_Test
+```
+
+
+
 ```{r}
 #Mittelwerte berechnen
 
-mean_Ctrl1 <- apply(Fraction1_Ctrl, 1,mean_bestof3)
-mean_Ctrl2 <- apply(Fraction2_Ctrl, 1,mean_bestof3)
-mean_Ctrl3 <- apply(Fraction3_Ctrl, 1,mean_bestof3)
-mean_Ctrl4 <- apply(Fraction4_Ctrl, 1,mean_bestof3)
-mean_Ctrl5 <- apply(Fraction5_Ctrl, 1,mean_bestof3)
+mean_Ctrl1 <- apply(Fraction1_Ctrl, 1,mean_sd)
+mean_Ctrl2 <- apply(Fraction2_Ctrl, 1,mean_sd )
+mean_Ctrl3 <- apply(Fraction3_Ctrl, 1,mean_sd )
+mean_Ctrl4 <- apply(Fraction4_Ctrl, 1,mean_sd )
+mean_Ctrl5 <- apply(Fraction5_Ctrl, 1,mean_sd)
+mean_Ctrl6 <- apply(Fraction6_Ctrl, 1,mean_sd)
+mean_Ctrl7 <- apply(Fraction7_Ctrl, 1,mean_sd)
+mean_Ctrl8 <- apply(Fraction8_Ctrl, 1,mean_sd)
+mean_Ctrl9 <- apply(Fraction9_Ctrl, 1,mean_sd)
+mean_Ctrl10 <- apply(Fraction10_Ctrl, 1, mean_sd)
+mean_Ctrl11 <- apply(Fraction11_Ctrl, 1,mean_sd)
+mean_Ctrl12 <- apply(Fraction12_Ctrl, 1,mean_sd)
+mean_Ctrl13 <- apply(Fraction13_Ctrl, 1,mean_sd)
+mean_Ctrl14 <- apply(Fraction14_Ctrl, 1,mean_sd)
+mean_Ctrl15 <- apply(Fraction15_Ctrl, 1,mean_sd)
+mean_Ctrl16 <- apply(Fraction16_Ctrl, 1,mean_sd)
+mean_Ctrl17 <- apply(Fraction17_Ctrl, 1,mean_sd)
+mean_Ctrl18 <- apply(Fraction18_Ctrl, 1,mean_sd)
+mean_Ctrl19 <- apply(Fraction19_Ctrl, 1,mean_sd)
+mean_Ctrl20 <- apply(Fraction20_Ctrl, 1,mean_sd)
+mean_Ctrl21 <- apply(Fraction21_Ctrl, 1,mean_sd)
+mean_Ctrl22 <- apply(Fraction22_Ctrl, 1,mean_sd)
+mean_Ctrl23 <- apply(Fraction23_Ctrl, 1,mean_sd)
+mean_Ctrl24 <- apply(Fraction24_Ctrl, 1,mean_sd)
+mean_Ctrl25 <- apply(Fraction25_Ctrl, 1,mean_sd)
 
-mean_Ctrl6 <- apply(Fraction6_Ctrl, 1,mean_bestof3)
-mean_Ctrl7 <- apply(Fraction7_Ctrl, 1,mean_bestof3)
-mean_Ctrl8 <- apply(Fraction8_Ctrl, 1,mean_bestof3)
-mean_Ctrl9 <- apply(Fraction9_Ctrl, 1,mean_bestof3)
-mean_Ctrl10 <- apply(Fraction10_Ctrl, 1,mean_bestof3)
-
-mean_Ctrl11 <- apply(Fraction11_Ctrl, 1,mean_bestof3)
-mean_Ctrl12 <- apply(Fraction12_Ctrl, 1,mean_bestof3)
-mean_Ctrl13 <- apply(Fraction13_Ctrl, 1,mean_bestof3)
-mean_Ctrl14 <- apply(Fraction14_Ctrl, 1,mean_bestof3)
-mean_Ctrl15 <- apply(Fraction15_Ctrl, 1,mean_bestof3)
-
-mean_Ctrl16 <- apply(Fraction16_Ctrl, 1,mean_bestof3)
-mean_Ctrl17 <- apply(Fraction17_Ctrl, 1,mean_bestof3)
-mean_Ctrl18 <- apply(Fraction18_Ctrl, 1,mean_bestof3)
-mean_Ctrl19 <- apply(Fraction19_Ctrl, 1,mean_bestof3)
-mean_Ctrl20 <- apply(Fraction20_Ctrl, 1,mean_bestof3)
-
-mean_Ctrl21 <- apply(Fraction21_Ctrl, 1,mean_bestof3)
-mean_Ctrl22 <- apply(Fraction22_Ctrl, 1,mean_bestof3)
-mean_Ctrl23 <- apply(Fraction23_Ctrl, 1,mean_bestof3)
-mean_Ctrl24 <- apply(Fraction24_Ctrl, 1,mean_bestof3)
-mean_Ctrl25 <- apply(Fraction25_Ctrl, 1,mean_bestof3)
-
-
-
-mean_RNAse1 <- apply(Fraction1_RNAse, 1,mean_bestof3)
-mean_RNAse2 <- apply(Fraction2_RNAse, 1,mean_bestof3)
-mean_RNAse3 <- apply(Fraction3_RNAse, 1,mean_bestof3)
-mean_RNAse4 <- apply(Fraction4_RNAse, 1,mean_bestof3)
-mean_RNAse5 <- apply(Fraction5_RNAse, 1,mean_bestof3)
-
-mean_RNAse6 <- apply(Fraction6_RNAse, 1,mean_bestof3)
-mean_RNAse7 <- apply(Fraction7_RNAse, 1,mean_bestof3)
-mean_RNAse8 <- apply(Fraction8_RNAse, 1,mean_bestof3)
-mean_RNAse9 <- apply(Fraction9_RNAse, 1,mean_bestof3)
-mean_RNAse10 <- apply(Fraction10_RNAse, 1,mean_bestof3)
-
-mean_RNAse11 <- apply(Fraction11_RNAse, 1,mean_bestof3)
-mean_RNAse12 <- apply(Fraction12_RNAse, 1,mean_bestof3)
-mean_RNAse13 <- apply(Fraction13_RNAse, 1,mean_bestof3)
-mean_RNAse14 <- apply(Fraction14_RNAse, 1,mean_bestof3)
-mean_RNAse15 <- apply(Fraction15_RNAse, 1,mean_bestof3)
-
-mean_RNAse16 <- apply(Fraction16_RNAse, 1,mean_bestof3)
-mean_RNAse17 <- apply(Fraction17_RNAse, 1,mean_bestof3)
-mean_RNAse18 <- apply(Fraction18_RNAse, 1,mean_bestof3)
-mean_RNAse19 <- apply(Fraction19_RNAse, 1,mean_bestof3)
-mean_RNAse20 <- apply(Fraction20_RNAse, 1,mean_bestof3)
-
-mean_RNAse21 <- apply(Fraction21_RNAse, 1,mean_bestof3)
-mean_RNAse22 <- apply(Fraction22_RNAse, 1,mean_bestof3)
-mean_RNAse23 <- apply(Fraction23_RNAse, 1,mean_bestof3)
-mean_RNAse24 <- apply(Fraction24_RNAse, 1,mean_bestof3)
-mean_RNAse25 <- apply(Fraction25_RNAse, 1,mean_bestof3)
+mean_RNAse1 <- apply(Fraction1_RNAse, 1,mean_sd)
+mean_RNAse2 <- apply(Fraction2_RNAse, 1,mean_sd)
+mean_RNAse3 <- apply(Fraction3_RNAse, 1,mean_sd)
+mean_RNAse4 <- apply(Fraction4_RNAse, 1,mean_sd)
+mean_RNAse5 <- apply(Fraction5_RNAse, 1,mean_sd)
+mean_RNAse6 <- apply(Fraction6_RNAse, 1,mean_sd)
+mean_RNAse7 <- apply(Fraction7_RNAse, 1,mean_sd)
+mean_RNAse8 <- apply(Fraction8_RNAse, 1,mean_sd)
+mean_RNAse9 <- apply(Fraction9_RNAse, 1,mean_sd)
+mean_RNAse10 <- apply(Fraction10_RNAse, 1,mean_sd)
+mean_RNAse11 <- apply(Fraction11_RNAse, 1,mean_sd)
+mean_RNAse12 <- apply(Fraction12_RNAse, 1,mean_sd)
+mean_RNAse13 <- apply(Fraction13_RNAse, 1,mean_sd)
+mean_RNAse14 <- apply(Fraction14_RNAse, 1,mean_sd)
+mean_RNAse15 <- apply(Fraction15_RNAse, 1,mean_sd)
+mean_RNAse16 <- apply(Fraction16_RNAse, 1,mean_sd)
+mean_RNAse17 <- apply(Fraction17_RNAse, 1,mean_sd)
+mean_RNAse18 <- apply(Fraction18_RNAse, 1,mean_sd)
+mean_RNAse19 <- apply(Fraction19_RNAse, 1,mean_sd)
+mean_RNAse20 <- apply(Fraction20_RNAse, 1,mean_sd)
+mean_RNAse21 <- apply(Fraction21_RNAse, 1,mean_sd)
+mean_RNAse22 <- apply(Fraction22_RNAse, 1,mean_sd)
+mean_RNAse23 <- apply(Fraction23_RNAse, 1,mean_sd)
+mean_RNAse24 <- apply(Fraction24_RNAse, 1,mean_sd)
+mean_RNAse25 <- apply(Fraction25_RNAse, 1,mean_sd)
 
 # Dataframe with mean
 mean_HeLa <- data.frame(mean_Ctrl1, mean_RNAse1, mean_Ctrl2, mean_RNAse2, mean_Ctrl3,mean_RNAse3, mean_Ctrl4, mean_RNAse4,  mean_Ctrl5, mean_RNAse5, mean_Ctrl6, mean_RNAse6, mean_Ctrl7, mean_RNAse7, mean_Ctrl8, mean_RNAse8, mean_Ctrl9, mean_RNAse9, mean_Ctrl10, mean_RNAse10, mean_Ctrl11, mean_RNAse11, mean_Ctrl12, mean_RNAse12, mean_Ctrl13, mean_RNAse13, mean_Ctrl14, mean_RNAse14, mean_Ctrl15, mean_RNAse15, mean_Ctrl16, mean_RNAse16, mean_Ctrl17, mean_RNAse17, mean_Ctrl18, mean_RNAse18, mean_Ctrl19, mean_RNAse19, mean_Ctrl20, mean_RNAse20, mean_Ctrl21, mean_RNAse21, mean_Ctrl22, mean_RNAse22, mean_Ctrl23, mean_RNAse23, mean_Ctrl24, mean_RNAse24, mean_Ctrl25, mean_RNAse25)
+```
+
+```{r Fraktionenverlust}
+out3 <- sum(is.na(mean_HeLa))
+out3 # Fraktionen die wir so raus kicken
+50 *7081 #Gesammtsumme an Fraktionen
 ```
 
 ```{r sd}
@@ -337,6 +365,124 @@ proportions <- apply(mean_HeLa, 1, proportions)
 ```
 #Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
 
+# Checking on the normalization
+
+Next, the results of the clean-up were compared. We plotted the data pre- and post-normalization for six proteins. Three of which were sure "shifters" and three that were found not to be RNA-dependent.
+
+"Shifters": SIN3A (transcriptional repressor), HDAC1 (Histone deacetylase 1), HNRPU (Heterogeneous nuclear ribonucleoprotein U)
+
+"Non-shifters": ASNS (Asparagine synthetase), MCM2 (DNA replication licensing factor MCM2), MCM3 (DNA replication licensing factor MCM3)
+
+```{r Comparing pre- and post-normalization}
+fraction_index <- c(1:25)
+test_vect1r <- runif(25, 0, 10000)
+test_vect1c <- runif(25, 0, 10000)
+test_vect2r <- runif(25, 0, 0.4)
+test_vect2c <- runif(25, 0, 0.4)
+
+# Repeat the following code block for the six test proteins ctrl vs RNase and pre vs post normalization
+
+par(mfrow = c(1,2))
+
+plot(fraction_index, test_vect1c, type = 'l', col = 'forestgreen',
+     xlab = "Fractions",
+     ylab = "Protein amount [arbitrary unit]",
+     ylim = c(0,10000))
+  lines(x = fraction_index, y = test_vect1r, type = 'l', col = 'firebrick2')
+  legend(x = "topright",                      # Position
+       legend = c("ctrl", "RNase"),           # Legend texts
+col = c('darkgreen', 'red'),           # Line colors
+       lwd = 2)                               # Line width
+
+plot(fraction_index, test_vect2c, type = 'l', col = 'forestgreen',
+     xlab = "Fractions",
+     ylab = "Protein amount [%]",
+     ylim = c(0,0.7))
+  lines(x = fraction_index, y = test_vect2r, type = 'l', col = 'firebrick2')
+  legend(x = "topright",            
+       legend = c("ctrl", "RNase"),           
+       col = c('darkgreen', 'red'),         
+       lwd = 2) 
+```
+The scale should represent percentages now with the area under the curve equaling 1. Furthermore, peaks should become more visible as well as first "shifts".
+
+
+## Test if data is normally distributed
+
+### Shapiro-Wilk test
+
+ n should be greater than 3 and no greater than 5000 (we are looking at 150 values per protein)
+- in the sample there shouldn't be identical values (exclude from test)
+- H0 says that the data is normally distributed
+- significance level α = 5 % --> H0 is rejected, if p < α
+
+```{r Shapiro-Wilk test on raw data}
+# Calculate p-values per row (per protein)
+shapiro_testing <- function(x) {
+  if (diff(range(x)) == 0) 
+      list()
+  else shapiro.test(x)
+}
+
+Raw_data_shapiro <- apply(Raw_data, 1, shapiro_testing)
+
+# Create vector of p-values
+shapiro_p_raw <- unlist(lapply(Raw_data_shapiro, function(x) {x$p.value}))
+
+# Look at mean p-value
+mean(shapiro_p_raw)
+```
+
+
+And now for the cleaned data
+
+```{r Shapiro wilk test on cleaned data}
+# Calculate p-values per row (per protein)
+Cleaned_data_shapiro <- apply(mean_HeLa, 1, shapiro_testing)
+
+# Create vector of p-values
+shapiro_p_clean <- unlist(lapply(Cleaned_data_shapiro, function(x) {x$p.value}))
+
+# Look at mean p-value
+mean(shapiro_p_clean)
+```
+
+Following the Shapiro-Wilk test, the data is found to be *not normally distributed*. This shall be challenged by further tests.
+
+### Graph via qqplot
+
+```{r qqplot on raw data}
+ # Function for qqplot and 
+qqplot_line <-  function(x) {
+  qqnorm(x)
+  qqline(x, col ="red")
+}
+
+# Plot first ten proteins
+apply(Raw_data[1:10,], 1, qqplot_line)
+```
+
+```{r qqplot on cleaned data}
+# Plot first ten proteins
+apply(mean_HeLa[1:10,], 1, qqplot_line)
+```
+A look at the first ten rows (proteins) of the dataset shows that especially for the first and last quantiles, the data and theoretical normally distributed values aren't in allignment. Therefore this test suggests, that the data is *not normally distributed*. 
+
+### Histogramm
+
+```{r histogramm for raw data}
+apply(Raw_data[1:10,], 1, hist)
+```
+
+```{r histogramm for cleaned data}
+apply(mean_HeLa[1:10,], 1, hist)
+```
+The histograms of the first ten proteins show that lower protein concentrations are by far more prominent than greater content. However, sometimes greater values are observed that will probably account for the maxima.
+
+
+
+
+## Maxima
 ```{r maxima}
 #absolute/global maxima
 #hier muss proportions noch in 2 Matrizen aufgeteilt werden (Ctrl und RNAse) und der Code dann auf beide angewendet werden
