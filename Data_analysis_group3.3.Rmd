@@ -49,7 +49,7 @@ HeLa_RNAse1 = HeLa_RNAse %>% select(contains("Rep1"))
 HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
 HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
 
-HeLa_ordered = data.frame(HeLa_Ctrl1,HeLa_RNAse1, HeLa_Ctrl2, HeLa_RNAse2, HeLa_Ctrl3, HeLa_RNAse3) # crtl, RNAse
+HeLa_ordered = data.frame(HeLa_Ctrl1, HeLa_RNAse1, HeLa_Ctrl2, HeLa_RNAse2, HeLa_Ctrl3, HeLa_RNAse3) # crtl, RNAseHeLa_RNAse1
 ```
 
 
@@ -66,7 +66,7 @@ trash # 5 Proteine die wir nicht nutzen können
 
 ```{r}
 #remove failed proteins
-HeLa_cleaned <- HeLa_ordered[- trash, ]
+HeLa_cleaned <- Raw_data[- trash, ]
 dim(HeLa_cleaned) #dataset without rows of 0
 
 ```
@@ -245,7 +245,10 @@ mean_sd <- function(x) {
 ```
 
 
+```{r Mittelwerte }
 
+```
+ 
 ```{r}
 #Mittelwerte berechnen
 
@@ -314,16 +317,11 @@ out3 # Fraktionen die wir so raus kicken
 ```{r label = clean up}
 #clean up datasets
 # Control
-HeLa_Ctrl = mean_HeLA %>% select(contains("Ctrl")) 
-HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
-HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
-HeLa_Ctrl3 = HeLa_Ctrl %>% select(contains("Rep3"))
+HeLa_Ctrl = mean_HeLa %>% select(contains("Ctrl")) 
 
 # RNAse
 HeLa_RNAse = mean_HeLa %>% select(contains("RNA"))
-HeLa_RNAse1 = HeLa_RNAse %>% select(contains("Rep1"))
-HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
-HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
+
 ```
 
 ```{r sd}
