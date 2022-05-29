@@ -311,6 +311,21 @@ out3 # Fraktionen die wir so raus kicken
 50 *7081 #Gesammtsumme an Fraktionen
 ```
 
+```{r label = clean up}
+#clean up datasets
+# Control
+HeLa_Ctrl = mean_HeLA %>% select(contains("Ctrl")) 
+HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
+HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
+HeLa_Ctrl3 = HeLa_Ctrl %>% select(contains("Rep3"))
+
+# RNAse
+HeLa_RNAse = mean_HeLa %>% select(contains("RNA"))
+HeLa_RNAse1 = HeLa_RNAse %>% select(contains("Rep1"))
+HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
+HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
+```
+
 ```{r sd}
 #Standardabweichung berechnen
 sd_Ctrl1 <- apply(Fraction1_Ctrl, 1,sd)
