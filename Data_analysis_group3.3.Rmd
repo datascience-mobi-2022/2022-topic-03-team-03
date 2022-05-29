@@ -91,10 +91,40 @@ HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
 HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
 ```
 
+```{r Anteile}
+#Rowpercent
+ rowPercent <- function(dataframe){
+     dt <- dataframe
+     lastrow <- dim(dataframe)[1]
+     for(i in 1:lastrow){
+         RowSum <- rowSums (dataframe[i,])
+         dt[i,] <- (dataframe[i,]/RowSum)*100      
+     }
+     return(dt)
+ }
+
+#Colpercent
+colPercent <- function(dataframe){
+     dt <- dataframe
+     lastcol <- dim(dataframe)[2]
+     for(i in 1:lastcol){
+         ColSum <- colSums (dataframe[,i, drop = FALSE])
+         dt[,i] <- (dataframe[,i]/ColSum)*100      
+     }
+     return(dt)
+ }
+```
+
+```{r}
+#Spalten normalisieren
+
+Norm_HeLa <- colPercent(HeLa_cleaned)
+
+```
 
 ```{r label = Fractions}
 #select the fractions
-HeLa_Fractions  <- Raw_data[- trash, ]
+HeLa_Fractions  <- Norm_HeLa
 
 
 Fraction1_Ctrl <- HeLa_Fractions[,1:3]
@@ -350,20 +380,7 @@ sd_HeLa <- data.frame(sd_Ctrl1, sd_RNAse1, sd_Ctrl2, sd_RNAse2, sd_Ctrl3,sd_RNAs
 ```
 
 
-```{r}
-#Zeilenn mit mehr als 3sigma standardabweichung 
-##Frage: Wie definieren wir 3 sigma 
-##Frage2: ist es überhaupt sinnvoll die raus zu werfen wenn wir die "Ausreiserprobe" rausgeworfen haben?
-```
 
-```{r Anteile}
-
-proportions <- apply(mean_HeLa, 1, proportions)
-
-#Frage: warum dreht es die Matrix bei der Funktion 
-
-```
-#Arbeiten wir mit dem kompletten Datensatz weiter oder nutzen wir nur einen Teil. 
 
 # Checking on the normalization
 
