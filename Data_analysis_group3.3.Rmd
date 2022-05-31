@@ -427,7 +427,7 @@ compare_pre_post <- function(protein, y_limit_pre, y_limit_post) {
 
   plot(fraction_index, HeLa_Ctrl_mean[protein,], type = 'l', col = 'forestgreen', # Control post
      xlab = "Fractions",
-     ylab = "Protein amount",
+     ylab = "Protein amount [%]",
      ylim = c(0,y_limit_post),
      main = paste(protein, "post-normalization"))
   lines(x = fraction_index, y = HeLa_RNAse_mean[protein,], type = 'l', col = 'firebrick2') # RNase post
@@ -445,7 +445,7 @@ Now we will apply the function to our selection of proteins:
 compare_pre_post("SIN3A_HUMAN", 3500000, 0.1) #SIN3A
 compare_pre_post("HDAC1_HUMAN", 6000000, 0.11) #HDAC1
 compare_pre_post("HDAC2_HUMAN", 6500000, 0.15) #HDAC2
-compare_pre_post("RFC2_HUMAN", 2500000, 0.05) #UPF1
+compare_pre_post("RFC2_HUMAN", 2500000, 0.05) #RFC2
 
 # Non-Shifters
 compare_pre_post("ASNS_HUMAN", 2500000, 0.02) #ASNS
@@ -489,13 +489,16 @@ And now for the cleaned data
 
 ```{r Shapiro wilk test on cleaned data}
 # Calculate p-values per row (per protein)
-Cleaned_data_shapiro <- apply(mean_HeLa, 1, shapiro_testing)
+Cleaned_data_shapiro1 <- apply(HeLa_Ctrl_mean, 1, shapiro_testing)
+Cleaned_data_shapiro2 <- apply(HeLa_RNAse_mean, 1, shapiro_testing)
 
 # Create vector of p-values
-shapiro_p_clean <- unlist(lapply(Cleaned_data_shapiro, function(x) {x$p.value}))
+shapiro_p_clean1 <- unlist(lapply(Cleaned_data_shapiro1, function(x) {x$p.value}))
+shapiro_p_clean2 <- unlist(lapply(Cleaned_data_shapiro2, function(x) {x$p.value}))
 
 # Look at mean p-value
-mean(shapiro_p_clean)
+mean(shapiro_p_clean1)
+mean(shapiro_p_clean2)
 ```
 
 Following the Shapiro-Wilk test, the data is found to be *not normally distributed*. This shall be challenged by further tests.
@@ -515,7 +518,7 @@ apply(Raw_data[1:10,], 1, qqplot_line)
 
 ```{r qqplot on cleaned data}
 # Plot first ten proteins
-apply(mean_HeLa[1:10,], 1, qqplot_line)
+apply(HeLa_Ctrl_mean[1:10,], 1, qqplot_line)
 ```
 A look at the first ten rows (proteins) of the dataset shows that especially for the first and last quantiles, the data and theoretical normally distributed values aren't in allignment. Therefore this test suggests, that the data is *not normally distributed*. 
 
