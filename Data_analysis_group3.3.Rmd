@@ -561,4 +561,43 @@ find_peaks <- function (x, m = 3){
 local_max <- apply(proportions, 2, find_peaks)
 local_max
 ```
+## Shift Erkennung
+```{r}
+# Globale Maxima für CNTRL und RNAse in eine Spalte einer Tabelle oder separat
 
+# Lokale Maxima ebenfalls
+
+# Maxima auswählen: Laut Literatur (Maiwens Publikation) alle Maxima >= 25 % des globalen Maximums berücksichtigen.
+
+ # Als erstes müssen wir definieren ob der Verlust in der einen Fraktion identisch mit dem Gain in der anderen ist --> Ermöglicht uns zu erkennen ob mehrere Peaks nach RNASE Treatment zu erwarten sind. Dazu vergleichen wir die "Area under Curve" oder halt die Differenzen der beiden Fraktionen.
+
+# Parameter ob shift relevant: Änderung > 1 Fraktion
+
+# Wie bestimmen ? --> "x" Values aka Fraktion bestimmen und subtrahieren --> CNTRL - RNASE wenn Value > 1 (Links Verschiebung) bzw. < -1 (Rechts Verschiebung) dann ist der Shift vorhanden. --> 2 Listen anlegen. Sollte auch nur ganzzahlige Werte liefern.  Zu Berücksichtigen sind die Proteine die mehrere Peaks haben bei RNASE --> seperate Liste. Lässt sich vllt. mit der count Funktion umsetzen. Ausprobieren mit den globalen Maxima.
+
+# Beispiel: 
+#RFC2 ist bei CNTRL in Fraktion 21 gloables Maximum . In der RNASE Sample Fraktion 9 macht in der Rechnung: 21-9=12 bedeutet Linksverschiebung. Anschließend "Area under Curve" oder Maxima:
+# Beispiel:RFC2_CNTRL(9)=1000, RFC2_CNTRL(21)=15000, RFC2_RNASE(9)=17500, RFC2_RNASE(21)= 200 --> Delta(9) = Delta(21) --> Delta(9)=16500 Delta(21)=14800. Wir sehen die Werte sind nicht gleich, da es biologische Samples sind ggf. +/- 10% erlauben. Vermutlich ist die Varinate mit der Area under Curve die elegantere.
+```
+## Statistische Tests
+```{r}
+# WENN die Werte Normalverteilt sind und wir das einfach nur aufgrund der Normalisierung nicht sehen: a) Erst F-Test um die Varianzen zu vergleichen b) Unpaired T-Test weil wir zwar eine einheitliche Grundgesamtheit haben aber diese unterschiedlich behandelt haben. Muss da mal Niklas fragen. 
+
+#Beispiel mit Fe-Werten von Mäusen aus meiner Ausbildung die wir damals händisch gerechnet haben.
+
+Fe_before <- c(13.6, 13.0, 13.7, 13.9, 13.4)
+Fe_after <- c(12.0, 12.3, 13.1, 12.5, 13.0)
+
+Fe_ttest <- t.test(Fe_before, Fe_after, var.equal = TRUE) #Unpired
+Fe_ttest
+
+#Wir sehen der p-value ist 0.006618 und damit kleiner als die Signifikanzgrenze (a) bei Konfidenzintervall 95 % a = 0.05 dementsprechend ist es signifikant.
+
+# Man kann auch argumentieren, dass die Werte gepaart sind Vor-Treatment und nach Treatment. So habe ich in der Ausbildung gerechnet. 
+
+Fe_test_paired <- t.test(Fe_before, Fe_after, paired = TRUE)
+Fe_test_paired
+
+#Wilcoxon Test for paired samples if not normally ditributed was bei unseren Daten sehr wahrscheinlich der Fall sein wird. 
+
+```
