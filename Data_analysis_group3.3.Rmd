@@ -98,7 +98,7 @@ HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
 ```
 
 ```{r Anteile}
-#Rowpercent
+#Rowpercent <- kann so bleiben
  rowPercent <- function(dataframe){
      dt <- dataframe
      lastrow <- dim(dataframe)[1]
@@ -118,14 +118,23 @@ colPercent <- function(dataframe){
          dt[,i] <- (dataframe[,i]/ColSum)*100      
      }
      return(dt)
- }
+}
+#ColSum
+ColSum <- function(dataframe){
+            dt <- dataframe
+            lastcol <- dim(dataframe)[2]
+            for(i in 1:lastcol){
+              ColSum <- ColSums (dataframe[,i, drop= FALSE])
+            # muss noch rausfinden, wie ich die Maximalwerte selektiere vermutlich über ne Seprate Funktion
+              dt[,i] <- (Rep_max/ColSum_Rep)*dataframe[,i]
+            }
+            return(dt)
+}
 ```
 
 ```{r}
 #Spalten normalisieren
-
 Norm_HeLa <- colPercent(HeLa_cleaned)
-
 ```
 
 
