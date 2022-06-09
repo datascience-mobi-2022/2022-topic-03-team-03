@@ -109,32 +109,63 @@ HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
      return(dt)
  }
 
-#Colpercent
-colPercent <- function(dataframe){
-     dt <- dataframe
-     lastcol <- dim(dataframe)[2]
-     for(i in 1:lastcol){
-         ColSum <- colSums (dataframe[,i, drop = FALSE])
-         dt[,i] <- (dataframe[,i]/ColSum)*100      
-     }
-     return(dt)
+#Spalten normalisieren
+Spalten_Norm <- function(x){
+  ColSumme = colSums(x)
+  maxcolsums = c()
+  k = 3
+  for (i in 1:(ncol(x)/3)) {
+    a = ColSumme[[k*i]]
+    b = ColSumme[[k*i-1]]
+    c = ColSumme[[k*i-2]]
+    maxcolsums = c(maxcolsums, max(a,b,c))
+  }
+  return(ColSumme)
 }
-#ColSum
-ColSum <- function(dataframe){
-            dt <- dataframe
-            lastcol <- dim(dataframe)[2]
-            for(i in 1:lastcol){
-              ColSum <- ColSums (dataframe[,i, drop= FALSE])
-            # muss noch rausfinden, wie ich die Maximalwerte selektiere vermutlich über ne Seprate Funktion
-              dt[,i] <- (Rep_max/ColSum_Rep)*dataframe[,i]
-            }
-            return(dt)
+Spalten_Norm_1 <- function(x){
+  ColSumme = colSums(x)
+  maxcolsums = c()
+  k = 3
+  for (i in 1:(ncol(x)/3)) {
+    a = ColSumme[[k*i]]
+    b = ColSumme[[k*i-1]]
+    c = ColSumme[[k*i-2]]
+    maxcolsums = c(maxcolsums, max(a,b,c))
+  }
+  return(maxcolsums)
 }
+Spalten_Norm_2 <- function(x, ColSumme, maxcolsums){
+  Quotient = c()
+  k = 3
+  for (i in 1:(ncol(x)/3)){
+    Quotient = c(Quotient, maxcolsums[i]/ColSumme[[k*i-2]])
+    Quotient = c(Quotient, maxcolsums[i]/ColSumme[[k*i-1]])
+    Quotient = c(Quotient, maxcolsums[i]/ColSumme[[k*i]])
+  }
+  return(Quotient)
+}
+
+
+
+#colPercent <- function(dataframe){
+     #dt <- dataframe
+     #lastcol <- dim(dataframe)[2]
+     #for(i in 1:lastcol){
+         #ColSum <- colSums (dataframe[,i, drop = FALSE])
+         #dt[,i] <- (dataframe[,i]/ColSum)*100      
+     #}
+     #return(dt)
+#}
+
 ```
 
 ```{r}
 #Spalten normalisieren
-Norm_HeLa <- colPercent(HeLa_cleaned)
+ColSumme<- Spalten_Norm(HeLa_cleaned)
+maxcolsums <- Spalten_Norm_1(HeLa_cleaned)
+Quotient <- Spalten_Norm_2(HeLa_cleaned, ColSumme, maxcolsums)
+Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
+Hela_Row_Norm <- rowPercent(Hela_Col_Norm) 
 ```
 
 
