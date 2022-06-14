@@ -17,8 +17,6 @@ library(tidyverse)
 
 ### Raw data
 ```{r label = Load the Data}
-#Frage: Falls das jemand über einen Link oder mit ~ hinbekommt, ansonsten Niklas 
-
 #load the data
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 First <- Raw_data[1:10,]
@@ -168,6 +166,34 @@ Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
 Hela_Row_Norm <- rowPercent(Hela_Col_Norm) 
 ```
 
+```{r}
+# Alternativ Spalten
+
+#normalisieren = function(x) {
+  #colsummen = colSums(x)
+ # maxcolsums = c()
+ # l = 3
+  #for (i in 1:(ncol(x)/3)) {
+  #  x = colsummen[[l*i]]
+   # y = colsummen[[l*i-1]]
+  #  z = colsummen[[l*i-2]]
+  #  maxcolsums = c(maxcolsums, max(x,y,z))
+  #}
+ # factors = c()
+ # l = 3
+  #for (i in 1:(ncol(x)/3)) {
+  #  factors = c(factors, maxcolsums[i]/colsummen[[l*i-2]])
+   # factors = c(factors, maxcolsums[i]/colsummen[[l*i-1]])
+   # factors = c(factors, maxcolsums[i]/colsummen[[l*i]])
+#  }
+ # sweep(mouse_data, 2, factors, "*")
+#}
+```
+
+
+```{r}
+Norm_Hela <- Hela_Row_Norm
+```
 
 ### Create separate dataframes
 
@@ -564,7 +590,7 @@ mean_on_name_list <- function(list) {
   mean_ctrl
 }
 
-mean_on_name_list(fractions_names_RNAse)
+# mean_on_name_list(fractions_names_RNAse)
 
 ```
 
@@ -588,8 +614,8 @@ find_peaks <- function (x, m = 2){
      pks
 }
 
-local_max <- apply(proportions, 2, find_peaks)
-local_max
+#local_max <- apply(proportions, 2, find_peaks)
+#local_max
 
 ```
 
@@ -618,6 +644,64 @@ absolute_max <- apply(proportions, 2, max)
 absolute_max
 
 
+```
+
+
+```{r}
+# Alternativ Maxima
+
+find_peaks <- function (x, m = 2){
+     shape <- diff(sign(diff(x, na.pad = FALSE)))
+     pks <- sapply(which(shape < 0), FUN = function(i){
+        z <- i - m + 1
+        z <- ifelse(z > 0, z, 1)
+        w <- i + m + 1
+        w <- ifelse(w < length(x), w, length(x))
+        if(all(x[c(z : i, (i + 2) : w)] <= x[i + 1])) return(i + 1) else return(numeric(0))
+    })
+     pks <- unlist(pks)
+     pks
+     
+     if ( sum(x[1]>x[2:(m+1)]) == 2 ) {pks <- c(pks, 1)} 
+     if ( sum(x[25]>x[24:(25-m)]) == 2 ) {pks <- c(pks, 25)}
+     pks <- unlist(pks)
+     pks
+}
+
+#absolute/global maxima
+ctrl_prop <- colPercent(HeLa_Ctrl_mean)
+RNAse_prop <- colPercent(HeLa_RNAse_mean)
+
+absolute_max_ctrl <- apply(ctrl_prop, 1, max)
+absolute_max_ctrl
+
+absolute_max_RNAse <- apply(RNAse_prop, 1, max)
+absolute_max_RNAse
+
+#x is the dataframe with all percentage values of ctrl or RNAse treated sample. Function relevant_peaks gives us the fraction numbers of the relevant peaks (contain more than 2% of the protein).
+
+rel_peaks_ctrl <- apply(HeLa_Ctrl_mean, 1, function(x){
+              list <- find_peaks(x)
+              list <- list[x[list] > 2]
+              list <- unlist(list)
+              list
+})
+
+rel_peaks_RNAse <- apply(HeLa_RNAse_mean, 1, function(x){
+              list <- find_peaks(x)
+              list <- list[x[list] > 2]
+              list <- unlist(list)
+              list
+})
+
+rel_peaks_ctrl
+rel_peaks_RNAse
+```
+
+```{r percentage of maxima (height)}
+peaks_ctrl_prop <- HeLa_Ctrl_mean[rel_peaks_ctrl]
+
+peaks_RNAse_prop <- HeLa_RNAse_mean[rel_peaks_RNAse]
 ```
 
 
