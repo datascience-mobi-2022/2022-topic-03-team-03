@@ -72,7 +72,8 @@ trash # 5 Proteine die wir nicht nutzen können
 
 ```{r}
 #remove failed proteins
-HeLa_cleaned <- Raw_data[- trash, ]
+# Rows of 0
+HeLa_cleaned <- HeLa_ordered[-trash]
 dim(HeLa_cleaned) #dataset without rows of 0
 
 ```
@@ -271,10 +272,6 @@ mean_sd <- function(x) {
  mean(x, na.rm =TRUE) }
         
    
-
- Test <- Fraction1_Ctrl[1:5,]
- Mean_Test <- apply(Test, 1, mean_sd)
- Mean_Test
 ```
 
 
