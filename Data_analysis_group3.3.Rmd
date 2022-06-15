@@ -18,42 +18,28 @@ library(tidyverse)
 ### Raw data
 ```{r label = Load the Data}
 #load the data
-Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
-First <- Raw_data[1:10,]
-First #first 10 rows
-```
-```{r}
-#Dimension and Class
-dim(Raw_data)
-class(Raw_data)
-range(Raw_data)
+Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+#Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+First <- Raw_data[1:10,]#first 10 rows
 ```
 
 ```{r}
 #Col and Rownames 
-colnames(Raw_data) # Fractions
-rownames(First) # Proteinnames
+colnames <-  c(colnames(Raw_data)) # Fractions
+rownames <- c(rownames(Raw_data)) # Proteinnames
 ```
 
 ###Normalization
 
-```{r label = reorganise coulums}
-#reorganize the coulumns
+```{r split Ctrl and RNAse}
+
 # if necessary install.packages("tidyverse")
 library(tidyverse)
 # Control
 HeLa_Ctrl = Raw_data %>% select(contains("Ctrl")) 
-HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
-HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
-HeLa_Ctrl3 = HeLa_Ctrl %>% select(contains("Rep3"))
 
 # RNAse
 HeLa_RNAse = Raw_data %>% select(contains("RNA"))
-HeLa_RNAse1 = HeLa_RNAse %>% select(contains("Rep1"))
-HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
-HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
-
-HeLa_ordered = data.frame(HeLa_Ctrl1, HeLa_RNAse1, HeLa_Ctrl2, HeLa_RNAse2, HeLa_Ctrl3, HeLa_RNAse3) # crtl, RNAseHeLa_RNAse1
 ```
 
 
@@ -68,7 +54,7 @@ trash # 5 Proteine die wir nicht nutzen können
 
 ```
 
-```{r}
+```{r remove failed proteins}
 #remove failed proteins
 HeLa_cleaned <- Raw_data[- trash, ]
 dim(HeLa_cleaned) #dataset without rows of 0
@@ -80,32 +66,19 @@ HeLa_cleaned_NA <- HeLa_cleaned # make a copy
 HeLa_cleaned_NA[HeLa_cleaned_NA == 0] <- NA # Replace 0 with NA
 ```
 
-```{r label = clean up}
+```{r Ctrl and RNAse without rows of 0}
 #clean up datasets
 # Control
 HeLa_Ctrl = HeLa_cleaned %>% select(contains("Ctrl")) 
-HeLa_Ctrl1 = HeLa_Ctrl %>% select(contains("Rep1"))
-HeLa_Ctrl2 = HeLa_Ctrl %>% select(contains("Rep2"))
-HeLa_Ctrl3 = HeLa_Ctrl %>% select(contains("Rep3"))
 
 # RNAse
 HeLa_RNAse = HeLa_cleaned %>% select(contains("RNA"))
-HeLa_RNAse1 = HeLa_RNAse %>% select(contains("Rep1"))
-HeLa_RNAse2 = HeLa_RNAse %>% select(contains("Rep2"))
-HeLa_RNAse3 = HeLa_RNAse %>% select(contains("Rep3"))
+
+
+
 ```
 
-```{r Anteile}
-#Rowpercent <- kann so bleiben
- rowPercent <- function(dataframe){
-     dt <- dataframe
-     lastrow <- dim(dataframe)[1]
-     for(i in 1:lastrow){
-         RowSum <- rowSums (dataframe[i,])
-         dt[i,] <- (dataframe[i,]/RowSum)*100      
-     }
-     return(dt)
- }
+```{r Normalise columns}
 
 #Spalten normalisieren
 Spalten_Norm <- function(x){
@@ -143,27 +116,15 @@ Spalten_Norm_2 <- function(x, ColSumme, maxcolsums){
   return(Quotient)
 }
 
-
-
-#colPercent <- function(dataframe){
-     #dt <- dataframe
-     #lastcol <- dim(dataframe)[2]
-     #for(i in 1:lastcol){
-         #ColSum <- colSums (dataframe[,i, drop = FALSE])
-         #dt[,i] <- (dataframe[,i]/ColSum)*100      
-     #}
-     #return(dt)
-#}
-
 ```
 
-```{r}
+```{r }
 #Spalten normalisieren
 ColSumme<- Spalten_Norm(HeLa_cleaned)
 maxcolsums <- Spalten_Norm_1(HeLa_cleaned)
 Quotient <- Spalten_Norm_2(HeLa_cleaned, ColSumme, maxcolsums)
 Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
-Hela_Row_Norm <- rowPercent(Hela_Col_Norm) 
+
 ```
 
 ```{r}
@@ -190,10 +151,44 @@ Hela_Row_Norm <- rowPercent(Hela_Col_Norm)
 #}
 ```
 
+```{r split reps}
+# Control
+HeLa_Ctrl_colnorm = Hela_Col_Norm %>% select(contains("Ctrl")) 
+HeLa_Ctrl1 = HeLa_Ctrl_colnorm %>% select(contains("Rep1"))
+HeLa_Ctrl2 = HeLa_Ctrl_colnorm %>% select(contains("Rep2"))
+HeLa_Ctrl3 = HeLa_Ctrl_colnorm %>% select(contains("Rep3"))
+# RNAse
+HeLa_RNAse_colnorm = Hela_Col_Norm %>% select(contains("RNA"))
+HeLa_RNAse1 = HeLa_RNAse_colnorm %>% select(contains("Rep1"))
+HeLa_RNAse2 = HeLa_RNAse_colnorm %>% select(contains("Rep2"))
+HeLa_RNAse3 = HeLa_RNAse_colnorm %>% select(contains("Rep3"))
+```
+
+```{r Reihen normalisieren}
+# added if so we get 0 instead of Na if RowSum is 0
+ rowPercent <- function(dataframe){
+     dt <- dataframe
+     lastrow <- dim(dataframe)[1]
+     for(i in 1:lastrow){
+         RowSum <- rowSums (dataframe[i,])
+    if (RowSum == 0) {dt[i,] <- 0}
+    else dt[i,] <- (dataframe[i,]/RowSum)*100    } 
+     return(dt)}
+ 
+ 
+Norm_HeLa_Ctrl1 <- rowPercent(HeLa_Ctrl1)
+Norm_HeLa_Ctrl2 <- rowPercent(HeLa_Ctrl2)
+Norm_HeLa_Ctrl3 <- rowPercent(HeLa_Ctrl3)
+
+Norm_HeLa_RNAse1 <- rowPercent(HeLa_RNAse1)
+Norm_HeLa_RNAse2 <- rowPercent(HeLa_RNAse2)
+Norm_HeLa_RNAse3 <- rowPercent(HeLa_RNAse3)
+```
 
 ```{r}
-Norm_Hela <- Hela_Row_Norm
+Norm_HeLa <- cbind(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_RNAse1, Norm_HeLa_RNAse2, Norm_HeLa_RNAse3)
 ```
+
 
 ### Create separate dataframes
 
@@ -203,12 +198,13 @@ They follow the naming convention:
 - Fraction1_Ctrl for the triplicate values of first fraction of the control group
 - Fraction_8_RNAse for the triplicate values of eighth fraction of the RNase treated sample
 
-```{r label = Fractions}
+```{r  Fractions}
 #select the fractions
-HeLa_Fractions  <- Norm_HeLa
+vector <- c(1, 26, 51, 76, 101, 126, 2, 27, 52, 77, 102, 127, 3, 28, 53, 78, 103, 128, 4, 29, 54, 79, 104, 129, 5, 30, 55, 80, 105, 130, 6, 31, 56, 81, 106, 131, 7, 32, 57, 82, 107, 132, 8, 33, 58, 83, 108, 133, 9, 34, 59, 84, 109, 134, 10, 35, 60, 85, 110, 135, 11, 36, 61, 86, 111, 136, 12, 37, 62, 87, 112, 137, 13, 38, 63, 88, 113, 138, 14, 39, 64, 89, 114, 139, 15, 40, 65, 90, 115, 140, 16, 41, 66, 91, 116, 141, 17, 42, 67, 92, 117, 142, 18, 43, 68, 93, 118, 143, 19, 44, 69, 94, 119, 144, 20, 45, 70, 95, 120, 145, 21, 46, 71, 96, 121, 146, 22, 47, 72, 97, 122, 147, 23, 48, 73, 98, 123, 148, 24, 49, 74, 99, 124, 149, 25, 50, 75, 100, 125, 150) 
+HeLa_Fractions  <- Norm_HeLa[vector]
 
 # Create list of all separate dataframes for the fractions
-library(tidyverse)
+#library(tidyverse)
 
 fractions_names <-  sapply(c(1:50), function(x) {
   if (x%%2 == 0) 
@@ -225,53 +221,35 @@ for (i in c(1:50)) {
 # Test
 Fraction1_Ctrl
 Fraction8_RNAse
-```
 
-
-```{r mean}
-#mean 
-mean_bestof3 <- function(x) {
-				if( (abs(x[1]-x[2])<abs(x[1]-x[3])) && (abs(x[1]-x[2])<abs(x[2]-x[3])) ) {
-					mean(c(x[1],x[2]))} 
-        else if( (abs(x[1]-x[3])<abs(x[1]-x[2])) && (abs(x[1]-x[3])<abs(x[2]-x[3])) ) {
-					mean(c(x[1],x[3]))} else {mean(c(x[2],x[3]))} 
-}
 
 ```
 
 
-```{r}
-# 20% Mean Function
-mean_20 <- function(x) {
-              mean <- mean(x)
-             if (abs(x[1] - mean) > 0.2 * mean) { x[1] <- NA}
-              if (abs(x[2] - mean) > 0.2 * mean) { x[2] <- NA}
-       if (abs(x[3] - mean) > 0.2 * mean) { x[3] <- NA}
-          
-                mean(x, na.rm = TRUE) }
-```
 
-```{r Standardabweichung}
+
+
+```{r mean with sd}
 # Use sd to single out outliers
 
 mean_sd <- function(x) {
         m <- mean(x)
         s <- sd(x)
        for (i in 1:3)
-        if (( (m - 3 * s) > x[i]) || ((m + 3 * s) < x[i])) { x[i] <- NA}
+        if (( (m - 3 * s) > x[i]) || ((m + 3 * s) < x[i])) {x[i] <- NA}
  mean(x, na.rm =TRUE) }
         
-   
+```
 
- Test <- Fraction1_Ctrl[1:5,]
+```{r}
+
+ Test <- Fraction1_Ctrl[1:639,]
  Mean_Test <- apply(Test, 1, mean_sd)
  Mean_Test
 ```
 
  
-```{r}
-#Mittelwerte berechnen
-
+```{r Mean of triplikates}
 mean_Ctrl1 <- apply(Fraction1_Ctrl, 1,mean_sd)
 mean_Ctrl2 <- apply(Fraction2_Ctrl, 1,mean_sd )
 mean_Ctrl3 <- apply(Fraction3_Ctrl, 1,mean_sd )
@@ -328,89 +306,19 @@ mean_RNAse25 <- apply(Fraction25_RNAse, 1,mean_sd)
 mean_HeLa <- data.frame(mean_Ctrl1, mean_RNAse1, mean_Ctrl2, mean_RNAse2, mean_Ctrl3,mean_RNAse3, mean_Ctrl4, mean_RNAse4,  mean_Ctrl5, mean_RNAse5, mean_Ctrl6, mean_RNAse6, mean_Ctrl7, mean_RNAse7, mean_Ctrl8, mean_RNAse8, mean_Ctrl9, mean_RNAse9, mean_Ctrl10, mean_RNAse10, mean_Ctrl11, mean_RNAse11, mean_Ctrl12, mean_RNAse12, mean_Ctrl13, mean_RNAse13, mean_Ctrl14, mean_RNAse14, mean_Ctrl15, mean_RNAse15, mean_Ctrl16, mean_RNAse16, mean_Ctrl17, mean_RNAse17, mean_Ctrl18, mean_RNAse18, mean_Ctrl19, mean_RNAse19, mean_Ctrl20, mean_RNAse20, mean_Ctrl21, mean_RNAse21, mean_Ctrl22, mean_RNAse22, mean_Ctrl23, mean_RNAse23, mean_Ctrl24, mean_RNAse24, mean_Ctrl25, mean_RNAse25)
 ```
 
-```{r Fraktionenverlust}
-out3 <- sum(is.na(mean_HeLa))
-out3 # Fraktionen die wir so raus kicken
-50 *7081 #Gesammtsumme an Fraktionen
-```
-
-```{r label = clean up}
+``` {r label = clean up}
 #clean up datasets
 # Control
-HeLa_Ctrl_mean = mean_HeLa %>% select(contains("Ctrl")) 
 
+HeLa_Ctrl_mean = mean_HeLa %>% select(contains("Ctrl"))
 # RNAse
 HeLa_RNAse_mean = mean_HeLa %>% select(contains("RNA"))
 
 ```
 
-```{r sd}
-#Standardabweichung berechnen
-sd_Ctrl1 <- apply(Fraction1_Ctrl, 1,sd)
-sd_Ctrl2 <- apply(Fraction2_Ctrl, 1,sd)
-sd_Ctrl3 <- apply(Fraction3_Ctrl, 1,sd)
-sd_Ctrl4 <- apply(Fraction4_Ctrl, 1,sd)
-sd_Ctrl5 <- apply(Fraction5_Ctrl, 1,sd)
-
-sd_Ctrl6 <- apply(Fraction6_Ctrl, 1,sd)
-sd_Ctrl7 <- apply(Fraction7_Ctrl, 1,sd)
-sd_Ctrl8 <- apply(Fraction8_Ctrl, 1,sd)
-sd_Ctrl9 <- apply(Fraction9_Ctrl, 1,sd)
-sd_Ctrl10 <- apply(Fraction10_Ctrl, 1,sd)
-
-sd_Ctrl11 <- apply(Fraction11_Ctrl, 1,sd)
-sd_Ctrl12 <- apply(Fraction12_Ctrl, 1,sd)
-sd_Ctrl13 <- apply(Fraction13_Ctrl, 1,sd)
-sd_Ctrl14 <- apply(Fraction14_Ctrl, 1,sd)
-sd_Ctrl15 <- apply(Fraction15_Ctrl, 1,sd)
-
-sd_Ctrl16 <- apply(Fraction16_Ctrl, 1,sd)
-sd_Ctrl17 <- apply(Fraction17_Ctrl, 1,sd)
-sd_Ctrl18 <- apply(Fraction18_Ctrl, 1,sd)
-sd_Ctrl19 <- apply(Fraction19_Ctrl, 1,sd)
-sd_Ctrl20 <- apply(Fraction20_Ctrl, 1,sd)
-
-sd_Ctrl21 <- apply(Fraction21_Ctrl, 1,sd)
-sd_Ctrl22 <- apply(Fraction22_Ctrl, 1,sd)
-sd_Ctrl23 <- apply(Fraction23_Ctrl, 1,sd)
-sd_Ctrl24 <- apply(Fraction24_Ctrl, 1,sd)
-sd_Ctrl25 <- apply(Fraction25_Ctrl, 1,sd)
 
 
 
-sd_RNAse1 <- apply(Fraction1_RNAse, 1,sd)
-sd_RNAse2 <- apply(Fraction2_RNAse, 1,sd)
-sd_RNAse3 <- apply(Fraction3_RNAse, 1,sd)
-sd_RNAse4 <- apply(Fraction4_RNAse, 1,sd)
-sd_RNAse5 <- apply(Fraction5_RNAse, 1,sd)
-
-sd_RNAse6 <- apply(Fraction6_RNAse, 1,sd)
-sd_RNAse7 <- apply(Fraction7_RNAse, 1,sd)
-sd_RNAse8 <- apply(Fraction8_RNAse, 1,sd)
-sd_RNAse9 <- apply(Fraction9_RNAse, 1,sd)
-sd_RNAse10 <- apply(Fraction10_RNAse, 1,sd)
-
-sd_RNAse11 <- apply(Fraction11_RNAse, 1,sd)
-sd_RNAse12 <- apply(Fraction12_RNAse, 1,sd)
-sd_RNAse13 <- apply(Fraction13_RNAse, 1,sd)
-sd_RNAse14 <- apply(Fraction14_RNAse, 1,sd)
-sd_RNAse15 <- apply(Fraction15_RNAse, 1,sd)
-
-sd_RNAse16 <- apply(Fraction16_RNAse, 1,sd)
-sd_RNAse17 <- apply(Fraction17_RNAse, 1,sd)
-sd_RNAse18 <- apply(Fraction18_RNAse, 1,sd)
-sd_RNAse19 <- apply(Fraction19_RNAse, 1,sd)
-sd_RNAse20 <- apply(Fraction20_RNAse, 1,sd)
-
-sd_RNAse21 <- apply(Fraction21_RNAse, 1,sd)
-sd_RNAse22 <- apply(Fraction22_RNAse, 1,sd)
-sd_RNAse23 <- apply(Fraction23_RNAse, 1,sd)
-sd_RNAse24 <- apply(Fraction24_RNAse, 1,sd)
-sd_RNAse25 <- apply(Fraction25_RNAse, 1,sd)
-
-#Dataframe with sd
-sd_HeLa <- data.frame(sd_Ctrl1, sd_RNAse1, sd_Ctrl2, sd_RNAse2, sd_Ctrl3,sd_RNAse3, sd_Ctrl4, sd_RNAse4,  sd_Ctrl5, sd_RNAse5, sd_Ctrl6, sd_RNAse6, sd_Ctrl7, sd_RNAse7, sd_Ctrl8, sd_RNAse8, sd_Ctrl9, sd_RNAse9, sd_Ctrl10, sd_RNAse10, sd_Ctrl11, sd_RNAse11, sd_Ctrl12, sd_RNAse12,sd_Ctrl13, sd_RNAse13, sd_Ctrl14, sd_RNAse14, sd_Ctrl15, sd_RNAse15, sd_Ctrl16, sd_RNAse16, sd_Ctrl17, sd_RNAse17, sd_Ctrl18, sd_RNAse18, sd_Ctrl19, sd_RNAse19, sd_Ctrl20,sd_RNAse20, sd_Ctrl21, sd_RNAse21, sd_Ctrl22,sd_RNAse22, sd_Ctrl23, sd_RNAse23, sd_Ctrl24, sd_RNAse24, sd_Ctrl25, sd_RNAse25)
-```
 
 
 
