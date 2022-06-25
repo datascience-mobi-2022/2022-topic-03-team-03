@@ -561,12 +561,35 @@ rel_peaks_RNAse <- apply(HeLa_RNAse_mean, 1, function(x){
 
 rel_peaks_ctrl
 rel_peaks_RNAse
+
 ```
 
-```{r percentage of maxima (height)}
-peaks_ctrl_prop <- HeLa_Ctrl_mean[rel_peaks_ctrl]
+```{r global max comparison}
+fracs_ctrl <- max.col(HeLa_Ctrl_mean)
+fracs_RNAse <- max.col(HeLa_RNAse_mean)
 
-peaks_RNAse_prop <- HeLa_RNAse_mean[rel_peaks_RNAse]
+```
+
+```{r peaks 25%}
+peaks_ctrl_25 <- apply(HeLa_Ctrl_mean, 1, function(x){
+              list <- find_peaks(x)
+              k <- 1
+              list <- list[x[list] >= (absolute_max_ctrl[k]/4)]
+              k <- k + 1             
+              list <- unlist(list)
+              list
+})
+
+peaks_RNAse_25 <- apply(HeLa_RNAse_mean, 1, function(x){
+              list <- find_peaks(x)
+              k <- 1
+              list <- list[x[list] >= (absolute_max_RNAse[k]/4)]
+              k <- k + 1             
+              list <- unlist(list)
+              list
+})
+
+abs_max_both <- data.frame(absolute_max_ctrl, fracs_ctrl, absolute_max_RNAse, fracs_RNAse)
 ```
 
 
@@ -588,6 +611,22 @@ peaks_RNAse_prop <- HeLa_RNAse_mean[rel_peaks_RNAse]
 #RFC2 ist bei CNTRL in Fraktion 21 gloables Maximum . In der RNASE Sample Fraktion 9 macht in der Rechnung: 21-9=12 bedeutet Linksverschiebung. Anschließend "Area under Curve" oder Maxima:
 # Beispiel:RFC2_CNTRL(9)=1000, RFC2_CNTRL(21)=15000, RFC2_RNASE(9)=17500, RFC2_RNASE(21)= 200 --> Delta(9) = Delta(21) --> Delta(9)=16500 Delta(21)=14800. Wir sehen die Werte sind nicht gleich, da es biologische Samples sind ggf. +/- 10% erlauben. Vermutlich ist die Varinate mit der Area under Curve die elegantere.
 ```
+
+```{r calculating shift}
+# help warum funktioniert das nicht?
+fracs_ctrl[2]-fracs_RNAse[2]
+
+abs_max_both$shifts <- apply(abs_max_both$fracs_ctrl, 1, function(x){
+  fracs_ctrl - fracs_RNAse
+})
+
+#shift <- data.frame()
+#for (i in 1:7081){
+#  shift <- fracs_ctrl[i] - fracs_RNAse[i]
+#}
+#shift
+```
+
 ## Statistische Tests
 ```{r}
 # WENN die Werte Normalverteilt sind und wir das einfach nur aufgrund der Normalisierung nicht sehen: a) Erst F-Test um die Varianzen zu vergleichen b) Unpaired T-Test weil wir zwar eine einheitliche Grundgesamtheit haben aber diese unterschiedlich behandelt haben. Muss da mal Niklas fragen. 
