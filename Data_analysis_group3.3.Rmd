@@ -614,11 +614,10 @@ abs_max_both <- data.frame(absolute_max_ctrl, fracs_ctrl, absolute_max_RNAse, fr
 
 ```{r calculating shift}
 # help warum funktioniert das nicht?
-fracs_ctrl[2]-fracs_RNAse[2]
+fracs_ctrl[6]-fracs_RNAse[6]
 
-abs_max_both$shifts <- apply(abs_max_both$fracs_ctrl, 1, function(x){
-  fracs_ctrl - fracs_RNAse
-})
+for(i in 1:7081){abs_max_both$shifts <- abs_max_both$fracs_ctrl[i] - abs_max_both$fracs_RNAse[i]
+}
 
 #shift <- data.frame()
 #for (i in 1:7081){
