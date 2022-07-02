@@ -2,7 +2,10 @@
 title: "Data_anaylsis_group3.3"
 author: "Carina, Maike, Marcel, Mirja"
 date: "22 5 2022"
-output: html_document
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -16,7 +19,7 @@ library(tidyverse)
 
 
 ### Raw data
-```{r label = Load the Data}
+```{r  Load the Data}
 #load the data
 #Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
@@ -43,7 +46,7 @@ HeLa_RNAse = Raw_data %>% select(contains("RNA"))
 ```
 
 
-```{r label = rows of 0}
+```{r rows of 0}
 # Rows of 0
 which(rowMeans(Raw_data) == 0) #nur eine Zeile komplett ohne Werte
 which(rowMeans(HeLa_RNAse) == 0) #2 Reihen ohne Werte
@@ -219,8 +222,8 @@ for (i in c(1:50)) {
 }
 
 # Test
-Fraction1_Ctrl
-Fraction8_RNAse
+#Fraction1_Ctrl
+#Fraction8_RNAse
 
 
 ```
@@ -245,7 +248,7 @@ mean_sd <- function(x) {
 
  Test <- Fraction1_Ctrl[1:639,]
  Mean_Test <- apply(Test, 1, mean_sd)
- Mean_Test
+ #Mean_Test
 ```
 
  
@@ -306,7 +309,7 @@ mean_RNAse25 <- apply(Fraction25_RNAse, 1,mean_sd)
 mean_HeLa <- data.frame(mean_Ctrl1, mean_RNAse1, mean_Ctrl2, mean_RNAse2, mean_Ctrl3,mean_RNAse3, mean_Ctrl4, mean_RNAse4,  mean_Ctrl5, mean_RNAse5, mean_Ctrl6, mean_RNAse6, mean_Ctrl7, mean_RNAse7, mean_Ctrl8, mean_RNAse8, mean_Ctrl9, mean_RNAse9, mean_Ctrl10, mean_RNAse10, mean_Ctrl11, mean_RNAse11, mean_Ctrl12, mean_RNAse12, mean_Ctrl13, mean_RNAse13, mean_Ctrl14, mean_RNAse14, mean_Ctrl15, mean_RNAse15, mean_Ctrl16, mean_RNAse16, mean_Ctrl17, mean_RNAse17, mean_Ctrl18, mean_RNAse18, mean_Ctrl19, mean_RNAse19, mean_Ctrl20, mean_RNAse20, mean_Ctrl21, mean_RNAse21, mean_Ctrl22, mean_RNAse22, mean_Ctrl23, mean_RNAse23, mean_Ctrl24, mean_RNAse24, mean_Ctrl25, mean_RNAse25)
 ```
 
-``` {r label = clean up}
+``` {r clean up}
 #clean up datasets
 # Control
 
@@ -433,29 +436,6 @@ shapiro_on_name_list(fractions_names) > 0.05
 
 Following the Shapiro-Wilk test, we can expect our data three replicate values per protein to be normally distributed.
 
-
-### Graph via qqplot
-
-```{r qqplot on raw data}
- # Function for qqplot and 
-qqplot_line <-  function(x) {
-  qqnorm(x)
-  qqline(x, col ="red")
-}
-
-# Plot first five proteins of Fraction 1 Ctrl
-apply(Fraction1_Ctrl[1:5,], 1, qqplot_line)
-```
-QQplots with three values only do not have great significance. 
-
-
-### Histogram
-
-```{r histogram for raw data}
-apply(Fraction1_Ctrl[1:5,], 1, hist)
-```
-
-A histogram with three values only is also not a valid method to test for normal distribution.
 
 
 ## Maxima
@@ -684,7 +664,7 @@ var.test(as.numeric(All_ctrl_norm[1,1:3]), as.numeric(All_RNAse_norm[1,1:3]), al
 The calculated p-values can now be tested against the significance level of 0.05.
 
 ```{r p-values test}
-F_test_p_values > 0.05
+list_F_test_p_values_05 <- F_test_p_values > 0.05
 ```
 
 
@@ -745,7 +725,7 @@ for (i in 1:nrow(p_value_df)) {
   F_max_RNase <- c(F_max_RNase, boolian)
 }
 
-F_max_RNase
+list_F_max_RNAse <- F_max_RNase
 ```
 
 ### Dealing with NaN/NA results
@@ -965,8 +945,8 @@ for (i in 1:nrow(F_ctrl_norm)) {
 
 The calculated p-values can now be tested against the significance level of 0.05.
 
-```{r p-values test}
-t_test_p_values < 0.05
+```{r p-values testing}
+t_test_p_values_05 <- t_test_p_values < 0.05
 ```
 
 
