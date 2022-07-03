@@ -593,6 +593,11 @@ for(x in i){shifts[x] <- fracs_ctrl[x] - fracs_RNAse[x]
 }
 abs_max_both$shifts <- shifts
 
+y_shifts <- c()
+for(x in i){y_shifts[x] <- absolute_max_ctrl[x] - absolute_max_RNAse[x]
+}
+abs_max_both$y_shifts <- y_shifts
+
 ```
 
 # Statistische Tests
@@ -950,6 +955,19 @@ t_test_p_values_05 <- t_test_p_values < 0.05
 ```
 
 
+Tests for linear regression
+
+```{r}
+
+cor(abs_max_both)
+
+plot(abs_max_both$y_shifts, abs_max_both$shifts)
+
+plot (abs_max_both)
+  
+  
+
+```
 
 
 
