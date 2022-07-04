@@ -612,13 +612,18 @@ abs_max_both <- data.frame(absolute_max_ctrl, fracs_ctrl, absolute_max_RNAse, fr
 # Beispiel:RFC2_CNTRL(9)=1000, RFC2_CNTRL(21)=15000, RFC2_RNASE(9)=17500, RFC2_RNASE(21)= 200 --> Delta(9) = Delta(21) --> Delta(9)=16500 Delta(21)=14800. Wir sehen die Werte sind nicht gleich, da es biologische Samples sind ggf. +/- 10% erlauben. Vermutlich ist die Varinate mit der Area under Curve die elegantere.
 ```
 
-```{r calculating shift}
+```{r calculating x-shift}
 i <- c(1:7081)
-shifts <- c()
-for(x in i){shifts[x] <- fracs_ctrl[x] - fracs_RNAse[x]
+x_shifts <- c()
+for(x in i){x_shifts[x] <- fracs_ctrl[x] - fracs_RNAse[x]
 }
-abs_max_both$shifts <- shifts
+abs_max_both$x_shifts <- x_shifts
 
+i <- c(1:7081)
+y_shifts <- c()
+for(x in i){y_shifts[x] <- absolute_max_ctrl[x] - absolute_max_RNAse[x]
+}
+abs_max_both$y_shifts <- y_shifts
 ```
 
 ## Statistische Tests
@@ -643,3 +648,56 @@ Fe_test_paired
 #Wilcoxon Test for paired samples if not normally ditributed was bei unseren Daten sehr wahrscheinlich der Fall sein wird. 
 
 ```
+
+```{r k means clustering}
+install.packages('corrplot')
+install.packages('cluster')
+install.packages('factoextra')
+library(corrplot)# Clustering
+library(cluster) 
+library(factoextra)
+```
+
+
+```{r k means clustering}
+silhouette_score <- function(k){
+  km <- kmeans(abs_max_both[,5:6], centers = k, nstart=15)
+  ss <- silhouette(km$cluster, dist(abs_max_both[,5:6]))
+  mean(ss[, 3])
+}
+k <- 2:10
+avg_sil <- sapply(k, silhouette_score)
+plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
+
+```
+
+```{r}
+install.packages('factoextra')
+library(factoextra)
+
+fviz_nbclust(abs_max_both[,5:6], kmeans, method='silhouette')
+```
+
+```{r}
+kmean <- kmeans(abs_max_both[,5:6], centers = 4, iter.max = 25, nstart = 50)
+```
+
+```{r plotting cluster}
+install.packages('ggpubr')
+install.packages("readxl")
+install.packages("FactoMineR")
+library(ggpubr)
+library(readxl)
+library(FactoMineR)
+```
+
+
+```{r plotting cluster}
+fviz_cluster(kmean, data = abs_max_both[,5:6],
+             palette = c("#2E9FDF", "#00AFBB", "#E7B800"), 
+             geom = "point",
+             ellipse.type = "convex", 
+             ggtheme = theme_bw()
+             )
+```
+
