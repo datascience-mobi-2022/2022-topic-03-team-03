@@ -649,7 +649,7 @@ Fe_test_paired
 
 ```
 
-```{r k means clustering}
+```{r k means clustering packages}
 install.packages('corrplot')
 install.packages('cluster')
 install.packages('factoextra')
@@ -659,7 +659,7 @@ library(factoextra)
 ```
 
 
-```{r k means clustering}
+```{r k means silhouette method}
 silhouette_score <- function(k){
   km <- kmeans(abs_max_both[,5:6], centers = k, nstart=15)
   ss <- silhouette(km$cluster, dist(abs_max_both[,5:6]))
