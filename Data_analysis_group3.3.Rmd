@@ -642,9 +642,6 @@ Fe_test_paired
 
 
 ```{r k means clustering packages}
-install.packages('corrplot')
-install.packages('cluster')
-install.packages('factoextra')
 library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
@@ -664,7 +661,6 @@ plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette S
 ```
 
 ```{r}
-install.packages('factoextra')
 library(factoextra)
 
 fviz_nbclust(abs_max_both[,5:6], kmeans, method='silhouette')
@@ -677,9 +673,7 @@ km.res <- kmeans(abs_max_both$x_shifts[!is.na(abs_max_both$x_shifts)], 4)
 ```
 
 ```{r plotting cluster}
-install.packages('ggpubr')
-install.packages("readxl")
-install.packages("FactoMineR")
+library(ggplot2)
 library(ggpubr)
 library(readxl)
 library(FactoMineR)
@@ -982,14 +976,14 @@ Next, a modified data frame was created that excludes proteins with NA/NaN or FA
 F_FALSE_ctrl <- abs_max_both[which(F_max_ctrl_1 == FALSE), ]
 F_FALSE_RNase <- abs_max_both[which(F_max_RNase_1 == FALSE), ]
 
-trash_F_FALSE <- c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase))
+trash_F_FALSE <- unique(c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase)))
 length(trash_F_FALSE)
 
 # NA
 F_NA_ctrl <- abs_max_both[which(is.na(F_max_ctrl_1)), ]
 F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase_1)), ]
 
-trash_F_NA <- c(row.names(F_NA_ctrl), row.names(F_NA_RNase))
+trash_F_NA <- unique(c(row.names(F_NA_ctrl), row.names(F_NA_RNase)))
 length(trash_F_NA)
 ```
 
@@ -1007,6 +1001,8 @@ F_RNase_norm <- All_RNAse_norm[!rownames(abs_max_both) %in% trash_F_NA, ]
 F_ctrl_norm <- All_ctrl_norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
 F_ctrl_norm <- All_ctrl_norm[!rownames(abs_max_both) %in% trash_F_NA, ]
 ```
+
+
 
 
 ## T-test
@@ -1041,21 +1037,89 @@ for (i in 1:nrow(F_ctrl_norm)) {
   }
 }
 
+# Matrix of p-values
+p_value_matrix_t <- matrix(data = t_test_p_values, byrow = TRUE, ncol = 25)
 
+col_names_p <-  sapply(c(1:25), function(x) {
+    str_glue(x)
+})
 
-# Das sind erstmal wieder alle Fraktionen, also noch nicht auf die Maxima spezifisch hin. Das muss ich noch anpassen.
-# Viel vom F-Test Code wird hier aber recyclet werden können
+p_value_df_t <- data.frame(p_value_matrix_t)
+rownames(p_value_df_t) <-  row.names(F_ctrl_norm)
+colnames(p_value_df_t) <-  col_names_p
+```
+
+The p-values were specifically analyzed in maxima positions.
+
+```{r}
+# For ctrl maxima
+t_max_ctrl <- c()
+for (i in 1:nrow(p_value_df_t)) {
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_ctrl[i]] > 0.05
+  t_max_ctrl <- c(t_max_ctrl, boolian)
+}
+
+# For RNase maxima
+t_max_RNase <- c()
+for (i in 1:nrow(p_value_df_t)) {
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_RNAse[i]] > 0.05
+  t_max_RNase <- c(t_max_RNase, boolian)
+}
+
+list_t_max_RNAse <- t_max_RNase
+```
+
+We quantified how many triplets in peak positions passed the t-test ("TRUE").
+
+```{r}
+# RNase
+table(t_max_RNase)["TRUE"]
+table(t_max_RNase)["TRUE"] / nrow(abs_max_both_F)
+
+# Ctrl
+table(t_max_ctrl)["TRUE"]
+table(t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
+
+# Either RNase or Ctrl
+table(t_max_RNase & t_max_ctrl)["TRUE"] 
+table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
+```
+
+It turns out, that a little below half of the proteins shows a significat y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
+
+```{r}
+# NA
+t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
+t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
+
+trash_t_NA <- c(row.names(t_NA_ctrl), row.names(t_NA_RNase))
+length(trash_t_NA)
+```
+It turns out that this time no NA values were observed. The t-test either delivers "FALSE" or "TRUE" as its output.
+
+```{r Sum up FALSE proteins}
+# FALSE
+t_FALSE_ctrl <- abs_max_both_F[which(t_max_ctrl == FALSE), ]
+t_FALSE_RNase <- abs_max_both_F[which(t_max_RNase == FALSE), ]
+
+trash_t_FALSE <- unique(c(row.names(t_FALSE_ctrl), row.names(t_FALSE_RNase)))
+length(trash_t_FALSE)
 ```
 
 
-The calculated p-values can now be tested against the significance level of 0.05.
+```{r Remove FALSE proteins}
+abs_max_both_t <- abs_max_both[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+dim(abs_max_both_t) #dataset without FALSE
 
-```{r p-values testing}
-t_test_p_values_05 <- t_test_p_values < 0.05
+t_RNase_norm <- F_RNase_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+
 ```
 
 
-Tests for linear regression
+
+
+## Tests for linear regression
 
 ```{r}
 
@@ -1069,6 +1133,3 @@ plot (abs_max_both)
 
 ```
 
-
-
->>>>>>> cf800c5c171e0bceb2a4f1fa8a06850b3c8c9b2b
