@@ -1133,3 +1133,20 @@ plot (abs_max_both)
 
 ```
 
+```{r new data}
+#über Github laden ist vermutlich keine gute Idee
+load("C:/Users/Mirja/Desktop/HS_RBPs.RData")
+load("C:/Users/Mirja/Desktop/HS_non_RBPs.RData")
+
+proteins.new.RBPs <- c(HS_RBPs$Entry_Name.x)
+proteins.new.non.RBPs <- c(HS_non_RBPs$Entry_Name.x)
+
+non.RBPs.same <- proteins.new.non.RBPs %in% rownames
+non <-  which(non.RBPs.same == TRUE)
+non.RBPs <- data_frame( mean_HeLa[non,],abs_max_both[non,], HS_non_RBPs[ non,])
+
+RBPs.same <- proteins.new.RBPs %in% rownames
+bp <-  which(RBPs.same == TRUE)
+RBPs <- data.frame(mean_HeLa[ bp,], abs_max_both[bp,], HS_RBPs[ bp,])
+```
+
