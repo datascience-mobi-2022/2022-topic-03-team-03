@@ -23,13 +23,12 @@ library(tidyverse)
 #load the data
 #Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
-First <- Raw_data[1:10,]#first 10 rows
+
 ```
 
 ```{r}
-#Col and Rownames 
-colnames <-  c(colnames(Raw_data)) # Fractions
-rownames <- c(rownames(Raw_data)) # Proteinnames
+#CProteins
+proteinnames <- c(rownames(Raw_data)) # Proteinnames
 ```
 
 ###Normalization
@@ -53,15 +52,12 @@ which(rowMeans(HeLa_RNAse) == 0) #2 Reihen ohne Werte
 which(rowMeans(HeLa_Ctrl) == 0)# 4Reihen ohne Werte
 trash <- c(which(rowMeans(HeLa_Ctrl) == 0),which(rowMeans(HeLa_RNAse) == 0))
 trash <- trash[-5] #kommt in beiden Reihen vor 
-trash # 5 Proteine die wir nicht nutzen können
 
 ```
 
 ```{r remove failed proteins}
 #remove failed proteins
 HeLa_cleaned <- Raw_data[- trash, ]
-dim(HeLa_cleaned) #dataset without rows of 0
-
 ```
 
 ```{r NA}
@@ -77,8 +73,7 @@ HeLa_Ctrl = HeLa_cleaned %>% select(contains("Ctrl"))
 # RNAse
 HeLa_RNAse = HeLa_cleaned %>% select(contains("RNA"))
 
-
-
+rm(Raw_data)
 ```
 
 ```{r Normalise columns}
@@ -128,30 +123,8 @@ maxcolsums <- Spalten_Norm_1(HeLa_cleaned)
 Quotient <- Spalten_Norm_2(HeLa_cleaned, ColSumme, maxcolsums)
 Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
 
-```
-
-```{r}
-# Alternativ Spalten
-
-#normalisieren = function(x) {
-  #colsummen = colSums(x)
- # maxcolsums = c()
- # l = 3
-  #for (i in 1:(ncol(x)/3)) {
-  #  x = colsummen[[l*i]]
-   # y = colsummen[[l*i-1]]
-  #  z = colsummen[[l*i-2]]
-  #  maxcolsums = c(maxcolsums, max(x,y,z))
-  #}
- # factors = c()
- # l = 3
-  #for (i in 1:(ncol(x)/3)) {
-  #  factors = c(factors, maxcolsums[i]/colsummen[[l*i-2]])
-   # factors = c(factors, maxcolsums[i]/colsummen[[l*i-1]])
-   # factors = c(factors, maxcolsums[i]/colsummen[[l*i]])
-#  }
- # sweep(mouse_data, 2, factors, "*")
-#}
+rm(Spalten_Norm, Spalten_Norm_1, Spalten_Norm_2)
+rm(ColSumme, maxcolsums, Quotient)
 ```
 
 ```{r split reps}
@@ -190,6 +163,9 @@ Norm_HeLa_RNAse3 <- rowPercent(HeLa_RNAse3)
 
 ```{r}
 Norm_HeLa <- cbind(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_RNAse1, Norm_HeLa_RNAse2, Norm_HeLa_RNAse3)
+
+rm(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_RNAse1, Norm_HeLa_RNAse2, Norm_HeLa_RNAse3)
+rm(rowPercent)
 ```
 
 
@@ -206,6 +182,7 @@ They follow the naming convention:
 vector <- c(1, 26, 51, 76, 101, 126, 2, 27, 52, 77, 102, 127, 3, 28, 53, 78, 103, 128, 4, 29, 54, 79, 104, 129, 5, 30, 55, 80, 105, 130, 6, 31, 56, 81, 106, 131, 7, 32, 57, 82, 107, 132, 8, 33, 58, 83, 108, 133, 9, 34, 59, 84, 109, 134, 10, 35, 60, 85, 110, 135, 11, 36, 61, 86, 111, 136, 12, 37, 62, 87, 112, 137, 13, 38, 63, 88, 113, 138, 14, 39, 64, 89, 114, 139, 15, 40, 65, 90, 115, 140, 16, 41, 66, 91, 116, 141, 17, 42, 67, 92, 117, 142, 18, 43, 68, 93, 118, 143, 19, 44, 69, 94, 119, 144, 20, 45, 70, 95, 120, 145, 21, 46, 71, 96, 121, 146, 22, 47, 72, 97, 122, 147, 23, 48, 73, 98, 123, 148, 24, 49, 74, 99, 124, 149, 25, 50, 75, 100, 125, 150) 
 HeLa_Fractions  <- Norm_HeLa[vector]
 
+rm(vector)
 # Create list of all separate dataframes for the fractions
 #library(tidyverse)
 
@@ -221,15 +198,7 @@ for (i in c(1:50)) {
   assign(fractions_names[i], HeLa_Fractions[,(3*i-2):(3*i)])
 }
 
-# Test
-#Fraction1_Ctrl
-#Fraction8_RNAse
-
-
 ```
-
-
-
 
 
 ```{r mean with sd}
@@ -242,13 +211,6 @@ mean_sd <- function(x) {
         if (( (m - 3 * s) > x[i]) || ((m + 3 * s) < x[i])) {x[i] <- NA}
  mean(x, na.rm =TRUE) }
         
-```
-
-```{r}
-
- Test <- Fraction1_Ctrl[1:639,]
- Mean_Test <- apply(Test, 1, mean_sd)
- #Mean_Test
 ```
 
  
@@ -307,6 +269,13 @@ mean_RNAse25 <- apply(Fraction25_RNAse, 1,mean_sd)
 
 # Dataframe with mean
 mean_HeLa <- data.frame(mean_Ctrl1, mean_RNAse1, mean_Ctrl2, mean_RNAse2, mean_Ctrl3,mean_RNAse3, mean_Ctrl4, mean_RNAse4,  mean_Ctrl5, mean_RNAse5, mean_Ctrl6, mean_RNAse6, mean_Ctrl7, mean_RNAse7, mean_Ctrl8, mean_RNAse8, mean_Ctrl9, mean_RNAse9, mean_Ctrl10, mean_RNAse10, mean_Ctrl11, mean_RNAse11, mean_Ctrl12, mean_RNAse12, mean_Ctrl13, mean_RNAse13, mean_Ctrl14, mean_RNAse14, mean_Ctrl15, mean_RNAse15, mean_Ctrl16, mean_RNAse16, mean_Ctrl17, mean_RNAse17, mean_Ctrl18, mean_RNAse18, mean_Ctrl19, mean_RNAse19, mean_Ctrl20, mean_RNAse20, mean_Ctrl21, mean_RNAse21, mean_Ctrl22, mean_RNAse22, mean_Ctrl23, mean_RNAse23, mean_Ctrl24, mean_RNAse24, mean_Ctrl25, mean_RNAse25)
+
+```
+
+```{r}
+rm(mean_Ctrl1, mean_RNAse1, mean_Ctrl2, mean_RNAse2, mean_Ctrl3,mean_RNAse3, mean_Ctrl4, mean_RNAse4,  mean_Ctrl5, mean_RNAse5, mean_Ctrl6, mean_RNAse6, mean_Ctrl7, mean_RNAse7, mean_Ctrl8, mean_RNAse8, mean_Ctrl9, mean_RNAse9, mean_Ctrl10, mean_RNAse10, mean_Ctrl11, mean_RNAse11, mean_Ctrl12, mean_RNAse12, mean_Ctrl13, mean_RNAse13, mean_Ctrl14, mean_RNAse14, mean_Ctrl15, mean_RNAse15, mean_Ctrl16, mean_RNAse16, mean_Ctrl17, mean_RNAse17, mean_Ctrl18, mean_RNAse18, mean_Ctrl19, mean_RNAse19, mean_Ctrl20, mean_RNAse20, mean_Ctrl21, mean_RNAse21, mean_Ctrl22, mean_RNAse22, mean_Ctrl23, mean_RNAse23, mean_Ctrl24, mean_RNAse24, mean_Ctrl25, mean_RNAse25)
+
+rm(mean_sd)
 ```
 
 ``` {r clean up}
@@ -376,6 +345,8 @@ compare_pre_post("ASNS_HUMAN", 2500000, 40) #ASNS
 compare_pre_post("MCM2_HUMAN", 18000000, 25) #MCM2
 compare_pre_post("MCM3_HUMAN", 25000000, 25) #MCM3
 
+rm(HeLa_Ctrl1, HeLa_Ctrl2, HeLa_Ctrl3, HeLa_Ctrl_colnorm, HeLa_RNAse1, HeLa_RNAse2, HeLa_RNAse3 ,HeLa_RNAse_colnorm)
+rm(compare_pre_post)
 ```
 
 
@@ -399,16 +370,6 @@ shapiro_testing <- function(x) {
   else shapiro.test(x)
 }
 
-# Create list of all separate dataframes for the fractions
-library(tidyverse)
-
-fractions_names <-  sapply(c(1:50), function(x) {
-  if (x%%2 == 0) 
-    str_glue("Fraction", (x/2), "_RNAse")
-  else 
-    str_glue("Fraction", ((x+1)/2), "_Ctrl")
-})
-
 
 # Define function to apply shapiro testing to list of names for all fractions
 shapiro_on_name_list <- function(list) {
@@ -424,56 +385,20 @@ shapiro_on_name_list <- function(list) {
 }
 
 # Apply testing to data and testing if all values are greater than 5 %
-shapiro_on_name_list(fractions_names) > 0.05
+shapiro_values_greater_0.05 <- shapiro_on_name_list(fractions_names) > 0.05
 ```
 
 Following the Shapiro-Wilk test, we can expect our data three replicate values per protein to be normally distributed.
 
+```{r}
+rm(Fraction1_Ctrl, Fraction1_RNAse, Fraction2_Ctrl, Fraction2_RNAse, Fraction3_Ctrl, Fraction3_RNAse, Fraction4_Ctrl, Fraction4_RNAse, Fraction5_Ctrl, Fraction5_RNAse, Fraction6_Ctrl, Fraction6_RNAse, Fraction7_Ctrl, Fraction7_RNAse, Fraction8_Ctrl, Fraction8_RNAse, Fraction9_Ctrl, Fraction9_RNAse, Fraction10_Ctrl, Fraction10_RNAse, Fraction11_Ctrl, Fraction11_RNAse, Fraction12_Ctrl, Fraction12_RNAse, Fraction13_Ctrl, Fraction13_RNAse, Fraction14_Ctrl, Fraction14_RNAse, Fraction15_Ctrl, Fraction15_RNAse, Fraction16_Ctrl, Fraction16_RNAse, Fraction17_Ctrl, Fraction17_RNAse, Fraction18_Ctrl, Fraction18_RNAse, Fraction19_Ctrl, Fraction19_RNAse, Fraction20_Ctrl, Fraction20_RNAse, Fraction21_Ctrl, Fraction21_RNAse, Fraction22_Ctrl, Fraction22_RNAse, Fraction23_Ctrl, Fraction23_RNAse, Fraction24_Ctrl, Fraction24_RNAse, Fraction25_Ctrl, Fraction25_RNAse)
+
+rm(fraction_index, fractions_names_Ctrl_, fractions_names_RNAse,i)
+```
+
 
 
 ## Maxima
-
-### Separate dataframes Ctrl vs RNase
-
-For further analysis, all fractions belonging to the control group and those treated with RNase are saved in separate dataframes.
-
-```{r}
-# All control
-All_ctrl_norm <- HeLa_Fractions %>% select(contains("Ctrl"))
-# All RNase
-All_RNAse_norm <- HeLa_Fractions %>% select(contains("RNAse"))
-
-
-
-
-# Create list of all separate dataframes for the fractions
-library(tidyverse)
-
-fractions_names_RNAse <-  sapply(c(1:25), function(x) {
-    str_glue("Fraction", x, "_RNAse")
-})
-
-fractions_names_Ctrl_ <-  sapply(c(1:25), function(x) {
-    str_glue("Fraction", x, "_Ctrl")
-})
-
-
-
-# Define function to calculate mean of all proteins for all fractions
-
-mean_on_name_list <- function(list) {
-  mean_ctrl = data.frame()
-  for (i in 1:length(list)) {
-    df = get(list[i])
-    fraction_mean <- apply(df, 1, mean)
-    mean_ctrl = cbind(mean_ctrl, fraction_mean)
-  }
-  mean_ctrl
-}
-
-# mean_on_name_list(fractions_names_RNAse)
-
-```
 
 ### Local maxima
 
@@ -557,6 +482,7 @@ peaks_RNAse_25 <- apply(HeLa_RNAse_mean, 1, function(x){
 })
 
 abs_max_both <- data.frame(absolute_max_ctrl, fracs_ctrl, absolute_max_RNAse, fracs_RNAse)
+
 ```
 
 
@@ -615,6 +541,11 @@ abs_max_both$y_shifts2 <- y_shifts2
 
 ```
 
+```{r}
+rm(absolute_max_ctrl, fracs_ctrl, absolute_max_RNAse, fracs_RNAse,peaks_ctrl_25,peaks_RNAse_25,rel_peaks_ctrl,rel_peaks_RNAse, max_frac_ctrl, i)
+```
+
+
 # Statistische Tests
 ```{r}
 # WENN die Werte Normalverteilt sind und wir das einfach nur aufgrund der Normalisierung nicht sehen: a) Erst F-Test um die Varianzen zu vergleichen b) Unpaired T-Test weil wir zwar eine einheitliche Grundgesamtheit haben aber diese unterschiedlich behandelt haben. Muss da mal Niklas fragen. 
@@ -636,6 +567,414 @@ Fe_test_paired
 
 #Wilcoxon Test for paired samples if not normally ditributed was bei unseren Daten sehr wahrscheinlich der Fall sein wird. 
 
+rm(Fe_after, Fe_before, Fe_test_paired, Fe_ttest)
+```
+
+## F-test
+
+Before performing a two-samples t-test on our data, we have to check for the equality of the variances of the two samples using a F-test.
+
+
+```{r Testing the theory}
+
+x <- c(rnorm(10, 0, 1))
+y <- c(rnorm(10, 0, 1))
+
+var.test(x, y, alternative = "two.sided")
+```
+
+The output includes the p-value. In the F-test the null hypothesis is: H0 = both samples have equal variances. 
+
+If p > 0.05 is true, H0 will not be rejected. 
+
+### F-test on our data
+
+Next, our data was analyzed per protein per fraction ctrl vs. RNase.
+
+```{r Applying it to our data}
+
+HeLa_Ctrl_Norm <- Norm_HeLa %>% select(contains("Ctrl"))
+HeLa_RNAse_Norm <- Norm_HeLa %>% select(contains("RNA"))
+# Selecting every single protein (row)
+F_test_p_values = c()
+for (i in 1:nrow(HeLa_Ctrl_Norm)) {
+  x <- as.numeric(HeLa_Ctrl_Norm[i,])
+  y <- as.numeric(HeLa_RNAse_Norm[i,])
+  
+  # Selecting triplet values for each fraction
+  for (k in 1:25) {  
+    result <- var.test(x[(1+3*k-3):(3*k)], y[(1+3*k-3):(3*k)], alternative = "two.sided")
+    new_p_value <- result$p.value
+     # save p-value for every protein comparing ctrl vs RNase
+     F_test_p_values <-  c(F_test_p_values, new_p_value)
+  }
+}
+
+# Testing if automation works
+F_test_p_values[1]
+var.test(as.numeric(HeLa_Ctrl_Norm[1,1:3]), as.numeric(HeLa_RNAse_Norm[1,1:3]), alternative = "two.sided")
+```
+
+The calculated p-values can now be tested against the significance level of 0.05.
+
+```{r p-values test}
+list_F_test_p_values_05 <- F_test_p_values > 0.05
+```
+
+
+The automation generally works. However, sometimes NaN/NA is returned instead of a numeric p-value. This is the the case for the first row in fraction 21.
+
+```{r NaN}
+F_test_p_values[21]
+var.test(as.numeric(HeLa_Ctrl_Norm[1,61:63]), as.numeric(HeLa_RNAse_Norm[1,61:63]), alternative = "two.sided")
+
+# Checking on a NaN result
+HeLa_Ctrl_Norm[1,61:63]
+HeLa_RNAse_Norm[1,61:63]
+```
+
+After a closer look, those fractions returning NaN have all-zero entries columns both in the RNase and Ctrl samples. Since those will not have any relevance for the maximum search, these NaN results can be ignored.
+
+Sometimes, the F-test shows that variances differ. This is the case for the protein in row 1 for fraction 3.
+
+```{r FALSE}
+F_test_p_values[3]
+var.test(as.numeric(HeLa_Ctrl_Norm[1,7:9]), as.numeric(HeLa_RNAse_Norm[1,7:9]), alternative = "two.sided")
+
+# Checking on FALSE result
+HeLa_Ctrl_Norm[1,7:9]
+HeLa_RNAse_Norm[1,7:9]
+```
+
+To refer the F-test results back to the actual proteins, a more visual matrix was created.
+
+```{r Matrix F-test results}
+p_value_matrix <- matrix(data = F_test_p_values, byrow = TRUE, ncol = 25)
+
+col_names_p <-  sapply(c(1:25), function(x) {
+    str_glue(x)
+})
+
+
+p_value_df <- data.frame(p_value_matrix)
+rownames(p_value_df) <-  row.names(HeLa_Ctrl_Norm)
+colnames(p_value_df) <-  col_names_p
+
+```
+Since some p-values were below the threshold, it needed to be determined whether they were crucial at the shifting points of the maxima. Hence, with the list of maxima, those necessary p-values were checked once more.
+
+```{r}
+# For ctrl maxima
+F_max_ctrl <- c()
+for (i in 1:nrow(p_value_df)) {
+  boolian <- p_value_df[i, abs_max_both$fracs_ctrl[i]] > 0.05
+  F_max_ctrl <- c(F_max_ctrl, boolian)
+}
+
+# For RNase maxima
+F_max_RNase <- c()
+for (i in 1:nrow(p_value_df)) {
+  boolian <- p_value_df[i, abs_max_both$fracs_RNAse[i]] > 0.05
+  F_max_RNase <- c(F_max_RNase, boolian)
+}
+
+list_F_max_RNAse <- F_max_RNase
+```
+
+### Dealing with NaN/NA results
+
+For some maxima, the result is NA. This is the case for the maximum of the RNase sample in row 8.
+
+```{r}
+# P value
+p_value_df[8, abs_max_both$fracs_RNAse[8]]
+var.test(as.numeric(HeLa_Ctrl_Norm[8, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[8, (1+3*k-3):(3*k)]), alternative = "two.sided")
+
+# Measured protein content
+k <- abs_max_both$fracs_RNAse[8] 
+
+HeLa_Ctrl_Norm[8, (1+3*k-3):(3*k)]
+HeLa_RNAse_Norm[8, (1+3*k-3):(3*k)]
+
+# Visually
+compare_pre_post(row.names(HeLa_Ctrl_Norm[8,]), 2000000, 110) # Protein row 8
+
+# Shift?
+abs_max_both$shifts[8]
+```
+For this example, all the protein content was found in fraction 1. This could be due to an error in the data collection process. The important point is though, that the F-test has proven this sample to be of no use for further analysis. This is because no difference in variance and hence no difference in the maxumum was identified. 
+
+To investigate this hypothesis, another NA result from the F-test was analyzed.
+
+```{r}
+# P value
+p_value_df[41, abs_max_both$fracs_RNAse[41]]
+var.test(as.numeric(HeLa_Ctrl_Norm[41, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[41, (1+3*k-3):(3*k)]), alternative = "two.sided")
+
+# Measured protein content
+k <- abs_max_both$fracs_RNAse[41] 
+
+HeLa_Ctrl_Norm[41, (1+3*k-3):(3*k)]
+HeLa_RNAse_Norm[41, (1+3*k-3):(3*k)]
+
+# Visually
+compare_pre_post(row.names(HeLa_Ctrl_Norm[41,]), 2000000, 110) # Protein row 41
+
+# Shift?
+abs_max_both$shifts[41]
+```
+Here as well, RNase and ctrl do not differ and all protein content accumulates in a single fraction. The proteins highlighted are therefore most likely non-shifting proteins. For further analysis of the shifting proteins, the non-shifters can therefore be excluded.
+
+### Dealing with FALSE results
+
+Next, we investigated a FALSE F-Test value. This is the case for the maximum of the RNase sample in row 1.
+
+```{r}
+# P value
+p_value_df[1, abs_max_both$fracs_RNAse[1]]
+var.test(as.numeric(HeLa_Ctrl_Norm[1, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[1, (1+3*k-3):(3*k)]), alternative = "two.sided")
+
+# Measured protein content
+k <- abs_max_both$fracs_RNAse[1] 
+
+HeLa_Ctrl_Norm[1, (1+3*k-3):(3*k)]
+HeLa_RNAse_Norm[1, (1+3*k-3):(3*k)]
+
+# Visually
+compare_pre_post(row.names(HeLa_Ctrl_Norm[1,]), 27000000, 30) # Protein row 1
+
+# Shift?
+abs_max_both$shifts[1]
+```
+In this FALSE example, the Ctrl data has a greater variance than the RNAase data. Therfore, the F-test marks it as FALSE. Despite the different variance, the graph shows a gradual increase/decrease around the maximum unlike the NA values.
+
+Another FALSE F-Test value was analyzed in the RNase sample in row 42.
+
+```{r}
+# P value
+p_value_df[42, abs_max_both$fracs_RNAse[42]]
+var.test(as.numeric(HeLa_Ctrl_Norm[42, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[42, (1+3*k-3):(3*k)]), alternative = "two.sided")
+
+# Measured protein content
+k <- abs_max_both$fracs_RNAse[42] 
+
+HeLa_Ctrl_Norm[42, (1+3*k-3):(3*k)]
+HeLa_RNAse_Norm[42, (1+3*k-3):(3*k)]
+
+# Visually
+compare_pre_post(row.names(HeLa_Ctrl_Norm[42,]), 2500000, 50) # Protein row 42
+
+# Shift?
+abs_max_both$shifts[42]
+```
+
+Here, the data for the RNAse treatment is quite homogeneous. In contrast, the Ctrl data displays a possible outlier value in Rep1. That causes the F-test once more to give FALSE as an answer.
+
+To understand the prevalence of FALSE values, we quantified both RNase and Ctrl maximum spots.
+
+```{r}
+# RNase
+table(F_max_RNase)["FALSE"]
+table(F_max_RNase)["FALSE"] / nrow(abs_max_both)
+
+# Ctrl
+table(F_max_ctrl)["FALSE"]
+table(F_max_ctrl)["FALSE"] / nrow(abs_max_both)
+
+# Either RNase or Ctrl
+table(F_max_RNase & F_max_ctrl)["FALSE"] 
+table(F_max_RNase & F_max_ctrl)["FALSE"] / nrow(abs_max_both)
+```
+
+It turns out, that FALSE results occur in around 10 % of all analyzed proteins. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  
+
+Because it seems like some FALSE F-test results originate from outlier values and otherwise we would experience a great exclusion of data, it makes sense for us to set the significance level to α = 0.01 instead of the previously applied α = 0.05. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable. 
+
+```{r}
+# For ctrl maxima
+F_max_ctrl_1 <- c()
+for (i in 1:nrow(p_value_df)) {
+  boolian <- p_value_df[i, abs_max_both$fracs_ctrl[i]] > 0.01
+  F_max_ctrl_1 <- c(F_max_ctrl_1, boolian)
+}
+
+# For RNase maxima
+F_max_RNase_1 <- c()
+for (i in 1:nrow(p_value_df)) {
+  boolian <- p_value_df[i, abs_max_both$fracs_RNAse[i]] > 0.01
+  F_max_RNase_1 <- c(F_max_RNase_1, boolian)
+}
+
+# RNase
+table(F_max_RNase_1)["FALSE"]
+table(F_max_RNase_1)["FALSE"] / nrow(abs_max_both)
+
+# Ctrl
+table(F_max_ctrl_1)["FALSE"]
+table(F_max_ctrl_1)["FALSE"] / nrow(abs_max_both)
+
+# Either RNase or Ctrl
+table(F_max_RNase_1 & F_max_ctrl_1)["FALSE"] 
+table(F_max_RNase_1 & F_max_ctrl_1)["FALSE"] / nrow(abs_max_both)
+```
+
+Now, with α = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. 
+
+
+### Excluding proteins with FALSE or NaN/NA F-test results from further analysis
+
+Next, a modified data frame was created that excludes proteins with NA/NaN or FALSE results in the F-test.
+
+```{r Sum up NA/NaN and FALSE proteins}
+# FALSE
+F_FALSE_ctrl <- abs_max_both[which(F_max_ctrl_1 == FALSE), ]
+F_FALSE_RNase <- abs_max_both[which(F_max_RNase_1 == FALSE), ]
+
+trash_F_FALSE <- unique(c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase)))
+length(trash_F_FALSE)
+
+# NA
+F_NA_ctrl <- abs_max_both[which(is.na(F_max_ctrl_1)), ]
+F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase_1)), ]
+
+trash_F_NA <- unique(c(row.names(F_NA_ctrl), row.names(F_NA_RNase)))
+length(trash_F_NA)
+```
+
+```{r Remove NA/NaN and FALSE proteins}
+abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_FALSE, ]
+abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_NA, ]
+
+dim(abs_max_both_F) #dataset without NA/NaN and FALSE
+```
+
+```{r}
+F_RNase_norm <- HeLa_RNAse_Norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
+F_RNase_norm <- HeLa_RNAse_Norm[!rownames(abs_max_both) %in% trash_F_NA, ]
+
+F_ctrl_norm <- HeLa_Ctrl_Norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
+F_ctrl_norm <- HeLa_Ctrl_Norm[!rownames(abs_max_both) %in% trash_F_NA, ]
+```
+
+
+
+
+## T-test
+
+Next, for the remaining proteins a two-tailed unpaired t-test was used to highlight significant changes in the height of the maxima. If the p-value lies under the threshold significance niveau, H0 = "the true mean difference is equal to zero" will be rejected. 
+
+```{r}
+#t-test
+Fe_before <- c(5.6, 6.0, 6.7, 13.9, 10.4)
+Fe_after <- c(20.0, 12.3, 18.1, 17.5, 15.0)
+
+Fe_ttest <- t.test(Fe_before, Fe_after, alternative = "two.sided", var.equal = TRUE) #unpaired
+Fe_ttest
+
+rm(Fe_before, Fe_after, Fe_ttest)
+```
+
+### t-test on our data
+
+Next, our data was analyzed per protein per fraction ctrl vs. RNase.
+
+```{r t-test on data}
+t_test_p_values <- c()
+
+for (i in 1:nrow(F_ctrl_norm)) {
+  x <- as.numeric(F_ctrl_norm[i,])
+  y <- as.numeric(F_RNase_norm[i,])
+  
+  for (k in 1:25) {  
+    result <- t.test(x[(1+3*k-3):(3*k)], y[(1+3*k-3):(3*k)], alternative = "two.sided", var.equal = TRUE)
+    new_p_value <- result$p.value
+     # save p-value for every protein comparing ctrl vs RNase
+     t_test_p_values <-  c(t_test_p_values, new_p_value)
+  }
+}
+
+# Matrix of p-values
+p_value_matrix_t <- matrix(data = t_test_p_values, byrow = TRUE, ncol = 25)
+
+col_names_p <-  sapply(c(1:25), function(x) {
+    str_glue(x)
+})
+
+p_value_df_t <- data.frame(p_value_matrix_t)
+rownames(p_value_df_t) <-  row.names(F_ctrl_norm)
+colnames(p_value_df_t) <-  col_names_p
+```
+
+The p-values were specifically analyzed in maxima positions.
+
+```{r}
+# For ctrl maxima
+t_max_ctrl <- c()
+for (i in 1:nrow(p_value_df_t)) {
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_ctrl[i]] > 0.05
+  t_max_ctrl <- c(t_max_ctrl, boolian)
+}
+
+# For RNase maxima
+t_max_RNase <- c()
+for (i in 1:nrow(p_value_df_t)) {
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_RNAse[i]] > 0.05
+  t_max_RNase <- c(t_max_RNase, boolian)
+}
+
+list_t_max_RNAse <- t_max_RNase
+```
+
+We quantified how many triplets in peak positions passed the t-test ("TRUE").
+
+```{r}
+# RNase
+table(t_max_RNase)["TRUE"]
+table(t_max_RNase)["TRUE"] / nrow(abs_max_both_F)
+
+# Ctrl
+table(t_max_ctrl)["TRUE"]
+table(t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
+
+# Either RNase or Ctrl
+table(t_max_RNase & t_max_ctrl)["TRUE"] 
+table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
+```
+
+It turns out, that a little below half of the proteins shows a significat y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
+
+```{r}
+# NA
+t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
+t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
+
+trash_t_NA <- c(row.names(t_NA_ctrl), row.names(t_NA_RNase))
+length(trash_t_NA)
+```
+It turns out that this time no NA values were observed. The t-test either delivers "FALSE" or "TRUE" as its output.
+
+```{r Sum up FALSE proteins}
+# FALSE
+t_FALSE_ctrl <- abs_max_both_F[which(t_max_ctrl == FALSE), ]
+t_FALSE_RNase <- abs_max_both_F[which(t_max_RNase == FALSE), ]
+
+trash_t_FALSE <- unique(c(row.names(t_FALSE_ctrl), row.names(t_FALSE_RNase)))
+length(trash_t_FALSE)
+```
+
+
+```{r Remove FALSE proteins}
+abs_max_both_t <- abs_max_both[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+dim(abs_max_both_t) #dataset without FALSE
+
+t_RNase_norm <- F_RNase_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+
+```
+```{r}
+rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
+
+rm(HeLa_cleaned, HeLa_cleaned_NA)
 ```
 ##Clustering
 
@@ -745,420 +1084,8 @@ p3 <- p_right + labs(title = "Right shifters")
 p3
 ```
 
-
-## F-test
-
-Before performing a two-samples t-test on our data, we have to check for the equality of the variances of the two samples using a F-test.
-
-
-```{r Testing the theory}
-
-x <- c(rnorm(10, 0, 1))
-y <- c(rnorm(10, 0, 1))
-
-var.test(x, y, alternative = "two.sided")
-```
-
-The output includes the p-value. In the F-test the null hypothesis is: H0 = both samples have equal variances. 
-
-If p > 0.05 is true, H0 will not be rejected. 
-
-### F-test on our data
-
-Next, our data was analyzed per protein per fraction ctrl vs. RNase.
-
-```{r Applying it to our data}
-# Selecting every single protein (row)
-F_test_p_values = c()
-for (i in 1:nrow(All_ctrl_norm)) {
-  x <- as.numeric(All_ctrl_norm[i,])
-  y <- as.numeric(All_RNAse_norm[i,])
-  
-  # Selecting triplet values for each fraction
-  for (k in 1:25) {  
-    result <- var.test(x[(1+3*k-3):(3*k)], y[(1+3*k-3):(3*k)], alternative = "two.sided")
-    new_p_value <- result$p.value
-     # save p-value for every protein comparing ctrl vs RNase
-     F_test_p_values <-  c(F_test_p_values, new_p_value)
-  }
-}
-
-# Testing if automation works
-F_test_p_values[1]
-var.test(as.numeric(All_ctrl_norm[1,1:3]), as.numeric(All_RNAse_norm[1,1:3]), alternative = "two.sided")
-```
-
-The calculated p-values can now be tested against the significance level of 0.05.
-
-```{r p-values test}
-list_F_test_p_values_05 <- F_test_p_values > 0.05
-```
-
-
-The automation generally works. However, sometimes NaN/NA is returned instead of a numeric p-value. This is the the case for the first row in fraction 21.
-
-```{r NaN}
-F_test_p_values[21]
-var.test(as.numeric(All_ctrl_norm[1,61:63]), as.numeric(All_RNAse_norm[1,61:63]), alternative = "two.sided")
-
-# Checking on a NaN result
-All_ctrl_norm[1,61:63]
-All_RNAse_norm[1,61:63]
-```
-
-After a closer look, those fractions returning NaN have all-zero entries columns both in the RNase and Ctrl samples. Since those will not have any relevance for the maximum search, these NaN results can be ignored.
-
-Sometimes, the F-test shows that variances differ. This is the case for the protein in row 1 for fraction 3.
-
-```{r FALSE}
-F_test_p_values[3]
-var.test(as.numeric(All_ctrl_norm[1,7:9]), as.numeric(All_RNAse_norm[1,7:9]), alternative = "two.sided")
-
-# Checking on FALSE result
-All_ctrl_norm[1,7:9]
-All_RNAse_norm[1,7:9]
-```
-
-To refer the F-test results back to the actual proteins, a more visual matrix was created.
-
-```{r Matrix F-test results}
-p_value_matrix <- matrix(data = F_test_p_values, byrow = TRUE, ncol = 25)
-
-col_names_p <-  sapply(c(1:25), function(x) {
-    str_glue(x)
-})
-
-
-p_value_df <- data.frame(p_value_matrix)
-rownames(p_value_df) <-  row.names(All_ctrl_norm)
-colnames(p_value_df) <-  col_names_p
-
-head(p_value_df)
-```
-Since some p-values were below the threshold, it needed to be determined whether they were crucial at the shifting points of the maxima. Hence, with the list of maxima, those necessary p-values were checked once more.
-
 ```{r}
-# For ctrl maxima
-F_max_ctrl <- c()
-for (i in 1:nrow(p_value_df)) {
-  boolian <- p_value_df[i, abs_max_both$fracs_ctrl[i]] > 0.05
-  F_max_ctrl <- c(F_max_ctrl, boolian)
-}
-
-# For RNase maxima
-F_max_RNase <- c()
-for (i in 1:nrow(p_value_df)) {
-  boolian <- p_value_df[i, abs_max_both$fracs_RNAse[i]] > 0.05
-  F_max_RNase <- c(F_max_RNase, boolian)
-}
-
-list_F_max_RNAse <- F_max_RNase
-```
-
-### Dealing with NaN/NA results
-
-For some maxima, the result is NA. This is the case for the maximum of the RNase sample in row 8.
-
-```{r}
-# P value
-p_value_df[8, abs_max_both$fracs_RNAse[8]]
-var.test(as.numeric(All_ctrl_norm[8, (1+3*k-3):(3*k)]), as.numeric(All_RNAse_norm[8, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
-k <- abs_max_both$fracs_RNAse[8] 
-
-All_ctrl_norm[8, (1+3*k-3):(3*k)]
-All_RNAse_norm[8, (1+3*k-3):(3*k)]
-
-# Visually
-compare_pre_post(row.names(All_ctrl_norm[8,]), 2000000, 110) # Protein row 8
-
-# Shift?
-abs_max_both$shifts[8]
-```
-For this example, all the protein content was found in fraction 1. This could be due to an error in the data collection process. The important point is though, that the F-test has proven this sample to be of no use for further analysis. This is because no difference in variance and hence no difference in the maxumum was identified. 
-
-To investigate this hypothesis, another NA result from the F-test was analyzed.
-
-```{r}
-# P value
-p_value_df[41, abs_max_both$fracs_RNAse[41]]
-var.test(as.numeric(All_ctrl_norm[41, (1+3*k-3):(3*k)]), as.numeric(All_RNAse_norm[41, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
-k <- abs_max_both$fracs_RNAse[41] 
-
-All_ctrl_norm[41, (1+3*k-3):(3*k)]
-All_RNAse_norm[41, (1+3*k-3):(3*k)]
-
-# Visually
-compare_pre_post(row.names(All_ctrl_norm[41,]), 2000000, 110) # Protein row 41
-
-# Shift?
-abs_max_both$shifts[41]
-```
-Here as well, RNase and ctrl do not differ and all protein content accumulates in a single fraction. The proteins highlighted are therefore most likely non-shifting proteins. For further analysis of the shifting proteins, the non-shifters can therefore be excluded.
-
-### Dealing with FALSE results
-
-Next, we investigated a FALSE F-Test value. This is the case for the maximum of the RNase sample in row 1.
-
-```{r}
-# P value
-p_value_df[1, abs_max_both$fracs_RNAse[1]]
-var.test(as.numeric(All_ctrl_norm[1, (1+3*k-3):(3*k)]), as.numeric(All_RNAse_norm[1, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
-k <- abs_max_both$fracs_RNAse[1] 
-
-All_ctrl_norm[1, (1+3*k-3):(3*k)]
-All_RNAse_norm[1, (1+3*k-3):(3*k)]
-
-# Visually
-compare_pre_post(row.names(All_ctrl_norm[1,]), 27000000, 30) # Protein row 1
-
-# Shift?
-abs_max_both$shifts[1]
-```
-In this FALSE example, the Ctrl data has a greater variance than the RNAase data. Therfore, the F-test marks it as FALSE. Despite the different variance, the graph shows a gradual increase/decrease around the maximum unlike the NA values.
-
-Another FALSE F-Test value was analyzed in the RNase sample in row 42.
-
-```{r}
-# P value
-p_value_df[42, abs_max_both$fracs_RNAse[42]]
-var.test(as.numeric(All_ctrl_norm[42, (1+3*k-3):(3*k)]), as.numeric(All_RNAse_norm[42, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
-k <- abs_max_both$fracs_RNAse[42] 
-
-All_ctrl_norm[42, (1+3*k-3):(3*k)]
-All_RNAse_norm[42, (1+3*k-3):(3*k)]
-
-# Visually
-compare_pre_post(row.names(All_ctrl_norm[42,]), 2500000, 50) # Protein row 42
-
-# Shift?
-abs_max_both$shifts[42]
-```
-
-Here, the data for the RNAse treatment is quite homogeneous. In contrast, the Ctrl data displays a possible outlier value in Rep1. That causes the F-test once more to give FALSE as an answer.
-
-To understand the prevalence of FALSE values, we quantified both RNase and Ctrl maximum spots.
-
-```{r}
-# RNase
-table(F_max_RNase)["FALSE"]
-table(F_max_RNase)["FALSE"] / nrow(abs_max_both)
-
-# Ctrl
-table(F_max_ctrl)["FALSE"]
-table(F_max_ctrl)["FALSE"] / nrow(abs_max_both)
-
-# Either RNase or Ctrl
-table(F_max_RNase & F_max_ctrl)["FALSE"] 
-table(F_max_RNase & F_max_ctrl)["FALSE"] / nrow(abs_max_both)
-```
-
-It turns out, that FALSE results occur in around 10 % of all analyzed proteins. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  
-
-Because it seems like some FALSE F-test results originate from outlier values and otherwise we would experience a great exclusion of data, it makes sense for us to set the significance level to α = 0.01 instead of the previously applied α = 0.05. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable. 
-
-```{r}
-# For ctrl maxima
-F_max_ctrl_1 <- c()
-for (i in 1:nrow(p_value_df)) {
-  boolian <- p_value_df[i, abs_max_both$fracs_ctrl[i]] > 0.01
-  F_max_ctrl_1 <- c(F_max_ctrl_1, boolian)
-}
-
-# For RNase maxima
-F_max_RNase_1 <- c()
-for (i in 1:nrow(p_value_df)) {
-  boolian <- p_value_df[i, abs_max_both$fracs_RNAse[i]] > 0.01
-  F_max_RNase_1 <- c(F_max_RNase_1, boolian)
-}
-
-# RNase
-table(F_max_RNase_1)["FALSE"]
-table(F_max_RNase_1)["FALSE"] / nrow(abs_max_both)
-
-# Ctrl
-table(F_max_ctrl_1)["FALSE"]
-table(F_max_ctrl_1)["FALSE"] / nrow(abs_max_both)
-
-# Either RNase or Ctrl
-table(F_max_RNase_1 & F_max_ctrl_1)["FALSE"] 
-table(F_max_RNase_1 & F_max_ctrl_1)["FALSE"] / nrow(abs_max_both)
-```
-
-Now, with α = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. 
-
-
-### Excluding proteins with FALSE or NaN/NA F-test results from further analysis
-
-Next, a modified data frame was created that excludes proteins with NA/NaN or FALSE results in the F-test.
-
-```{r Sum up NA/NaN and FALSE proteins}
-# FALSE
-F_FALSE_ctrl <- abs_max_both[which(F_max_ctrl_1 == FALSE), ]
-F_FALSE_RNase <- abs_max_both[which(F_max_RNase_1 == FALSE), ]
-
-trash_F_FALSE <- unique(c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase)))
-length(trash_F_FALSE)
-
-# NA
-F_NA_ctrl <- abs_max_both[which(is.na(F_max_ctrl_1)), ]
-F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase_1)), ]
-
-trash_F_NA <- unique(c(row.names(F_NA_ctrl), row.names(F_NA_RNase)))
-length(trash_F_NA)
-```
-
-```{r Remove NA/NaN and FALSE proteins}
-abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_FALSE, ]
-abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_NA, ]
-
-dim(abs_max_both_F) #dataset without NA/NaN and FALSE
-```
-
-```{r}
-F_RNase_norm <- All_RNAse_norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
-F_RNase_norm <- All_RNAse_norm[!rownames(abs_max_both) %in% trash_F_NA, ]
-
-F_ctrl_norm <- All_ctrl_norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
-F_ctrl_norm <- All_ctrl_norm[!rownames(abs_max_both) %in% trash_F_NA, ]
-```
-
-
-
-
-## T-test
-
-Next, for the remaining proteins a two-tailed unpaired t-test was used to highlight significant changes in the height of the maxima. If the p-value lies under the threshold significance niveau, H0 = "the true mean difference is equal to zero" will be rejected. 
-
-```{r}
-#t-test
-Fe_before <- c(5.6, 6.0, 6.7, 13.9, 10.4)
-Fe_after <- c(20.0, 12.3, 18.1, 17.5, 15.0)
-
-Fe_ttest <- t.test(Fe_before, Fe_after, alternative = "two.sided", var.equal = TRUE) #unpaired
-Fe_ttest
-```
-
-### t-test on our data
-
-Next, our data was analyzed per protein per fraction ctrl vs. RNase.
-
-```{r t-test on data}
-t_test_p_values <- c()
-
-for (i in 1:nrow(F_ctrl_norm)) {
-  x <- as.numeric(F_ctrl_norm[i,])
-  y <- as.numeric(F_RNase_norm[i,])
-  
-  for (k in 1:25) {  
-    result <- t.test(x[(1+3*k-3):(3*k)], y[(1+3*k-3):(3*k)], alternative = "two.sided", var.equal = TRUE)
-    new_p_value <- result$p.value
-     # save p-value for every protein comparing ctrl vs RNase
-     t_test_p_values <-  c(t_test_p_values, new_p_value)
-  }
-}
-
-# Matrix of p-values
-p_value_matrix_t <- matrix(data = t_test_p_values, byrow = TRUE, ncol = 25)
-
-col_names_p <-  sapply(c(1:25), function(x) {
-    str_glue(x)
-})
-
-p_value_df_t <- data.frame(p_value_matrix_t)
-rownames(p_value_df_t) <-  row.names(F_ctrl_norm)
-colnames(p_value_df_t) <-  col_names_p
-```
-
-The p-values were specifically analyzed in maxima positions.
-
-```{r}
-# For ctrl maxima
-t_max_ctrl <- c()
-for (i in 1:nrow(p_value_df_t)) {
-  boolian <- p_value_df_t[i, abs_max_both_F$fracs_ctrl[i]] > 0.05
-  t_max_ctrl <- c(t_max_ctrl, boolian)
-}
-
-# For RNase maxima
-t_max_RNase <- c()
-for (i in 1:nrow(p_value_df_t)) {
-  boolian <- p_value_df_t[i, abs_max_both_F$fracs_RNAse[i]] > 0.05
-  t_max_RNase <- c(t_max_RNase, boolian)
-}
-
-list_t_max_RNAse <- t_max_RNase
-```
-
-We quantified how many triplets in peak positions passed the t-test ("TRUE").
-
-```{r}
-# RNase
-table(t_max_RNase)["TRUE"]
-table(t_max_RNase)["TRUE"] / nrow(abs_max_both_F)
-
-# Ctrl
-table(t_max_ctrl)["TRUE"]
-table(t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
-
-# Either RNase or Ctrl
-table(t_max_RNase & t_max_ctrl)["TRUE"] 
-table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
-```
-
-It turns out, that a little below half of the proteins shows a significat y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
-
-```{r}
-# NA
-t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
-t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
-
-trash_t_NA <- c(row.names(t_NA_ctrl), row.names(t_NA_RNase))
-length(trash_t_NA)
-```
-It turns out that this time no NA values were observed. The t-test either delivers "FALSE" or "TRUE" as its output.
-
-```{r Sum up FALSE proteins}
-# FALSE
-t_FALSE_ctrl <- abs_max_both_F[which(t_max_ctrl == FALSE), ]
-t_FALSE_RNase <- abs_max_both_F[which(t_max_RNase == FALSE), ]
-
-trash_t_FALSE <- unique(c(row.names(t_FALSE_ctrl), row.names(t_FALSE_RNase)))
-length(trash_t_FALSE)
-```
-
-
-```{r Remove FALSE proteins}
-abs_max_both_t <- abs_max_both[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
-dim(abs_max_both_t) #dataset without FALSE
-
-t_RNase_norm <- F_RNase_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
-t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
-
-```
-
-
-
-
-## Tests for linear regression
-
-```{r}
-
-cor(abs_max_both)
-
-plot(abs_max_both$y_shifts, abs_max_both$shifts)
-
-plot (abs_max_both)
-  
-  
-
+heatmap(cor(HeLa_Ctrl_mean, HeLa_RNAse_mean))
 ```
 
 ```{r new data}
@@ -1178,3 +1105,42 @@ bp <-  which(RBPs.same == TRUE)
 RBPs <- data.frame(mean_HeLa[ bp,], abs_max_both[bp,], HS_RBPs[ bp,])
 ```
 
+
+## Tests for linear regression
+
+```{r}
+
+cor(abs_max_both)
+
+plot(abs_max_both$y_shifts, abs_max_both$shifts)
+
+plot (abs_max_both)
+  
+  
+
+```
+
+```{r}
+
+
+quoti <- function(data1, data2){
+  
+Quotienten = c()
+  for (k in 1:7081) {
+    dat1 = data1[k,]
+    dat2 = data2[k,]
+    Quotient = c()
+    
+      for (i in 1:25) {
+        quotient <- dat1[i]/dat2[i]
+        Quotient = c(Quotient, quotient)
+      }
+      Quotienten = rbind(Quotienten, Quotient)
+  } 
+  rownames(Quotienten) = rownames( data1)
+  return(Quotienten)
+}
+
+help <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
+
+```
