@@ -319,13 +319,6 @@ HeLa_RNAse_mean = mean_HeLa %>% select(contains("RNA"))
 
 ```
 
-
-
-
-
-
-
-
 # Checking on the normalization
 
 Next, the results of the clean-up were compared. We plotted the data pre- and post-normalization for six proteins. Three of which were sure "shifters" and three that were found not to be RNA-dependent.
@@ -569,10 +562,6 @@ abs_max_both <- data.frame(absolute_max_ctrl, fracs_ctrl, absolute_max_RNAse, fr
 
 ## Shift Erkennung
 ```{r}
-# Globale Maxima für CNTRL und RNAse in eine Spalte einer Tabelle oder separat
-
-# Lokale Maxima ebenfalls
-
 # Maxima auswählen: Laut Literatur (Maiwens Publikation) alle Maxima >= 25 % des globalen Maximums berücksichtigen.
 
  # Als erstes müssen wir definieren ob der Verlust in der einen Fraktion identisch mit dem Gain in der anderen ist --> Ermöglicht uns zu erkennen ob mehrere Peaks nach RNASE Treatment zu erwarten sind. Dazu vergleichen wir die "Area under Curve" oder halt die Differenzen der beiden Fraktionen.
@@ -604,17 +593,26 @@ abs_max_both$y_shifts <- y_shifts
 
 ```{r calculating x-shift}
 no_shift <- which(abs_max_both$x_shifts == 0)
-right_shift <- which(abs_max_both$x_shifts > 0)
-left_shift <- which(abs_max_both$x_shifts < 0)
+left_shift <- which(abs_max_both$x_shifts > 0)
+right_shift <- which(abs_max_both$x_shifts < 0)
 
 i <- c(1:7081)
 shift_direction <- c()
 for(x in i){shift_direction[x] <- if(abs_max_both$x_shifts[x]==0) {'no shift'}
-else if(abs_max_both$x_shifts[x] < 0) {'left shift'}
-else {'right shift'}
+else if(abs_max_both$x_shifts[x] < 0) {'right shift'}
+else {'left shift'}
 }
 
 abs_max_both$shift_direction <- shift_direction
+
+max_frac_ctrl <- c(abs_max_both$fracs_ctrl)
+
+i <- c(1:7081)
+y_shifts2 <- c()
+for(x in i){y_shifts2[x] <- absolute_max_ctrl[x] - HeLa_RNAse_mean[x,fracs_ctrl[x]]
+}
+abs_max_both$y_shifts2 <- y_shifts2
+
 ```
 
 # Statistische Tests
@@ -639,7 +637,7 @@ Fe_test_paired
 #Wilcoxon Test for paired samples if not normally ditributed was bei unseren Daten sehr wahrscheinlich der Fall sein wird. 
 
 ```
-
+##Clustering
 
 ```{r k means clustering packages}
 library(corrplot)# Clustering
@@ -648,10 +646,11 @@ library(factoextra)
 ```
 
 
-```{r k means silhouette method}
+```{r silhouette method}
+o <- c(6,8)
 silhouette_score <- function(k){
-  km <- kmeans(abs_max_both[,5:6], centers = k, nstart=15)
-  ss <- silhouette(km$cluster, dist(abs_max_both[,5:6]))
+  km <- kmeans(abs_max_both[,o], centers = k, nstart=15)
+  ss <- silhouette(km$cluster, dist(abs_max_both[,o]))
   mean(ss[, 3])
 }
 k <- 2:10
@@ -660,16 +659,40 @@ plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette S
 
 ```
 
-```{r}
+```{r optimal number of clusters}
 library(factoextra)
+g <- c(6,8)
+fviz_nbclust(abs_max_both[,g], kmeans, method='silhouette')
 
-fviz_nbclust(abs_max_both[,5:6], kmeans, method='silhouette')
+```
+```{r cluster plot}
+l <- c(6,8)
+kmean5 <- kmeans(abs_max_both[,l], centers = 4, iter.max = 25, nstart = 25)
+
+kmeans_fancy <- kmeans(scale(abs_max_both[,l]), 4, nstart = 25)
+kmeans_fancy
+# plot the clusters
+fviz_cluster(kmeans_fancy, data = scale(abs_max_both[,l]), geom = c("point"),ellipse.type = "euclid")
+```
+```{r}
+sil <- silhouette(kmeans_fancy$cluster, dist(abs_max_both[,l]))
+fviz_silhouette(sil)
 ```
 
-```{r}
-#kmean <- kmeans(abs_max_both[,5:6], centers = 4, iter.max = 25, nstart = 50)
+```{r k means}
+k <- c(6,8)
+kmean1 <- kmeans(abs_max_both[,k], centers = 4, iter.max = 25, nstart = 50)
+kmean1
 
-km.res <- kmeans(abs_max_both$x_shifts[!is.na(abs_max_both$x_shifts)], 4)
+kmean1_table <- data.frame(kmean1$size, kmean1$centers)
+kmean1_df <- data.frame(Cluster = kmean1$cluster, abs_max_both[,k])
+
+ggplot(data = kmean1_df, aes(y = Cluster)) +
+  geom_bar(aes()) +
+  ggtitle("Count of Clusters by Region") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
 ```
 
 ```{r plotting cluster}
@@ -680,13 +703,12 @@ library(FactoMineR)
 ```
 
 
-```{r plotting cluster}
-install.packages("ggplot2")
+```{r ggplot lib}
 library(ggplot2)
 ```
 
 
-```{r plotting cluster}
+```{r ggplot shifters}
 cluster1a <- as.matrix(abs_max_both$fracs_ctrl[left_shift])
 cluster1b <- as.matrix(abs_max_both$fracs_RNAse[left_shift])
 cluster2a <- as.matrix(abs_max_both$fracs_ctrl[no_shift])
@@ -698,16 +720,19 @@ bla1 <- as.matrix(abs_max_both$fracs_ctrl)
 bla2 <- as.matrix(abs_max_both$fracs_RNAse)
 cols <- c(1,3)
 
-ggplot(abs_max_both[,cols], aes(x = bla2, y=bla1), color = cyl) +
+p_all <- ggplot(abs_max_both[,cols], aes(x = bla2, y=bla1), color = cyl) +
   geom_point()
+p0 <- p_all + labs(title = "All proteins")
+p0
 
-p_left <- ggplot(abs_max_both[left_shift,cols], aes(x = cluster1a, y=cluster1b, color = "blue")) +
-  geom_point()
+p_left <- ggplot(abs_max_both[left_shift,cols], aes(x = cluster1a, y=cluster1b, color = "blue")) 
+  geom_point() 
 p1 <- p_left + labs(title = "Left shifters")
 p1
 
 p_no <- ggplot(abs_max_both[no_shift,cols], aes(x = cluster2a, y=cluster2b, color = "green")) +
-  geom_point()
+  geom_point() 
+
 p2 <- p_no + labs(title = "Non-shifters")
 p2
 
