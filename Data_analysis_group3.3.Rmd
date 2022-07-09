@@ -345,8 +345,7 @@ compare_pre_post("ASNS_HUMAN", 2500000, 40) #ASNS
 compare_pre_post("MCM2_HUMAN", 18000000, 25) #MCM2
 compare_pre_post("MCM3_HUMAN", 25000000, 25) #MCM3
 
-rm(HeLa_Ctrl1, HeLa_Ctrl2, HeLa_Ctrl3, HeLa_Ctrl_colnorm, HeLa_RNAse1, HeLa_RNAse2, HeLa_RNAse3 ,HeLa_RNAse_colnorm)
-rm(compare_pre_post)
+
 ```
 
 
@@ -393,7 +392,7 @@ Following the Shapiro-Wilk test, we can expect our data three replicate values p
 ```{r}
 rm(Fraction1_Ctrl, Fraction1_RNAse, Fraction2_Ctrl, Fraction2_RNAse, Fraction3_Ctrl, Fraction3_RNAse, Fraction4_Ctrl, Fraction4_RNAse, Fraction5_Ctrl, Fraction5_RNAse, Fraction6_Ctrl, Fraction6_RNAse, Fraction7_Ctrl, Fraction7_RNAse, Fraction8_Ctrl, Fraction8_RNAse, Fraction9_Ctrl, Fraction9_RNAse, Fraction10_Ctrl, Fraction10_RNAse, Fraction11_Ctrl, Fraction11_RNAse, Fraction12_Ctrl, Fraction12_RNAse, Fraction13_Ctrl, Fraction13_RNAse, Fraction14_Ctrl, Fraction14_RNAse, Fraction15_Ctrl, Fraction15_RNAse, Fraction16_Ctrl, Fraction16_RNAse, Fraction17_Ctrl, Fraction17_RNAse, Fraction18_Ctrl, Fraction18_RNAse, Fraction19_Ctrl, Fraction19_RNAse, Fraction20_Ctrl, Fraction20_RNAse, Fraction21_Ctrl, Fraction21_RNAse, Fraction22_Ctrl, Fraction22_RNAse, Fraction23_Ctrl, Fraction23_RNAse, Fraction24_Ctrl, Fraction24_RNAse, Fraction25_Ctrl, Fraction25_RNAse)
 
-rm(fraction_index, fractions_names_Ctrl_, fractions_names_RNAse,i)
+rm(fractions_names_Ctrl_, fractions_names_RNAse,i)
 ```
 
 
@@ -1132,7 +1131,8 @@ Quotienten = c()
     Quotient = c()
     
       for (i in 1:25) {
-        quotient <- dat1[i]/dat2[i]
+        if (dat2[i] == 0)  { quotient <- 0 }
+        else quotient <- dat1[i]/dat2[i]
         Quotient = c(Quotient, quotient)
       }
       Quotienten = rbind(Quotienten, Quotient)
@@ -1141,6 +1141,8 @@ Quotienten = c()
   return(Quotienten)
 }
 
-help <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
+help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
 
 ```
+
+
