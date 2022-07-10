@@ -1145,4 +1145,34 @@ help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
 
 ```
 
++```{r selecting highest quotient sum values}
+#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
+
+quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
+q_HeLa_mat <- matrix(unlist(quotienten_HeLa), ncol=25, byrow=FALSE)
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+sums20_index <- which(q_mat_sums>20)
+sums20_value <- q_mat_sums[which(q_mat_sums>20)]
+```
+
+```{r}
+#Here we are generating a list of all proteinn+```{r selecting highest quotient sum values}
+#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
+
+quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
+q_HeLa_mat <- matrix(unlist(quotienten_HeLa), ncol=25, byrow=FALSE)
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+sums20_index <- which(q_mat_sums>20)
+sums20_value <- q_mat_sums[which(q_mat_sums>20)]
+```
+
+```{r}
+#Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20.
+likely_shifters <- proteinnames[sums20_index]
+likely_shifters
+```ames, which have a quotient sum value higher than 20.
+likely_shifters <- proteinnames[sums20_index]
+likely_shifters
+```
+
 
