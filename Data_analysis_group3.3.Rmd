@@ -982,14 +982,62 @@ library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
 ```
+```{r}
 
+
+quoti <- function(data1, data2){
+  
+Quotienten = c()
+  for (k in 1:7081) {
+    dat1 = data1[k,]
+    dat2 = data2[k,]
+    Quotient = c()
+    
+      for (i in 1:25) {
+        if (dat2[i] == 0)  { quotient <- 0 }
+        else quotient <- dat1[i]/dat2[i]
+        Quotient = c(Quotient, quotient)
+      }
+      Quotienten = rbind(Quotienten, Quotient)
+  } 
+  rownames(Quotienten) = rownames( data1)
+  return(Quotienten)
+}
+
+help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
+
+```
+
+```{r selecting highest quotient sum values}
+#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
+
+quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
+q_HeLa_mat <- matrix(unlist(quotienten_HeLa), ncol=25, byrow=FALSE)
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+sums20_index <- which(q_mat_sums>20)
+sums20_value <- q_mat_sums[which(q_mat_sums>20)]
+```
+
+```{r}
+maxi <- apply(q_HeLa_mat,1, max)
+mini <- apply(q_HeLa_mat, 1, min)
+mean <- rowMeans(q_HeLa_mat)
+abs_mat_both_q <- cbind(abs_max_both, maxi,mini, mean)
+dif <- abs_mat_both_q$maxi - abs_mat_both_q$mini
+abs_mat_both_q <- cbind(abs_mat_both_q, dif)
+
+clust <- c(maxi, x_shifts)
+clus <- data.frame(maxi, x_shifts)
+clus_left <- data.frame(maxi[left_shift], x_shifts[left_shift])
+clus_no <- data.frame(maxi[no_shift], x_shifts[no_shift])
+clus_right <- data.frame(maxi[right_shift], x_shifts[right_shift])
+```
 
 ```{r silhouette method}
-h <- c(abs_max_both$y_shifts2, q_mat_sums)
 o <- data.frame(y_shifts2, q_mat_sums)
 silhouette_score <- function(k){
-  km <- kmeans(o, centers = k, nstart=15)
-  ss <- silhouette(km$cluster, dist(o))
+  km <- kmeans(clus, centers = k, nstart=15)
+  ss <- silhouette(km$cluster, dist(clus))
   mean(ss[, 3])
 }
 k <- 2:10
@@ -1001,29 +1049,43 @@ plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette S
 ```{r optimal number of clusters}
 library(factoextra)
 g <- c(6,8)
-fviz_nbclust(abs_max_both[,g], kmeans, method='silhouette')
+fviz_nbclust(clus, kmeans, method='silhouette')
 
 ```
-```{r cluster plot}
-l <- c(6,8)
-kmean5 <- kmeans(o, centers = 3, iter.max = 25, nstart = 25)
 
-kmeans_fancy <- kmeans(scale(o), 3, nstart = 25)
+```{r cluster plot}
+kmeans_fancy <- kmeans(scale(clus), 3, nstart = 25)
 kmeans_fancy
 # plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(o), geom = c("point"),ellipse.type = "euclid")
+fviz_cluster(kmeans_fancy, data = scale(clus), geom = c("point"),ellipse.type = "euclid")
+
+kmeans_fancy <- kmeans(scale(clus_left), 2, nstart = 25)
+kmeans_fancy
+# plot the clusters
+fviz_cluster(kmeans_fancy, data = scale(clus_left), geom = c("point"),ellipse.type = "euclid")
+
+kmeans_fancy <- kmeans(scale(clus_right), 2, nstart = 25)
+kmeans_fancy
+# plot the clusters
+fviz_cluster(kmeans_fancy, data = scale(clus_right), geom = c("point"),ellipse.type = "euclid")
+
+kmeans_fancy <- kmeans(scale(clus_no), 2, nstart = 25)
+kmeans_fancy
+# plot the clusters
+fviz_cluster(kmeans_fancy, data = scale(clus_no), geom = c("point"),ellipse.type = "euclid")
 ```
+
 ```{r}
-sil <- silhouette(kmeans_fancy$cluster, dist(o))
+sil <- silhouette(kmeans_fancy$cluster, dist(clus))
 fviz_silhouette(sil)
 ```
 
 ```{r k means}
-kmean1 <- kmeans(o, centers = 3, iter.max = 25, nstart = 50)
+kmean1 <- kmeans(clus, centers = 3, iter.max = 25, nstart = 50)
 kmean1
 
 kmean1_table <- data.frame(kmean1$size, kmean1$centers)
-kmean1_df <- data.frame(Cluster = kmean1$cluster, o)
+kmean1_df <- data.frame(Cluster = kmean1$cluster, clus)
 
 ggplot(data = kmean1_df, aes(y = Cluster)) +
   geom_bar(aes()) +
@@ -1118,73 +1180,13 @@ plot (abs_max_both)
 cor(sums20_value, abs_max_both$y_shifts2)
 ```
 
-```{r}
-
-
-quoti <- function(data1, data2){
-  
-Quotienten = c()
-  for (k in 1:7081) {
-    dat1 = data1[k,]
-    dat2 = data2[k,]
-    Quotient = c()
-    
-      for (i in 1:25) {
-        if (dat2[i] == 0)  { quotient <- 0 }
-        else quotient <- dat1[i]/dat2[i]
-        Quotient = c(Quotient, quotient)
-      }
-      Quotienten = rbind(Quotienten, Quotient)
-  } 
-  rownames(Quotienten) = rownames( data1)
-  return(Quotienten)
-}
-
-help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
-
-```
-
-```{r selecting highest quotient sum values}
-#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
-
-quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
-q_HeLa_mat <- matrix(unlist(quotienten_HeLa), ncol=25, byrow=FALSE)
-q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
-sums20_index <- which(q_mat_sums>20)
-sums20_value <- q_mat_sums[which(q_mat_sums>20)]
-```
-
-````{r}
-
-#Here we are generating a list of all proteinn+```{r selecting highest quotient sum values}
-#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
-
-quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
-q_HeLa_mat <- matrix(unlist(quotienten_HeLa), ncol=25, byrow=FALSE)
-q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
-sums20_index <- which(q_mat_sums>20)
-sums20_value <- q_mat_sums[which(q_mat_sums>20)]
-```
 
 ```{r}
 #Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20 (around 900 proteins).
 likely_shifters <- proteinnames[sums20_index]
 likely_shifters
-```ames, which have a quotient sum value higher than 20.
-likely_shifters <- proteinnames[sums20_index]
-likely_shifters
 ```
 
-```{r}
-maxi <- apply(q_HeLa_mat,1, max)
-mini <- apply(q_HeLa_mat, 1, min)
-mean <- rowMeans(q_HeLa_mat)
-abs_mat_both_q <- cbind(abs_max_both, maxi,mini, mean)
-dif <- abs_mat_both_q$maxi - abs_mat_both_q$mini
-abs_mat_both_q <- cbind(abs_mat_both_q, dif)
-
-
-```
 
 
 
