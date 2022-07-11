@@ -988,10 +988,11 @@ library(factoextra)
 
 
 ```{r silhouette method}
-o <- c(6,8)
+h <- c(abs_max_both$y_shifts2, q_mat_sums)
+o <- data.frame(y_shifts2, q_mat_sums)
 silhouette_score <- function(k){
-  km <- kmeans(abs_max_both[,o], centers = k, nstart=15)
-  ss <- silhouette(km$cluster, dist(abs_max_both[,o]))
+  km <- kmeans(o, centers = k, nstart=15)
+  ss <- silhouette(km$cluster, dist(o))
   mean(ss[, 3])
 }
 k <- 2:10
@@ -1008,25 +1009,24 @@ fviz_nbclust(abs_max_both[,g], kmeans, method='silhouette')
 ```
 ```{r cluster plot}
 l <- c(6,8)
-kmean5 <- kmeans(abs_max_both[,l], centers = 4, iter.max = 25, nstart = 25)
+kmean5 <- kmeans(o, centers = 3, iter.max = 25, nstart = 25)
 
-kmeans_fancy <- kmeans(scale(abs_max_both[,l]), 4, nstart = 25)
+kmeans_fancy <- kmeans(scale(o), 3, nstart = 25)
 kmeans_fancy
 # plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(abs_max_both[,l]), geom = c("point"),ellipse.type = "euclid")
+fviz_cluster(kmeans_fancy, data = scale(o), geom = c("point"),ellipse.type = "euclid")
 ```
 ```{r}
-sil <- silhouette(kmeans_fancy$cluster, dist(abs_max_both[,l]))
+sil <- silhouette(kmeans_fancy$cluster, dist(o))
 fviz_silhouette(sil)
 ```
 
 ```{r k means}
-k <- c(6,8)
-kmean1 <- kmeans(abs_max_both[,k], centers = 4, iter.max = 25, nstart = 50)
+kmean1 <- kmeans(o, centers = 3, iter.max = 25, nstart = 50)
 kmean1
 
 kmean1_table <- data.frame(kmean1$size, kmean1$centers)
-kmean1_df <- data.frame(Cluster = kmean1$cluster, abs_max_both[,k])
+kmean1_df <- data.frame(Cluster = kmean1$cluster, o)
 
 ggplot(data = kmean1_df, aes(y = Cluster)) +
   geom_bar(aes()) +
@@ -1118,8 +1118,7 @@ plot(abs_max_both$y_shifts, abs_max_both$shifts)
 
 plot (abs_max_both)
   
-  
-
+cor(sums20_value, abs_max_both$y_shifts2)
 ```
 
 ```{r}
@@ -1154,7 +1153,7 @@ sums20_value <- q_mat_sums[which(q_mat_sums>20)]
 ```
 
 ```{r}
-#Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20.
+#Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20 (around 900 proteins).
 likely_shifters <- proteinnames[sums20_index]
 likely_shifters
 ```
