@@ -1145,7 +1145,7 @@ help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
 
 ```
 
-+```{r selecting highest quotient sum values}
+```{r selecting highest quotient sum values}
 #Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
 
 quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
@@ -1155,7 +1155,8 @@ sums20_index <- which(q_mat_sums>20)
 sums20_value <- q_mat_sums[which(q_mat_sums>20)]
 ```
 
-```{r}
+````{r}
+
 #Here we are generating a list of all proteinn+```{r selecting highest quotient sum values}
 #Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
 
@@ -1174,5 +1175,17 @@ likely_shifters
 likely_shifters <- proteinnames[sums20_index]
 likely_shifters
 ```
+
+```{r}
+maxi <- apply(q_HeLa_mat,1, max)
+mini <- apply(q_HeLa_mat, 1, min)
+mean <- rowMeans(q_HeLa_mat)
+abs_mat_both_q <- cbind(abs_max_both, maxi,mini, mean)
+dif <- abs_mat_both_q$maxi - abs_mat_both_q$mini
+abs_mat_both_q <- cbind(abs_mat_both_q, dif)
+
+
+```
+
 
 
