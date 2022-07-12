@@ -22,9 +22,7 @@ library(dplyr)
 ### Raw data
 ```{r  Load the Data}
 #load the data
-#Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
-
 ```
 
 ```{r}
@@ -975,7 +973,7 @@ So it might be useful to exclude all proteins, that do not have a "TRUE" in both
 
 We quantified how many triplets in peak positions passed the t-test ("TRUE").
 
-```{r}
+```{r Quantify t-test result}
 # RNase
 table(t_max_RNase)["TRUE"]
 table(t_max_RNase)["TRUE"] / nrow(abs_max_both_F)
@@ -991,7 +989,7 @@ table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
 
 It turns out, that about half of the proteins shows a y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
 
-```{r}
+```{r Sum up and remove NA}
 # NA
 t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
 t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
@@ -1020,15 +1018,11 @@ t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
 ```
 This way, about 3536 potential shifters and therefore RNA-interacting proteins were identified.
 
-```{r}
-compare_pre_post("A1ATR_HUMAN", 200000, 110) 
-```
-
 When viewing the cleaned up data frame, another problem was noticed: Fractions containing 100% of protein content in both RNA and ctrl are listed as well. This makes no sense as no y-shift truly occurs. 
 
 Those proteins therefore have a y-shift (y-ctrl - yRNAse) of 0. This will be the criterion to remove them.
 
-```{r}
+```{r significant y-shift}
 trash_t_y0 <- c(rownames(abs_max_both_t[which(abs_max_both_t$y_shifts == 0), ]))
 abs_max_both_t_y0 <- abs_max_both_t[!rownames(abs_max_both_t) %in% trash_t_y0, ]
 
@@ -1038,11 +1032,11 @@ nrow(abs_max_both_t_y0)
 So now, 2929 proteins remain with significant y-shifts.
 
 
-## Refering back to the x-shift
+### Refering back to the x-shift
 
 For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1) or (shift > 2) as comparison.
 
-```{r}
+```{r >2 or >1 x shift}
 # At least 1 or more fractions x shift
 trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 2), ]))
 abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
@@ -1056,7 +1050,7 @@ abs_max_both_x_y_2
 nrow(abs_max_both_x_y_2)
 ```
 
-```{r}
+```{r Difference >2 or >1 x shift}
 # Difference:
 row_1 <- c(rownames(abs_max_both_x_y_1))
 row_2 <- c(rownames(abs_max_both_x_y_2))
@@ -1065,17 +1059,106 @@ doubles <- row_1 %in% row_2
 dif_pos_x_y_1_2 <- which(doubles == FALSE)
 dif_names_x_y_1_2 <- row_1[dif_pos_x_y_1_2]
 length(dif_names_x_y_1_2)
-dif_names_x_y_1_2
 ```
 
 The proteins that were filtered out by the graeter x-shift criterion are both claffisfied as RBPs by other studies as well as non-shifters. Since other work groups used the gaussian fit, the x-shift could be determined as 0.6 for example. In our case, we are working with integers that do not allow for partial fraction shifts as in 0.6. 
 
 We were curious if on the other hand side the cut-off (shift > 2) resulted in better prediction of RBP although with reduced quantity. 
 
----> Wie mit website vergleichen????
+### x Shift > 2 results
+
+```{r True/False RBP}
+load("/Users/carina/Desktop/HS_RBPs.RData")
+load("/Users/carina/Desktop/HS_non_RBPs.RData")
+
+# True RBP
+Match_RBP_2 <- HS_RBPs$Entry_Name.x %in% row_2
+True_RBP_pos_2 <- which(Match_RBP_2 == TRUE)
+True_RBP_names_2 <- HS_RBPs$Entry_Name.x[True_RBP_pos_2]
+length(True_RBP_names_2)
+
+# False RBP
+Match_non_RBP_2 <- HS_non_RBPs$Entry_Name.x %in% row_2
+False_RBP_pos_2 <- which(Match_non_RBP_2 == TRUE)
+False_RBP_names_2 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_2]
+length(False_RBP_names_2)
+```
+
+Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+
+```{r RBD status}
+# Show RBD status 
+RBD_stat_non_RBP_2 <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP_2) <- HS_non_RBPs$Entry_Name.x
+RBD_stat_non_RBP_t_2 <- RBD_stat_non_RBP_2[rownames(RBD_stat_non_RBP_2) %in% False_RBP_names_2, ]
+
+# Quantify RBD status
+RBD_true_prot_df_2 <- RBD_stat_non_RBP_t_2[RBD_stat_non_RBP_t_2$RBD_status == "RBD", ]
+RBD_true_prot_names_2 <- rownames(RBD_true_prot_df_2)
+length(RBD_true_prot_names_2)
+```
+
+So 6 out of 91 proteins may at least be RNA-dependent although not RNA-binding.
+
+
+### x Shift > 1 results
+
+```{r True/False RBP}
+# True RBP
+Match_RBP_1 <- HS_RBPs$Entry_Name.x %in% row_1
+True_RBP_pos_1 <- which(Match_RBP_1 == TRUE)
+True_RBP_names_1 <- HS_RBPs$Entry_Name.x[True_RBP_pos_1]
+length(True_RBP_names_1)
+
+# False RBP
+Match_non_RBP_1 <- HS_non_RBPs$Entry_Name.x %in% row_1
+False_RBP_pos_1 <- which(Match_non_RBP_1 == TRUE)
+False_RBP_names_1 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_1]
+length(False_RBP_names_1)
+```
+
+Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+
+```{r RBD status}
+# Show RBD status 
+RBD_stat_non_RBP<- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
+RBD_stat_non_RBP_t_1 <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP_1) %in% False_RBP_names_1, ]
+RBD_stat_non_RBP_t_1
+
+# Quantify RBD status
+RBD_true_prot_df_1 <- RBD_stat_non_RBP_t_1[RBD_stat_non_RBP_t_1$RBD_status == "RBD", ]
+RBD_true_prot_names_1 <- rownames(RBD_true_prot_df_1)
+length(RBD_true_prot_names_1)
+```
+
+So 6 out of 120 proteins may at least be RNA-dependent although not RNA-binding.
 
 ```{r}
-compare_pre_post("CPSF7_HUMAN", 2000000, 30)
+RBD_true_prot_names_1 == RBD_true_prot_names_2
+```
+
+Those are the same 6 as before. 
+
+
+### Sum up t-test results
+
+So choosing the cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 (or 114) false-positives out of 636 total. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 (or 85) false-positives out of 489 total.
+
+```{r}
+# >1 x-shift
+( length(True_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
+( length(False_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
+
+# >2 x-shift
+( length(True_RBP_names_2) / nrow(abs_max_both_x_y_2) ) * 100 # True positive quote
+( length(False_RBP_names_2) / nrow(abs_max_both_x_y_2) ) * 100 # False positive quote
+```
+
+In both cases, about 80% of identified RBP were correct when compared to other publishers. Since the >1 x-shift cut-off did not worsen this quote but instead delivered more results overall (636 compared to 489), we feel that the >1 x-shift cut-off is meaningful for our analysis.
+
+```{r}
+
 ```
 
 
@@ -1094,9 +1177,8 @@ library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
 ```
+
 ```{r}
-
-
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -1277,6 +1359,77 @@ RBPs.same <- proteins.new.RBPs %in% rownames
 bp <-  which(RBPs.same == TRUE)
 RBPs <- data.frame(mean_HeLa[ bp,], abs_max_both[bp,], HS_RBPs[ bp,])
 ```
+
+
+### Comparing Clustering Results
+
+Next, we wondered whether our clustering results matched the previously identified RBP in other studies. So we wanted to test the reliability of our clustering.
+
+```{r}
+Cluster_3 <- c("BSN_HUMAN","CCD86_HUMAN","CETN3_HUMAN","CG050_HUMAN","CND2_HUMAN","DDX27_HUMAN","DDX50_HUMAN","DHX30_HUMAN","EXOS3_HUMAN","F120A_HUMAN","FMO1_HUMAN","GPTC2_HUMAN","H10_HUMAN","H11_HUMAN","H12_HUMAN","H13_HUMAN","H14_HUMAN","H1FOO_HUMAN","H1T_HUMAN","HNF6_HUMAN","HNRC1_HUMAN","HNRC2_HUMAN","HNRC3_HUMAN","HNRLL_HUMAN","HOOK3_HUMAN","IF2A_HUMAN","KPYM_HUMAN","KPYR_HUMAN","MRES1_HUMAN","PNISR_HUMAN","PTTG_HUMAN","PUR6_HUMAN","R39L5_HUMAN","RBL2_HUMAN","RBM22_HUMAN","RBM28_HUMAN","RIR1_HUMAN","RISC_HUMAN","RL10A_HUMAN","RL15_HUMAN","RL17_HUMAN","RL27A_HUMAN","RL27_HUMAN","RL30_HUMAN","RL37_HUMAN","RL3_HUMAN","RL7A_HUMAN","RL7L_HUMAN","RNZ2_HUMAN","RP1BL_HUMAN","RRNAD_HUMAN","RRP7A_HUMAN","RRP7B_HUMAN","RS12_HUMAN","RS19_HUMAN","RS28_HUMAN","RS30_HUMAN","RS3A_HUMAN","SHLB2_HUMAN","STPAP_HUMAN","TBL1R_HUMAN","TOM7_HUMAN","TRIP4_HUMAN","ZBT41_HUMAN","ZN703_HUMAN")
+
+length(Cluster_3)
+```
+
+--> Cluster 3 (pretty safely RBP?)
+
+```{r}
+# True RBP
+Match_RBP_C3 <- HS_RBPs$Entry_Name.x %in% Cluster_3
+True_RBP_pos_C3 <- which(Match_RBP_C3 == TRUE)
+True_RBP_names_C3 <- HS_RBPs$Entry_Name.x[True_RBP_pos_C3]
+length(True_RBP_names_C3)
+
+# False RBP
+Match_non_RBP_C3 <- HS_non_RBPs$Entry_Name.x %in% Cluster_3
+False_RBP_pos_C3 <- which(Match_non_RBP_C3 == TRUE)
+False_RBP_names_C3 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_C3]
+length(False_RBP_names_C3)
+
+False_RBP_names_C3
+
+# Not listed
+not_listed_C3 <- Cluster_3 %in% True_RBP_names_C3
+not_listed_C3_pos <- which(not_listed_C3 == FALSE)
+not_listed_C3_names <- Cluster_3[not_listed_C3_pos]
+
+not_listed_C3_2 <- not_listed_C3_names %in% False_RBP_names_C3
+not_listed_C3_pos_2 <- which(not_listed_C3_2 == FALSE)
+not_listed_C3_names <- Cluster_3[not_listed_C3_pos_2]
+
+not_listed_C3_names
+```
+
+Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+
+```{r RBD status}
+# Show RBD status 
+RBD_stat_non_RBP_C3 <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP_C3) <- HS_non_RBPs$Entry_Name.x
+RBD_stat_non_RBP_t_C3 <- RBD_stat_non_RBP_C3[rownames(RBD_stat_non_RBP_C3) %in% False_RBP_names_C3, ]
+
+# Quantify RBD status
+RBD_true_prot_df_C3 <- RBD_stat_non_RBP_t_C3[RBD_stat_non_RBP_t_C3$RBD_status == "RBD", ]
+RBD_true_prot_names_C3 <- rownames(RBD_true_prot_df_C3)
+length(RBD_true_prot_names_C3)
+RBD_true_prot_names_C3
+```
+
+This RBD protein is listed on Uniprot as q putative ribosomal RNA-processing protein. Therefore it is probably a truly identified RBP after all. 
+
+```{r}
+( length(True_RBP_names_C3) / length(Cluster_3) ) * 100 # True positive quote
+( length(False_RBP_names_C3) / length(Cluster_3) ) * 100 # False positive quote
+```
+
+The quotes do nod add up to 100 % because two proteins were not listed in the used reference data frames. Looking them up online reveals, that both should be RBPs.
+
+```{r}
+( (length(True_RBP_names_C3) + length(not_listed_C3_names)) / length(Cluster_3) ) * 100 # True positive quote
+( length(False_RBP_names_C3) / length(Cluster_3) ) * 100 # False positive quote
+```
+
+Cluster 3 therefore shows at least 83 % true positive RBPs and compares to the precision of the t-test analysis.
 
 
 ## Tests for linear regression
