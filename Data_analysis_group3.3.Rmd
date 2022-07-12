@@ -940,7 +940,7 @@ table(t_max_RNase & t_max_ctrl)["TRUE"]
 table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
 ```
 
-It turns out, that a little below half of the proteins shows a significat y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
+It turns out, that a little below half of the proteins shows a significant y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
 
 ```{r}
 # NA
@@ -982,9 +982,7 @@ library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
 ```
-```{r}
-
-
+```{r function quotient}
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -1006,6 +1004,20 @@ Quotienten = c()
 
 help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
 
+```
+
+```{r}
+p_vals_prots <- rownames(p_value_df_t) %in% rownames(abs_max_both)
+prots <-  which(p_vals_prots == TRUE)
+sign_prots <- data.frame(mean_HeLa[ prots,], abs_max_both[prots,], p_value_df_t[ prots,])
+
+i <- (1:7081)
+
+p_vals_RNAse_max <- c()
+p_vals_RNAse_max <- apply(p_value_df_t, 1, function(x){
+  for (x in i){p_vals_RNAse_max[x] <- p_value_df_t[,abs_max_both$fracs_RNAse[x]]
+  }
+})
 ```
 
 ```{r selecting highest quotient sum values}
@@ -1031,6 +1043,8 @@ clus <- data.frame(maxi, x_shifts)
 clus_left <- data.frame(maxi[left_shift], x_shifts[left_shift])
 clus_no <- data.frame(maxi[no_shift], x_shifts[no_shift])
 clus_right <- data.frame(maxi[right_shift], x_shifts[right_shift])
+
+clus_new <- data.frame(abs_max_both_t)
 ```
 
 ```{r silhouette method}
