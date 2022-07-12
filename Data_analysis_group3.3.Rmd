@@ -1038,6 +1038,48 @@ nrow(abs_max_both_t_y0)
 So now, 2929 proteins remain with significant y-shifts.
 
 
+## Refering back to the x-shift
+
+For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1) or (shift > 2) as comparison.
+
+```{r}
+# At least 1 or more fractions x shift
+trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 2), ]))
+abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
+abs_max_both_x_y_1
+nrow(abs_max_both_x_y_1)
+
+# At least 2 or more fractions x shift
+trash_no_x_2 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 3), ]))
+abs_max_both_x_y_2 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_2, ]
+abs_max_both_x_y_2
+nrow(abs_max_both_x_y_2)
+```
+
+```{r}
+# Difference:
+row_1 <- c(rownames(abs_max_both_x_y_1))
+row_2 <- c(rownames(abs_max_both_x_y_2))
+
+doubles <- row_1 %in% row_2
+dif_pos_x_y_1_2 <- which(doubles == FALSE)
+dif_names_x_y_1_2 <- row_1[dif_pos_x_y_1_2]
+length(dif_names_x_y_1_2)
+dif_names_x_y_1_2
+```
+
+The proteins that were filtered out by the graeter x-shift criterion are both claffisfied as RBPs by other studies as well as non-shifters. Since other work groups used the gaussian fit, the x-shift could be determined as 0.6 for example. In our case, we are working with integers that do not allow for partial fraction shifts as in 0.6. 
+
+We were curious if on the other hand side the cut-off (shift > 2) resulted in better prediction of RBP although with reduced quantity. 
+
+---> Wie mit website vergleichen????
+
+```{r}
+compare_pre_post("CPSF7_HUMAN", 2000000, 30)
+```
+
+
+
 ```{r}
 #rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
 
