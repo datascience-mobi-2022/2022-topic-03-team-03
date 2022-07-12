@@ -1257,6 +1257,11 @@ likely_shifters <- proteinnames[sums20_index]
 likely_shifters
 ```
 
+```{r linear regression}
+modell <- lm(abs_mat_both_q$x_shifts ~ abs_mat_both_q$maxi)
+summary(modell)
+
+plot(abs_mat_both_q$x_shifts, abs_mat_both_q$maxi, col ="blue", abline(modell))
 
 
-
+``` 
