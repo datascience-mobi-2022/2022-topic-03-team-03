@@ -971,9 +971,9 @@ t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
 
 ```
 ```{r}
-rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
+#rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
 
-rm(HeLa_cleaned, HeLa_cleaned_NA)
+#rm(HeLa_cleaned, HeLa_cleaned_NA)
 ```
 ##Clustering
 
@@ -1002,56 +1002,71 @@ Quotienten = c()
   return(Quotienten)
 }
 
-help <- as.data.frame(quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean))
-
 ```
 
-```{r}
-p_vals_prots <- rownames(p_value_df_t) %in% rownames(abs_max_both)
-prots <-  which(p_vals_prots == TRUE)
-sign_prots <- data.frame(mean_HeLa[ prots,], abs_max_both[prots,], p_value_df_t[ prots,])
-
-i <- (1:7081)
-
-p_vals_RNAse_max <- c()
-p_vals_RNAse_max <- apply(p_value_df_t, 1, function(x){
-  for (x in i){p_vals_RNAse_max[x] <- p_value_df_t[,abs_max_both$fracs_RNAse[x]]
-  }
-})
-```
 
 ```{r selecting highest quotient sum values}
 #Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
 
-quotienten_HeLa <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
-q_HeLa_mat <- matrix(unlist(quotienten_HeLa), ncol=25, byrow=FALSE)
+quotienten_HeLa_RNAse <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
+quotienten_HeLa_ctrl <- quoti(HeLa_Ctrl_mean, HeLa_RNAse_mean)
+q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNAse), ncol=25, byrow=FALSE)
+q_HeLa_mat_ctrl <- matrix(unlist(quotienten_HeLa_ctrl), ncol=25, byrow=FALSE)
 q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+q_mat_sums_new <- q_mat_sums[prots]
 sums20_index <- which(q_mat_sums>20)
 sums20_value <- q_mat_sums[which(q_mat_sums>20)]
 ```
 
 ```{r}
-maxi <- apply(q_HeLa_mat,1, max)
-mini <- apply(q_HeLa_mat, 1, min)
+maxi_RNAse <- apply(q_HeLa_mat,1, max)
+maxi_ctrl <- apply(q_HeLa_mat_ctrl,1, max)
+mini_RNAse <- apply(q_HeLa_mat, 1, min)
+#mini_ctrl <- apply(q_HeLa_mat_ctrl,1, min)
 mean <- rowMeans(q_HeLa_mat)
-abs_mat_both_q <- cbind(abs_max_both, maxi,mini, mean)
-dif <- abs_mat_both_q$maxi - abs_mat_both_q$mini
+abs_mat_both_q <- cbind(abs_max_both, maxi_RNAse, mini_RNAse, mean)
+dif <- abs_mat_both_q$maxi_RNAse - abs_mat_both_q$mini_RNAse
 abs_mat_both_q <- cbind(abs_mat_both_q, dif)
 
-clust <- c(maxi, x_shifts)
-clus <- data.frame(maxi, x_shifts)
-clus_left <- data.frame(maxi[left_shift], x_shifts[left_shift])
-clus_no <- data.frame(maxi[no_shift], x_shifts[no_shift])
-clus_right <- data.frame(maxi[right_shift], x_shifts[right_shift])
 
-clus_new <- data.frame(abs_max_both_t)
 ```
 
+```{r}
+p_vals_prots <- rownames(abs_max_both) %in% rownames(p_value_df_t)
+prots <-  c(which(p_vals_prots == TRUE))
+
+abs_mat_both_q_new <- abs_mat_both_q[prots,]
+fracs_RNAse_sign <- abs_mat_both_q_new$fracs_RNAse
+
+p_vals_RNAse_max <- c(p_value_df_t[,fracs_RNAse_sign[x]])
+p_vals_RNAse_max[is.na(p_vals_RNAse_max)] <- 0
+
+maxi_new <- maxi_RNAse[prots]
+maxi_ctrl_new <- maxi_ctrl[prots]
+
+sums20_value_new <- sums20_value[prots]
+```
+
+```{r what do we cluster?}
+o <- data.frame(abs_mat_both_q_new$y_shifts2, q_mat_sums_new)
+
+m_c <- abs_mat_both_q$absolute_max_ctrl
+m_R <- abs_mat_both_q$absolute_max_RNAse
+j <- data.frame(maxi_RNAse, q_mat_sums)
+
+clust <- data.frame(maxi_new, maxi_ctrl_new)
+
+clus_new_idea <- data.frame(p_vals_RNAse_max, maxi_new)
+
+clust_sum <- data.frame(sums20_value_new, maxi_new)
+clust_sum[is.na(clust_sum)] <- 0
+```
+
+
 ```{r silhouette method}
-o <- data.frame(y_shifts2, q_mat_sums)
 silhouette_score <- function(k){
-  km <- kmeans(clus, centers = k, nstart=15)
-  ss <- silhouette(km$cluster, dist(clus))
+  km <- kmeans(j, centers = k, nstart=15)
+  ss <- silhouette(km$cluster, dist(j))
   mean(ss[, 3])
 }
 k <- 2:10
@@ -1062,44 +1077,34 @@ plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette S
 
 ```{r optimal number of clusters}
 library(factoextra)
-g <- c(6,8)
-fviz_nbclust(clus, kmeans, method='silhouette')
+fviz_nbclust(j, kmeans, method='silhouette')
 
 ```
 
 ```{r cluster plot}
-kmeans_fancy <- kmeans(scale(clus), 3, nstart = 25)
+kmeans_fancy <- kmeans(scale(j), 3, nstart = 25)
 kmeans_fancy
 # plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(clus), geom = c("point"),ellipse.type = "euclid")
+fviz_cluster(kmeans_fancy, data = scale(j), geom = c("point"),ellipse.type = "euclid")
 
-kmeans_fancy <- kmeans(scale(clus_left), 2, nstart = 25)
-kmeans_fancy
-# plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(clus_left), geom = c("point"),ellipse.type = "euclid")
-
-kmeans_fancy <- kmeans(scale(clus_right), 2, nstart = 25)
-kmeans_fancy
-# plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(clus_right), geom = c("point"),ellipse.type = "euclid")
-
-kmeans_fancy <- kmeans(scale(clus_no), 2, nstart = 25)
-kmeans_fancy
-# plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(clus_no), geom = c("point"),ellipse.type = "euclid")
+shiftprotmaybe <- proteinnames[which(kmeans_fancy$cluster==2)]
+shiftsafe <- proteinnames[which(kmeans_fancy$cluster==1)]
+```
+```{r}
+shiftsafe
 ```
 
 ```{r}
-sil <- silhouette(kmeans_fancy$cluster, dist(clus))
+sil <- silhouette(kmeans_fancy$cluster, dist(j))
 fviz_silhouette(sil)
 ```
 
 ```{r k means}
-kmean1 <- kmeans(clus, centers = 3, iter.max = 25, nstart = 50)
+kmean1 <- kmeans(clust_new, centers = 4, iter.max = 25, nstart = 50)
 kmean1
 
 kmean1_table <- data.frame(kmean1$size, kmean1$centers)
-kmean1_df <- data.frame(Cluster = kmean1$cluster, clus)
+kmean1_df <- data.frame(Cluster = kmean1$cluster, clust_new)
 
 ggplot(data = kmean1_df, aes(y = Cluster)) +
   geom_bar(aes()) +
@@ -1123,36 +1128,36 @@ library(ggplot2)
 
 
 ```{r ggplot shifters}
-cluster1a <- as.matrix(abs_max_both$fracs_ctrl[left_shift])
-cluster1b <- as.matrix(abs_max_both$fracs_RNAse[left_shift])
-cluster2a <- as.matrix(abs_max_both$fracs_ctrl[no_shift])
-cluster2b <- as.matrix(abs_max_both$fracs_RNAse[no_shift])
-cluster3a <- as.matrix(abs_max_both$fracs_ctrl[right_shift])
-cluster3b <- as.matrix(abs_max_both$fracs_RNAse[right_shift])
+cluster1a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[left_shift_new])
+cluster1b <- as.matrix(abs_mat_both_q_new$fracs_RNAse[left_shift_new])
+cluster2a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[no_shift_new])
+cluster2b <- as.matrix(abs_mat_both_q_new$fracs_RNAse[no_shift_new])
+cluster3a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[right_shift_new])
+cluster3b <- as.matrix(abs_mat_both_q_new$fracs_RNAse[right_shift_new])
 
-bla1 <- as.matrix(abs_max_both$fracs_ctrl)
-bla2 <- as.matrix(abs_max_both$fracs_RNAse)
+bla1 <- as.matrix(abs_mat_both_q_new$fracs_ctrl)
+bla2 <- as.matrix(abs_mat_both_q_new$fracs_RNAse)
 cols <- c(1,3)
 
-p_all <- ggplot(abs_max_both[,cols], aes(x = bla2, y=bla1), color = cyl) +
+p_all <- ggplot(abs_mat_both_q_new[,cols], aes(x = bla2, y=bla1), color = cyl) +
 geom_point() +
   geom_density_2d(alpha = 0.5)
 p0 <- p_all + labs(title = "All proteins")
 p0
 
-p_left <- ggplot(abs_max_both[left_shift,cols], aes(x = cluster1a, y=cluster1b))+ 
+p_left <- ggplot(abs_mat_both_q_new[left_shift_new,cols], aes(x = cluster1a, y=cluster1b))+ 
   geom_point()+
     geom_density_2d(alpha = 0.5)
 p1 <- p_left + labs(title = "Left shifters")
 p1
 
-p_no <- ggplot(abs_max_both[no_shift,cols], aes(x = cluster2a, y=cluster2b)) +
+p_no <- ggplot(abs_mat_both_q_new[no_shift_new,cols], aes(x = cluster2a, y=cluster2b)) +
   geom_point()+
   geom_density_2d(alpha = 0.5)
 p2 <- p_no + labs(title = "Non-shifters")
 p2
 
-p_right <- ggplot(abs_max_both[right_shift,cols], aes(x = cluster3a, y=cluster3b, color = "yellow")) +
+p_right <- ggplot(abs_mat_both_q_new[right_shift_new,cols], aes(x = cluster3a, y=cluster3b)) +
   geom_point()+
   geom_density_2d(alpha = 0.5)
 p3 <- p_right + labs(title = "Right shifters")
@@ -1201,6 +1206,12 @@ likely_shifters <- proteinnames[sums20_index]
 likely_shifters
 ```
 
+```{r}
+modell <- lm(sums20_value ~ abs_mat_both_q$x_shifts)
+summary(modell)
+
+plot(sums20_value, abs_mat_both_q$x_shifts, col ="blue", abline(modell), xlim = c(1, 100), ylim = c(1, 25))
+```
 
 
 
