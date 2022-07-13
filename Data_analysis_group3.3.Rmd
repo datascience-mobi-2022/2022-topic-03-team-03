@@ -1208,7 +1208,7 @@ sums20_index <- which(q_mat_sums>20)
 sums20_value <- q_mat_sums[which(q_mat_sums>20)]
 ```
 
-```{r}
+```{r variables derived from quotient}
 maxi_RNAse <- apply(q_HeLa_mat,1, max)
 mini_RNAse <- apply(q_HeLa_mat, 1, min)
 mean <- rowMeans(q_HeLa_mat)
@@ -1217,36 +1217,10 @@ dif <- abs_mat_both_q$maxi_RNAse - abs_mat_both_q$mini_RNAse
 abs_mat_both_q <- cbind(abs_mat_both_q, dif)
 ```
 
-```{r}
-p_vals_prots <- rownames(abs_max_both) %in% rownames(p_value_df_t)
-prots <-  c(which(p_vals_prots == TRUE))
-
-abs_mat_both_q_new <- abs_mat_both_q[prots,]
-fracs_RNAse_sign <- abs_mat_both_q_new$fracs_RNAse
-
-p_vals_RNAse_max <- c(p_value_df_t[,fracs_RNAse_sign[x]])
-p_vals_RNAse_max[is.na(p_vals_RNAse_max)] <- 0
-
-maxi_new <- maxi_RNAse[prots]
-sums20_value_new <- sums20_value[prots]
-```
-
 ```{r cluster data.frame}
 cluster_data <- data.frame(maxi_RNAse, q_mat_sums)
 ```
 
-
-```{r silhouette method}
-silhouette_score <- function(k){
-  km <- kmeans(cluster_data, centers = k, nstart=15)
-  ss <- silhouette(km$cluster, dist(cluster_data))
-  mean(ss[, 3])
-}
-k <- 2:10
-avg_sil <- sapply(k, silhouette_score)
-plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette Scores', frame=FALSE)
-
-```
 
 ```{r optimal number of clusters}
 library(factoextra)
@@ -1259,19 +1233,15 @@ kmeans_fancy
 # plot the clusters
 fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
 
-shiftprotmaybe <- proteinnames[which(kmeans_fancy$cluster==2)]
+
 shiftsafe <- proteinnames[which(kmeans_fancy$cluster==1)]
 ```
 
-```{r}
-shiftsafe
-```
-
-```{r}
+```{r clusters silhouette plot}
 sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
 fviz_silhouette(sil)
 ```
-```{r plotting cluster}
+```{r plotting library}
 library(ggplot2)
 library(ggpubr)
 library(readxl)
@@ -1279,7 +1249,7 @@ library(FactoMineR)
 library(ggplot2)
 ```
 
-```{r ggplot shifters}
+```{r plotting shifters}
 cluster1a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[left_shift_new])
 cluster1b <- as.matrix(abs_mat_both_q_new$fracs_RNAse[left_shift_new])
 cluster2a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[no_shift_new])
@@ -1316,11 +1286,11 @@ p3 <- p_right + labs(title = "Right shifters")
 p3
 ```
 
-```{r}
+```{r heatmap correlation}
 heatmap(cor(HeLa_Ctrl_mean, HeLa_RNAse_mean))
 ```
 
-```{r new data}
+```{r RBP - new data}
 #über Github laden ist vermutlich keine gute Idee
 load("C:/Users/Mirja/Desktop/HS_RBPs.RData")
 load("C:/Users/Mirja/Desktop/HS_non_RBPs.RData")
