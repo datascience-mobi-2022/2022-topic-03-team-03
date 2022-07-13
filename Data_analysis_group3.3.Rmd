@@ -15,20 +15,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+library(dplyr)
 ```
 
 
 ### Raw data
 ```{r  Load the Data}
 #load the data
-#Raw_data <- read.table("C:\\Users\\Mirja\\Documents\\4. Semester\\Bioinfo\\RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
-
 ```
 
 ```{r}
 #CProteins
-proteinnames <- c(rownames(Raw_data)) # Proteinnames
+proteinnames <- c(rownames(Raw_data)) # Protein names
 ```
 
 ###Normalization
@@ -588,7 +587,7 @@ If p > 0.05 is true, H0 will not be rejected.
 
 ### F-test on our data
 
-Next, our data was analyzed per protein per fraction ctrl vs. RNase.
+Next, our data was analyzed per protein per fraction ctrl vs. RNase
 
 ```{r Applying it to our data}
 
@@ -602,7 +601,7 @@ for (i in 1:nrow(HeLa_Ctrl_Norm)) {
   
   # Selecting triplet values for each fraction
   for (k in 1:25) {  
-    result <- var.test(x[(1+3*k-3):(3*k)], y[(1+3*k-3):(3*k)], alternative = "two.sided")
+    result <- var.test(x[c(k, (25+k), (50+k))], y[c(k, (25+k), (50+k))], alternative = "two.sided")
     new_p_value <- result$p.value
      # save p-value for every protein comparing ctrl vs RNase
      F_test_p_values <-  c(F_test_p_values, new_p_value)
@@ -610,8 +609,11 @@ for (i in 1:nrow(HeLa_Ctrl_Norm)) {
 }
 
 # Testing if automation works
+k = 1 # Testing for row 1 with fraction k = 1
+HeLa_Ctrl_Norm[1, c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[1, c(k, (25+k), (50+k))]
 F_test_p_values[1]
-var.test(as.numeric(HeLa_Ctrl_Norm[1,1:3]), as.numeric(HeLa_RNAse_Norm[1,1:3]), alternative = "two.sided")
+var.test(as.numeric(HeLa_Ctrl_Norm[1, c(1, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[1,c(1, (25+k), (50+k))]), alternative = "two.sided")
 ```
 
 The calculated p-values can now be tested against the significance level of 0.05.
@@ -624,12 +626,13 @@ list_F_test_p_values_05 <- F_test_p_values > 0.05
 The automation generally works. However, sometimes NaN/NA is returned instead of a numeric p-value. This is the the case for the first row in fraction 21.
 
 ```{r NaN}
+k = 21
 F_test_p_values[21]
-var.test(as.numeric(HeLa_Ctrl_Norm[1,61:63]), as.numeric(HeLa_RNAse_Norm[1,61:63]), alternative = "two.sided")
+var.test(as.numeric(HeLa_Ctrl_Norm[1,c(k, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[1,c(k, (25+k), (50+k))]), alternative = "two.sided")
 
 # Checking on a NaN result
-HeLa_Ctrl_Norm[1,61:63]
-HeLa_RNAse_Norm[1,61:63]
+HeLa_Ctrl_Norm[1,c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[1,c(k, (25+k), (50+k))]
 ```
 
 After a closer look, those fractions returning NaN have all-zero entries columns both in the RNase and Ctrl samples. Since those will not have any relevance for the maximum search, these NaN results can be ignored.
@@ -637,12 +640,13 @@ After a closer look, those fractions returning NaN have all-zero entries columns
 Sometimes, the F-test shows that variances differ. This is the case for the protein in row 1 for fraction 3.
 
 ```{r FALSE}
+k = 3
 F_test_p_values[3]
-var.test(as.numeric(HeLa_Ctrl_Norm[1,7:9]), as.numeric(HeLa_RNAse_Norm[1,7:9]), alternative = "two.sided")
+var.test(as.numeric(HeLa_Ctrl_Norm[1,c(k, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[1,c(k, (25+k), (50+k))]), alternative = "two.sided")
 
 # Checking on FALSE result
-HeLa_Ctrl_Norm[1,7:9]
-HeLa_RNAse_Norm[1,7:9]
+HeLa_Ctrl_Norm[1,c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[1,c(k, (25+k), (50+k))]
 ```
 
 To refer the F-test results back to the actual proteins, a more visual matrix was created.
@@ -685,15 +689,15 @@ list_F_max_RNAse <- F_max_RNase
 For some maxima, the result is NA. This is the case for the maximum of the RNase sample in row 8.
 
 ```{r}
-# P value
-p_value_df[8, abs_max_both$fracs_RNAse[8]]
-var.test(as.numeric(HeLa_Ctrl_Norm[8, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[8, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
 k <- abs_max_both$fracs_RNAse[8] 
 
-HeLa_Ctrl_Norm[8, (1+3*k-3):(3*k)]
-HeLa_RNAse_Norm[8, (1+3*k-3):(3*k)]
+# P value
+p_value_df[8, abs_max_both$fracs_RNAse[8]]
+var.test(as.numeric(HeLa_Ctrl_Norm[8, c(k, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[8, c(k, (25+k), (50+k))]), alternative = "two.sided")
+
+# Measured protein content
+HeLa_Ctrl_Norm[8, c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[8, c(k, (25+k), (50+k))]
 
 # Visually
 compare_pre_post(row.names(HeLa_Ctrl_Norm[8,]), 2000000, 110) # Protein row 8
@@ -706,15 +710,15 @@ For this example, all the protein content was found in fraction 1. This could be
 To investigate this hypothesis, another NA result from the F-test was analyzed.
 
 ```{r}
-# P value
-p_value_df[41, abs_max_both$fracs_RNAse[41]]
-var.test(as.numeric(HeLa_Ctrl_Norm[41, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[41, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
 k <- abs_max_both$fracs_RNAse[41] 
 
-HeLa_Ctrl_Norm[41, (1+3*k-3):(3*k)]
-HeLa_RNAse_Norm[41, (1+3*k-3):(3*k)]
+# P value
+p_value_df[41, abs_max_both$fracs_RNAse[41]]
+var.test(as.numeric(HeLa_Ctrl_Norm[41, c(k, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[41, c(k, (25+k), (50+k))]), alternative = "two.sided")
+
+# Measured protein content
+HeLa_Ctrl_Norm[41, c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[41, c(k, (25+k), (50+k))]
 
 # Visually
 compare_pre_post(row.names(HeLa_Ctrl_Norm[41,]), 2000000, 110) # Protein row 41
@@ -729,15 +733,15 @@ Here as well, RNase and ctrl do not differ and all protein content accumulates i
 Next, we investigated a FALSE F-Test value. This is the case for the maximum of the RNase sample in row 1.
 
 ```{r}
-# P value
-p_value_df[1, abs_max_both$fracs_RNAse[1]]
-var.test(as.numeric(HeLa_Ctrl_Norm[1, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[1, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
 k <- abs_max_both$fracs_RNAse[1] 
 
-HeLa_Ctrl_Norm[1, (1+3*k-3):(3*k)]
-HeLa_RNAse_Norm[1, (1+3*k-3):(3*k)]
+# P value
+p_value_df[1, abs_max_both$fracs_RNAse[1]]
+var.test(as.numeric(HeLa_Ctrl_Norm[1, c(k, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[1, c(k, (25+k), (50+k))]), alternative = "two.sided")
+
+# Measured protein content
+HeLa_Ctrl_Norm[1, c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[1, c(k, (25+k), (50+k))]
 
 # Visually
 compare_pre_post(row.names(HeLa_Ctrl_Norm[1,]), 27000000, 30) # Protein row 1
@@ -750,15 +754,15 @@ In this FALSE example, the Ctrl data has a greater variance than the RNAase data
 Another FALSE F-Test value was analyzed in the RNase sample in row 42.
 
 ```{r}
-# P value
-p_value_df[42, abs_max_both$fracs_RNAse[42]]
-var.test(as.numeric(HeLa_Ctrl_Norm[42, (1+3*k-3):(3*k)]), as.numeric(HeLa_RNAse_Norm[42, (1+3*k-3):(3*k)]), alternative = "two.sided")
-
-# Measured protein content
 k <- abs_max_both$fracs_RNAse[42] 
 
-HeLa_Ctrl_Norm[42, (1+3*k-3):(3*k)]
-HeLa_RNAse_Norm[42, (1+3*k-3):(3*k)]
+# P value
+p_value_df[42, abs_max_both$fracs_RNAse[42]]
+var.test(as.numeric(HeLa_Ctrl_Norm[42, c(k, (25+k), (50+k))]), as.numeric(HeLa_RNAse_Norm[42, c(k, (25+k), (50+k))]), alternative = "two.sided")
+
+# Measured protein content
+HeLa_Ctrl_Norm[42, c(k, (25+k), (50+k))]
+HeLa_RNAse_Norm[42, c(k, (25+k), (50+k))]
 
 # Visually
 compare_pre_post(row.names(HeLa_Ctrl_Norm[42,]), 2500000, 50) # Protein row 42
@@ -856,13 +860,11 @@ F_ctrl_norm <- HeLa_Ctrl_Norm[!rownames(abs_max_both) %in% trash_F_NA, ]
 ```
 
 
-
-
 ## T-test
 
 Next, for the remaining proteins a two-tailed unpaired t-test was used to highlight significant changes in the height of the maxima. If the p-value lies under the threshold significance niveau, H0 = "the true mean difference is equal to zero" will be rejected. 
 
-```{r}
+```{r Testing the theory}
 #t-test
 Fe_before <- c(5.6, 6.0, 6.7, 13.9, 10.4)
 Fe_after <- c(20.0, 12.3, 18.1, 17.5, 15.0)
@@ -875,17 +877,18 @@ rm(Fe_before, Fe_after, Fe_ttest)
 
 ### t-test on our data
 
-Next, our data was analyzed per protein per fraction ctrl vs. RNase.
+Next, our remaining data was analyzed per protein per fraction ctrl vs. RNase.
 
 ```{r t-test on data}
 t_test_p_values <- c()
 
+# Compare every row (protein) from Ctrl with corresponding RNase
 for (i in 1:nrow(F_ctrl_norm)) {
   x <- as.numeric(F_ctrl_norm[i,])
   y <- as.numeric(F_RNase_norm[i,])
   
   for (k in 1:25) {  
-    result <- t.test(x[(1+3*k-3):(3*k)], y[(1+3*k-3):(3*k)], alternative = "two.sided", var.equal = TRUE)
+    result <- t.test(x[c(k, (25+k), (50+k))], y[c(k, (25+k), (50+k))], alternative = "two.sided", var.equal = TRUE) # Comparison in triplets
     new_p_value <- result$p.value
      # save p-value for every protein comparing ctrl vs RNase
      t_test_p_values <-  c(t_test_p_values, new_p_value)
@@ -910,23 +913,67 @@ The p-values were specifically analyzed in maxima positions.
 # For ctrl maxima
 t_max_ctrl <- c()
 for (i in 1:nrow(p_value_df_t)) {
-  boolian <- p_value_df_t[i, abs_max_both_F$fracs_ctrl[i]] > 0.05
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_ctrl[i]] < 0.05 # Do t-values lay under the 0.05 threshold?
   t_max_ctrl <- c(t_max_ctrl, boolian)
 }
+
+list_t_max_ctrl <- t_max_ctrl
 
 # For RNase maxima
 t_max_RNase <- c()
 for (i in 1:nrow(p_value_df_t)) {
-  boolian <- p_value_df_t[i, abs_max_both_F$fracs_RNAse[i]] > 0.05
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_RNAse[i]] < 0.05 # Do t-values lay under the 0.05 threshold?
   t_max_RNase <- c(t_max_RNase, boolian)
 }
 
 list_t_max_RNAse <- t_max_RNase
 ```
 
-We quantified how many triplets in peak positions passed the t-test ("TRUE").
+
+Here, the first three positive results are visualized.
 
 ```{r}
+# Here just the first three positive results from the t-test
+
+# 1
+k = abs_max_both_F$fracs_RNAse[1]
+k
+p_value_df_t[1, abs_max_both_F$fracs_RNAse[1]] 
+compare_pre_post(row.names(abs_max_both_F[1,]), 20000000, 30) 
+F_ctrl_norm[row.names(abs_max_both_F[1,]), c(k, (k+25), (k+50))] # Rep 1 .... Rep 2 ... Rep 3 ....
+F_RNase_norm[row.names(abs_max_both_F[1,]), c(k, (k+25), (k+50))]
+
+# 2
+k = abs_max_both_F$fracs_RNAse[2]
+k
+p_value_df_t[2, abs_max_both_F$fracs_RNAse[2]] 
+compare_pre_post(row.names(abs_max_both_F[2,]), 20000000, 30) 
+F_ctrl_norm[row.names(abs_max_both_F[2,]), c(k, (k+25), (k+50))]
+F_RNase_norm[row.names(abs_max_both_F[2,]), c(k, (k+25), (k+50))]
+
+# 3
+k = abs_max_both_F$fracs_RNAse[4]
+k
+p_value_df_t[3, abs_max_both_F$fracs_RNAse[3]] 
+compare_pre_post(row.names(abs_max_both_F[3,]), 20000000, 30) 
+F_ctrl_norm[row.names(abs_max_both_F[3,]), c(k, (k+25), (k+50))]
+F_RNase_norm[row.names(abs_max_both_F[3,]), c(k, (k+25), (k+50))]
+```
+
+The t-test often is positive and the graphs shows the "significant" difference in y-values right at the peak. However, as the graphs show for the first protein for example, the decrease in the RNAse peak fraction often is right next to the decrease in the ctrl fraction. This means, that sometimes visually the x-shift does not seem relevant enough to fully differentiate between a true shifter and a false positive. 
+
+Nonetheless, in all three cases from above, the t-test for ctrl is actually negative.
+
+```{r}
+list_t_max_ctrl[c(1,2,3)]
+list_t_max_RNAse[c(1,2,3)]
+```
+
+So it might be useful to exclude all proteins, that do not have a "TRUE" in both the RNAse and ctrl maxima test. By doing so, we can hopefully reduce the amount of false positives because we did not smoothen our curves to match a gaussian fit for example. 
+
+We quantified how many triplets in peak positions passed the t-test ("TRUE").
+
+```{r Quantify t-test result}
 # RNase
 table(t_max_RNase)["TRUE"]
 table(t_max_RNase)["TRUE"] / nrow(abs_max_both_F)
@@ -942,7 +989,8 @@ table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
 
 It turns out, that a little below half of the proteins shows a significant y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
 
-```{r}
+
+```{r Sum up and remove NA}
 # NA
 t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
 t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
@@ -950,7 +998,7 @@ t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
 trash_t_NA <- c(row.names(t_NA_ctrl), row.names(t_NA_RNase))
 length(trash_t_NA)
 ```
-It turns out that this time no NA values were observed. The t-test either delivers "FALSE" or "TRUE" as its output.
+It turns out, that this time no NA values were observed. The t-test either delivers "FALSE" or "TRUE" as its output.
 
 ```{r Sum up FALSE proteins}
 # FALSE
@@ -960,7 +1008,7 @@ t_FALSE_RNase <- abs_max_both_F[which(t_max_RNase == FALSE), ]
 trash_t_FALSE <- unique(c(row.names(t_FALSE_ctrl), row.names(t_FALSE_RNase)))
 length(trash_t_FALSE)
 ```
-
+However, 2888 proteins fail the t-test.
 
 ```{r Remove FALSE proteins}
 abs_max_both_t <- abs_max_both[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
@@ -968,21 +1016,165 @@ dim(abs_max_both_t) #dataset without FALSE
 
 t_RNase_norm <- F_RNase_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
 t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
-
 ```
+This way, about 3536 potential shifters and therefore RNA-interacting proteins were identified.
+
+When viewing the cleaned up data frame, another problem was noticed: Fractions containing 100% of protein content in both RNA and ctrl are listed as well. This makes no sense as no y-shift truly occurs. 
+
+Those proteins therefore have a y-shift (y-ctrl - yRNAse) of 0. This will be the criterion to remove them.
+
+```{r significant y-shift}
+trash_t_y0 <- c(rownames(abs_max_both_t[which(abs_max_both_t$y_shifts == 0), ]))
+abs_max_both_t_y0 <- abs_max_both_t[!rownames(abs_max_both_t) %in% trash_t_y0, ]
+
+nrow(abs_max_both_t_y0)
+```
+
+So now, 2929 proteins remain with significant y-shifts.
+
+
+### Refering back to the x-shift
+
+For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1) or (shift > 2) as comparison.
+
+```{r >2 or >1 x shift}
+# At least 1 or more fractions x shift
+trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 2), ]))
+abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
+abs_max_both_x_y_1
+nrow(abs_max_both_x_y_1)
+
+# At least 2 or more fractions x shift
+trash_no_x_2 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 3), ]))
+abs_max_both_x_y_2 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_2, ]
+abs_max_both_x_y_2
+nrow(abs_max_both_x_y_2)
+```
+
+```{r Difference >2 or >1 x shift}
+# Difference:
+row_1 <- c(rownames(abs_max_both_x_y_1))
+row_2 <- c(rownames(abs_max_both_x_y_2))
+
+doubles <- row_1 %in% row_2
+dif_pos_x_y_1_2 <- which(doubles == FALSE)
+dif_names_x_y_1_2 <- row_1[dif_pos_x_y_1_2]
+length(dif_names_x_y_1_2)
+```
+
+The proteins that were filtered out by the greater x-shift criterion are both classified as RBPs by other studies as well as non-shifters. Since other work groups used the gaussian fit, the x-shift could be determined as 0.6 for example. In our case, we are working with integers that do not allow for partial fraction shifts as in 0.6. 
+
+We were curious if on the other hand side the cut-off (shift > 2) resulted in better prediction of RBP although with reduced quantity. 
+
+### x Shift > 2 results
+
+```{r True/False RBP}
+load("/Users/carina/Desktop/HS_RBPs.RData")
+load("/Users/carina/Desktop/HS_non_RBPs.RData")
+
+# True RBP
+Match_RBP_2 <- HS_RBPs$Entry_Name.x %in% row_2
+True_RBP_pos_2 <- which(Match_RBP_2 == TRUE)
+True_RBP_names_2 <- HS_RBPs$Entry_Name.x[True_RBP_pos_2]
+length(True_RBP_names_2)
+
+# False RBP
+Match_non_RBP_2 <- HS_non_RBPs$Entry_Name.x %in% row_2
+False_RBP_pos_2 <- which(Match_non_RBP_2 == TRUE)
+False_RBP_names_2 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_2]
+length(False_RBP_names_2)
+```
+
+Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+
+```{r RBD status}
+# Show RBD status 
+RBD_stat_non_RBP_2 <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP_2) <- HS_non_RBPs$Entry_Name.x
+RBD_stat_non_RBP_t_2 <- RBD_stat_non_RBP_2[rownames(RBD_stat_non_RBP_2) %in% False_RBP_names_2, ]
+
+# Quantify RBD status
+RBD_true_prot_df_2 <- RBD_stat_non_RBP_t_2[RBD_stat_non_RBP_t_2$RBD_status == "RBD", ]
+RBD_true_prot_names_2 <- rownames(RBD_true_prot_df_2)
+length(RBD_true_prot_names_2)
+```
+
+So 6 out of 91 proteins may at least be RNA-dependent although not RNA-binding.
+
+
+### x Shift > 1 results
+
+```{r True/False RBP}
+# True RBP
+Match_RBP_1 <- HS_RBPs$Entry_Name.x %in% row_1
+True_RBP_pos_1 <- which(Match_RBP_1 == TRUE)
+True_RBP_names_1 <- HS_RBPs$Entry_Name.x[True_RBP_pos_1]
+length(True_RBP_names_1)
+
+# False RBP
+Match_non_RBP_1 <- HS_non_RBPs$Entry_Name.x %in% row_1
+False_RBP_pos_1 <- which(Match_non_RBP_1 == TRUE)
+False_RBP_names_1 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_1]
+length(False_RBP_names_1)
+```
+
+Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+
+```{r RBD status}
+# Show RBD status 
+RBD_stat_non_RBP<- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
+RBD_stat_non_RBP_t_1 <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP_1) %in% False_RBP_names_1, ]
+RBD_stat_non_RBP_t_1
+
+# Quantify RBD status
+RBD_true_prot_df_1 <- RBD_stat_non_RBP_t_1[RBD_stat_non_RBP_t_1$RBD_status == "RBD", ]
+RBD_true_prot_names_1 <- rownames(RBD_true_prot_df_1)
+length(RBD_true_prot_names_1)
+```
+
+So 6 out of 120 proteins may at least be RNA-dependent although not RNA-binding.
+
 ```{r}
-#rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
+RBD_true_prot_names_1 == RBD_true_prot_names_2
+```
+
+Those are the same 6 as before. 
+
+
+### Sum up t-test results
+
+So choosing the cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 (or 114) false-positives out of 636 total. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 (or 85) false-positives out of 489 total.
+
+```{r}
+# >1 x-shift
+( length(True_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
+( length(False_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
+
+# >2 x-shift
+( length(True_RBP_names_2) / nrow(abs_max_both_x_y_2) ) * 100 # True positive quote
+( length(False_RBP_names_2) / nrow(abs_max_both_x_y_2) ) * 100 # False positive quote
+```
+
+In both cases, about 80% of identified RBP were correct when compared to other publishers. Since the >1 x-shift cut-off did not worsen this quote but instead delivered more results overall (636 compared to 489), we feel that the >1 x-shift cut-off is meaningful for our analysis.
+
+
+```{r}
+#rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
 
 #rm(HeLa_cleaned, HeLa_cleaned_NA)
 ```
-##Clustering
+
+
+## Clustering
 
 ```{r k means clustering packages}
 library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
 ```
-```{r function quotient}
+
+```{r}
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -1090,6 +1282,7 @@ fviz_cluster(kmeans_fancy, data = scale(j), geom = c("point"),ellipse.type = "eu
 shiftprotmaybe <- proteinnames[which(kmeans_fancy$cluster==2)]
 shiftsafe <- proteinnames[which(kmeans_fancy$cluster==1)]
 ```
+
 ```{r}
 shiftsafe
 ```
@@ -1100,11 +1293,11 @@ fviz_silhouette(sil)
 ```
 
 ```{r k means}
-kmean1 <- kmeans(clust_new, centers = 4, iter.max = 25, nstart = 50)
+kmean1 <- kmeans(j, centers = 4, iter.max = 25, nstart = 50)
 kmean1
 
 kmean1_table <- data.frame(kmean1$size, kmean1$centers)
-kmean1_df <- data.frame(Cluster = kmean1$cluster, clust_new)
+kmean1_df <- data.frame(Cluster = kmean1$cluster, j)
 
 ggplot(data = kmean1_df, aes(y = Cluster)) +
   geom_bar(aes()) +
@@ -1186,6 +1379,77 @@ RBPs <- data.frame(mean_HeLa[ bp,], abs_max_both[bp,], HS_RBPs[ bp,])
 ```
 
 
+### Comparing Clustering Results
+
+Next, we wondered whether our clustering results matched the previously identified RBP in other studies. So we wanted to test the reliability of our clustering.
+
+```{r}
+Cluster_3 <- c("BSN_HUMAN","CCD86_HUMAN","CETN3_HUMAN","CG050_HUMAN","CND2_HUMAN","DDX27_HUMAN","DDX50_HUMAN","DHX30_HUMAN","EXOS3_HUMAN","F120A_HUMAN","FMO1_HUMAN","GPTC2_HUMAN","H10_HUMAN","H11_HUMAN","H12_HUMAN","H13_HUMAN","H14_HUMAN","H1FOO_HUMAN","H1T_HUMAN","HNF6_HUMAN","HNRC1_HUMAN","HNRC2_HUMAN","HNRC3_HUMAN","HNRLL_HUMAN","HOOK3_HUMAN","IF2A_HUMAN","KPYM_HUMAN","KPYR_HUMAN","MRES1_HUMAN","PNISR_HUMAN","PTTG_HUMAN","PUR6_HUMAN","R39L5_HUMAN","RBL2_HUMAN","RBM22_HUMAN","RBM28_HUMAN","RIR1_HUMAN","RISC_HUMAN","RL10A_HUMAN","RL15_HUMAN","RL17_HUMAN","RL27A_HUMAN","RL27_HUMAN","RL30_HUMAN","RL37_HUMAN","RL3_HUMAN","RL7A_HUMAN","RL7L_HUMAN","RNZ2_HUMAN","RP1BL_HUMAN","RRNAD_HUMAN","RRP7A_HUMAN","RRP7B_HUMAN","RS12_HUMAN","RS19_HUMAN","RS28_HUMAN","RS30_HUMAN","RS3A_HUMAN","SHLB2_HUMAN","STPAP_HUMAN","TBL1R_HUMAN","TOM7_HUMAN","TRIP4_HUMAN","ZBT41_HUMAN","ZN703_HUMAN")
+
+length(Cluster_3)
+```
+
+--> Cluster 3 (pretty safely RBP?)
+
+```{r}
+# True RBP
+Match_RBP_C3 <- HS_RBPs$Entry_Name.x %in% Cluster_3
+True_RBP_pos_C3 <- which(Match_RBP_C3 == TRUE)
+True_RBP_names_C3 <- HS_RBPs$Entry_Name.x[True_RBP_pos_C3]
+length(True_RBP_names_C3)
+
+# False RBP
+Match_non_RBP_C3 <- HS_non_RBPs$Entry_Name.x %in% Cluster_3
+False_RBP_pos_C3 <- which(Match_non_RBP_C3 == TRUE)
+False_RBP_names_C3 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_C3]
+length(False_RBP_names_C3)
+
+False_RBP_names_C3
+
+# Not listed
+not_listed_C3 <- Cluster_3 %in% True_RBP_names_C3
+not_listed_C3_pos <- which(not_listed_C3 == FALSE)
+not_listed_C3_names <- Cluster_3[not_listed_C3_pos]
+
+not_listed_C3_2 <- not_listed_C3_names %in% False_RBP_names_C3
+not_listed_C3_pos_2 <- which(not_listed_C3_2 == FALSE)
+not_listed_C3_names <- Cluster_3[not_listed_C3_pos_2]
+
+not_listed_C3_names
+```
+
+Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+
+```{r RBD status}
+# Show RBD status 
+RBD_stat_non_RBP_C3 <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP_C3) <- HS_non_RBPs$Entry_Name.x
+RBD_stat_non_RBP_t_C3 <- RBD_stat_non_RBP_C3[rownames(RBD_stat_non_RBP_C3) %in% False_RBP_names_C3, ]
+
+# Quantify RBD status
+RBD_true_prot_df_C3 <- RBD_stat_non_RBP_t_C3[RBD_stat_non_RBP_t_C3$RBD_status == "RBD", ]
+RBD_true_prot_names_C3 <- rownames(RBD_true_prot_df_C3)
+length(RBD_true_prot_names_C3)
+RBD_true_prot_names_C3
+```
+
+This RBD protein is listed on Uniprot as q putative ribosomal RNA-processing protein. Therefore it is probably a truly identified RBP after all. 
+
+```{r}
+( length(True_RBP_names_C3) / length(Cluster_3) ) * 100 # True positive quote
+( length(False_RBP_names_C3) / length(Cluster_3) ) * 100 # False positive quote
+```
+
+The quotes do nod add up to 100 % because two proteins were not listed in the used reference data frames. Looking them up online reveals, that both should be RBPs.
+
+```{r}
+( (length(True_RBP_names_C3) + length(not_listed_C3_names)) / length(Cluster_3) ) * 100 # True positive quote
+( length(False_RBP_names_C3) / length(Cluster_3) ) * 100 # False positive quote
+```
+
+Cluster 3 therefore shows at least 83 % true positive RBPs and compares to the precision of the t-test analysis.
+
+
 ## Tests for linear regression
 
 ```{r}
@@ -1213,5 +1477,10 @@ summary(modell)
 plot(sums20_value, abs_mat_both_q$x_shifts, col ="blue", abline(modell), xlim = c(1, 100), ylim = c(1, 25))
 ```
 
+```{r linear regression}
+modell <- lm(abs_mat_both_q$x_shifts ~ abs_mat_both_q$maxi)
+summary(modell)
 
+plot(abs_mat_both_q$x_shifts, abs_mat_both_q$maxi, col ="blue", abline(modell))
 
+``` 
