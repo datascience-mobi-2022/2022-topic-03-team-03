@@ -1174,7 +1174,7 @@ library(cluster)
 library(factoextra)
 ```
 
-```{r}
+```{r quotient function}
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -1201,9 +1201,7 @@ Quotienten = c()
 #Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
 
 quotienten_HeLa_RNAse <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
-quotienten_HeLa_ctrl <- quoti(HeLa_Ctrl_mean, HeLa_RNAse_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNAse), ncol=25, byrow=FALSE)
-q_HeLa_mat_ctrl <- matrix(unlist(quotienten_HeLa_ctrl), ncol=25, byrow=FALSE)
 q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
 q_mat_sums_new <- q_mat_sums[prots]
 sums20_index <- which(q_mat_sums>20)
@@ -1212,15 +1210,11 @@ sums20_value <- q_mat_sums[which(q_mat_sums>20)]
 
 ```{r}
 maxi_RNAse <- apply(q_HeLa_mat,1, max)
-maxi_ctrl <- apply(q_HeLa_mat_ctrl,1, max)
 mini_RNAse <- apply(q_HeLa_mat, 1, min)
-#mini_ctrl <- apply(q_HeLa_mat_ctrl,1, min)
 mean <- rowMeans(q_HeLa_mat)
 abs_mat_both_q <- cbind(abs_max_both, maxi_RNAse, mini_RNAse, mean)
 dif <- abs_mat_both_q$maxi_RNAse - abs_mat_both_q$mini_RNAse
 abs_mat_both_q <- cbind(abs_mat_both_q, dif)
-
-
 ```
 
 ```{r}
@@ -1234,31 +1228,18 @@ p_vals_RNAse_max <- c(p_value_df_t[,fracs_RNAse_sign[x]])
 p_vals_RNAse_max[is.na(p_vals_RNAse_max)] <- 0
 
 maxi_new <- maxi_RNAse[prots]
-maxi_ctrl_new <- maxi_ctrl[prots]
-
 sums20_value_new <- sums20_value[prots]
 ```
 
-```{r what do we cluster?}
-o <- data.frame(abs_mat_both_q_new$y_shifts2, q_mat_sums_new)
-
-m_c <- abs_mat_both_q$absolute_max_ctrl
-m_R <- abs_mat_both_q$absolute_max_RNAse
-j <- data.frame(maxi_RNAse, q_mat_sums)
-
-clust <- data.frame(maxi_new, maxi_ctrl_new)
-
-clus_new_idea <- data.frame(p_vals_RNAse_max, maxi_new)
-
-clust_sum <- data.frame(sums20_value_new, maxi_new)
-clust_sum[is.na(clust_sum)] <- 0
+```{r cluster data.frame}
+cluster_data <- data.frame(maxi_RNAse, q_mat_sums)
 ```
 
 
 ```{r silhouette method}
 silhouette_score <- function(k){
-  km <- kmeans(j, centers = k, nstart=15)
-  ss <- silhouette(km$cluster, dist(j))
+  km <- kmeans(cluster_data, centers = k, nstart=15)
+  ss <- silhouette(km$cluster, dist(cluster_data))
   mean(ss[, 3])
 }
 k <- 2:10
@@ -1269,15 +1250,14 @@ plot(k, type='b', avg_sil, xlab='Number of clusters', ylab='Average Silhouette S
 
 ```{r optimal number of clusters}
 library(factoextra)
-fviz_nbclust(j, kmeans, method='silhouette')
-
+fviz_nbclust(cluster_data, kmeans, method='silhouette')
 ```
 
 ```{r cluster plot}
-kmeans_fancy <- kmeans(scale(j), 3, nstart = 25)
+kmeans_fancy <- kmeans(scale(cluster_data), 3, nstart = 25)
 kmeans_fancy
 # plot the clusters
-fviz_cluster(kmeans_fancy, data = scale(j), geom = c("point"),ellipse.type = "euclid")
+fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
 
 shiftprotmaybe <- proteinnames[which(kmeans_fancy$cluster==2)]
 shiftsafe <- proteinnames[which(kmeans_fancy$cluster==1)]
@@ -1288,37 +1268,16 @@ shiftsafe
 ```
 
 ```{r}
-sil <- silhouette(kmeans_fancy$cluster, dist(j))
+sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
 fviz_silhouette(sil)
 ```
-
-```{r k means}
-kmean1 <- kmeans(j, centers = 4, iter.max = 25, nstart = 50)
-kmean1
-
-kmean1_table <- data.frame(kmean1$size, kmean1$centers)
-kmean1_df <- data.frame(Cluster = kmean1$cluster, j)
-
-ggplot(data = kmean1_df, aes(y = Cluster)) +
-  geom_bar(aes()) +
-  ggtitle("Count of Clusters by Region") +
-  theme(plot.title = element_text(hjust = 0.5))
-
-
-```
-
 ```{r plotting cluster}
 library(ggplot2)
 library(ggpubr)
 library(readxl)
 library(FactoMineR)
-```
-
-
-```{r ggplot lib}
 library(ggplot2)
 ```
-
 
 ```{r ggplot shifters}
 cluster1a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[left_shift_new])
@@ -1328,11 +1287,11 @@ cluster2b <- as.matrix(abs_mat_both_q_new$fracs_RNAse[no_shift_new])
 cluster3a <- as.matrix(abs_mat_both_q_new$fracs_ctrl[right_shift_new])
 cluster3b <- as.matrix(abs_mat_both_q_new$fracs_RNAse[right_shift_new])
 
-bla1 <- as.matrix(abs_mat_both_q_new$fracs_ctrl)
-bla2 <- as.matrix(abs_mat_both_q_new$fracs_RNAse)
+y_axis <- as.matrix(abs_mat_both_q_new$fracs_ctrl)
+x_axis <- as.matrix(abs_mat_both_q_new$fracs_RNAse)
 cols <- c(1,3)
 
-p_all <- ggplot(abs_mat_both_q_new[,cols], aes(x = bla2, y=bla1), color = cyl) +
+p_all <- ggplot(abs_mat_both_q_new[,cols], aes(x = x_axis, y=y_axis), color = cyl) +
 geom_point() +
   geom_density_2d(alpha = 0.5)
 p0 <- p_all + labs(title = "All proteins")
