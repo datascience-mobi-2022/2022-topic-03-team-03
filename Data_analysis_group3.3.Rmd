@@ -1202,23 +1202,35 @@ Quotienten = c()
 
 quotienten_HeLa_RNAse <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNAse), ncol=25, byrow=FALSE)
-q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
-q_mat_sums_new <- q_mat_sums[prots]
-sums20_index <- which(q_mat_sums>20)
-sums20_value <- q_mat_sums[which(q_mat_sums>20)]
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TR
+```
+```{r}
+ mini2 <- c()
+
+ for (i in 1:7081) {
+ 
+  if (mini_RNAse[i] == 0){ mini2[i] <- 0
+  } else {mini2[i] <- 1/mini_RNAse[i]}
+ 
+  
+ }
+
+
+
 ```
 
 ```{r variables derived from quotient}
 maxi_RNAse <- apply(q_HeLa_mat,1, max)
 mini_RNAse <- apply(q_HeLa_mat, 1, min)
 mean <- rowMeans(q_HeLa_mat)
-abs_mat_both_q <- cbind(abs_max_both, maxi_RNAse, mini_RNAse, mean)
+x_abs <- abs(x_shifts)
+abs_mat_both_q <- cbind(abs_max_both, maxi_RNAse, mini_RNAse, mean,q_mat_sums,mini2)
 dif <- abs_mat_both_q$maxi_RNAse - abs_mat_both_q$mini_RNAse
-abs_mat_both_q <- cbind(abs_mat_both_q, dif)
+abs_mat_both_q <- cbind(abs_mat_both_q, dif,x_abs)
 ```
 
 ```{r cluster data.frame}
-cluster_data <- data.frame(maxi_RNAse, q_mat_sums)
+cluster_data <- data.frame(maxi_RNAse, mini2)
 ```
 
 
@@ -1228,7 +1240,7 @@ fviz_nbclust(cluster_data, kmeans, method='silhouette')
 ```
 
 ```{r cluster plot}
-kmeans_fancy <- kmeans(scale(cluster_data), 3, nstart = 25)
+kmeans_fancy <- kmeans(scale(cluster_data), 2, nstart = 25)
 kmeans_fancy
 # plot the clusters
 fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
@@ -1300,11 +1312,11 @@ proteins.new.non.RBPs <- c(HS_non_RBPs$Entry_Name.x)
 
 non.RBPs.same <- proteins.new.non.RBPs %in% rownames
 non <-  which(non.RBPs.same == TRUE)
-non.RBPs <- data_frame( mean_HeLa[non,],abs_max_both[non,], HS_non_RBPs[ non,])
+non.RBPs <- data.frame( mean_HeLa[non,],abs_max_both[non,], HS_non_RBPs[ non,])
 
 RBPs.same <- proteins.new.RBPs %in% rownames
 bp <-  which(RBPs.same == TRUE)
-RBPs <- data.frame(mean_HeLa[ bp,], abs_max_both[bp,], HS_RBPs[ bp,])
+RBPs <- data.frame(mean_HeLa[ bp,], abs_mat_both_q[bp,], HS_RBPs[ bp,])
 ```
 
 
@@ -1400,16 +1412,45 @@ likely_shifters
 ```
 
 ```{r}
-modell <- lm(sums20_value ~ abs_mat_both_q$x_shifts)
+modell <- lm(x_shifts ~ maxi_RNAse)
 summary(modell)
 
-plot(sums20_value, abs_mat_both_q$x_shifts, col ="blue", abline(modell), xlim = c(1, 100), ylim = c(1, 25))
+plot(maxi_RNAse, x_shifts, col ="blue", abline(modell), xlim = c(1, 100), ylim = c(1, 25))
 ```
 
 ```{r linear regression}
-modell <- lm(abs_mat_both_q$x_shifts ~ abs_mat_both_q$maxi)
+proteins <- c(1:7081)
+samples.numbers.training <- sample(proteins,5000)
+samples.numbers.test <- proteins[-c(samples.numbers)]
+
+
+random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,11,12,13)]
+colnames(random.samples.training) <- c("x","max","mea","sum","min")
+
+random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,11,12,13)]
+colnames(random.samples.test) <- c("x","max","mea","sum","min")
+
+modell <- lm(x ~ sum + mea  + max  , data = random.samples.training )
 summary(modell)
 
-plot(abs_mat_both_q$x_shifts, abs_mat_both_q$maxi, col ="blue", abline(modell))
+plot(x_abs, maxi_RNAse, col ="blue", abline(modell))
 
 ``` 
+```{r}
+
+c <- predict(modell, newdata = random.samples.test)
+
+i <- c(1:2081)
+shift_direction.regression <- c()
+for(x in 1:2081){shift_direction.regression[x] <- if(c[x] < 1) {'no shift'
+}else  {' shift'}
+
+}
+
+compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shift_direction[samples.numbers.test])
+
+
+length(which(shift_direction.regression == "no shift"))
+length(which(shift_direction[samples.numbers.test]== "no shift"))
+
+```
