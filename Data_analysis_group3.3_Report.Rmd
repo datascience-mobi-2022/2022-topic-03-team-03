@@ -1,0 +1,64 @@
+---
+title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells"
+author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). Furthermore, studies have shown that proteins need RNA for their catalytic activity for example in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). On the other hand some RNAs depend on Proteins for their synthesis and stability (Kishore *et al.*, 2010). A family of proteins which describe this symbiotic relationship are RNA-binding proteins (RBPs). RBPs describe a class of proteins whose interactome depends on RNA and have shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022) and genetic disease (Gebauer *et al.*, 2021). Therefore a deeper understanding of the mechanisms of RNA binding and RNA-Protein interaction enhances our ability to regulate and modulate these processes.
+
+RBPs can be further categorised in “true” RBPs (e.g. DICER, NPM3), RNA-binding proteins which directly bind to RNAs and “RBP interacting proteins” which interact with “true” RBPs (eg. RBBP7). Furthermore “true RBPs” can be subcategorized in “RNA-dependent”, relying on RNA for their full and correct function (eg. DICER) and “partially RNA dependent”, only requiring RNAs for certain functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
+<center>
+```{r, echo = FALSE, fig.width=6, fig.height=4}
+library(knitr)
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure1.png")
+```
+</center>
+**Figure 1**. Categorization of RNA-binding proteins: RBPs can be categorised in “true” RBPs, RNA-binding proteins which directly bind to RNAs, “RBP interacting proteins” which interact with “true” RBPs. “True” RBPs are subcategorized as “RNA-dependent” relying on RNA for their full and correct function and “partially RNA dependent” only requiring RNAs for certain functions or transport. DICER = Endoribonuclease Dicer; NPM3 = Nucleoplasmin 3; RBBP7 = RNA-binding protein binding protein 7.
+
+
+Several approaches to study RNA-Protein interaction and to identify new RBPs have been established such as RaPID and CLIP-Seq. These methods only allow to analyse the interaction between RNA of interest and proteins (RaPID) or a protein of interest and the RNAs it is interacting with (CLIP-Seq) (Qin *et al.*, 2021). Therefore several global approaches have been made to study RNA-Binding Protein interaction networks (Sternburg and Karginov, 2020). A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes and identification of new RBPs through RNase treatment and density gradient ultracentrifugation. This is followed by a bioinformatic analysis of fraction shifts from proteins identified with mass spectrometry (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
+
+In this study we analysed a dataset of interphase synchronised HeLa S3 cells obtained by the method published by Caudron-Herger *et al.* Our aim is to identify, analyse and classify RBPs and possible RBP candidates using bioinformatics methods and cross-referencing with established databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021).
+
+\newpage
+# Methods
+## Generation of the dataset
+Interphasic HeLa S3 cells were harvested and lysed. The lysate was split into two samples and one sample was treated with an RNase mixture (referred to as RNase (RNA)) the other sample was left untreated (referred to as control (ctrl)). Both samples were loaded on a 5 % to 25 % sucrose density gradient grouped in 25 fractions and separated using ultracentrifugation. For each condition technical triplicates were generated. Each fraction was then analysed using mass spectrometry. Proteins were identified using UniProt and the amount of protein per fraction, condition and replicate was stored in arbitrary units in an .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
+
+## Clean-Up and sorting of the dataset
+Using the R package tidyverse two seperate dataframes were generated containing either all untreated (_ctrl) or RNAse treated (_RNA) replicates. Both data frames as well as the raw dataset were screened for rows containing only zeros. Identified rows were removed from the data frame and stored in a different data frame.
+
+## Normalization
+To rule out batch to batch effects and technical errors the protein amount per replicate (Rep) and fraction (Frac) as well as for each protein in each condition needs to be normalized.
+
+### Fraction-wise normalization 
+Normaliziation for each fraction was done using the following equation:
+
+$Protein(Norm) = \frac{maxcolsums}{Colsumme} * Protein(before)$
+
+*Protein(Norm)* describes the normalized amount of a single protein per fraction and replicate. *maxcolsums* is the selected maximum total protein amount per fraction and replicate. For each Fraction one maxium was chosen. *Colsumme* represents the total amount of protein per Fraction and replicate. The Parameter *Protein(before)* describes the amount of a single protein per fraction and replicate prior to normalization.
+
+### Sacling the protein distrubition per replicate and condition to 100
+For better comparability of the protein amount per fraction was displayed as relative using the following equation:
+
+$Protein(Relative) = \frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100$
+
+*Protein(Relative)* describes the relative protein amount per fraction on relation to the total amount of the protein per replicate. *Protein(Frac)* represents the amount of a protein per fraction and replicate. Total amount of protein per Replicate is given by *Total per Rep*.
+
+# Calculation of Means and standard deviation
+Means and standard deviation for each protein in each fraction was calculated using the *mean-* and *sd-function* of R. To detect any outliers 
+
+
+
+
+
