@@ -423,9 +423,9 @@ Caudron-Herger <em>et al.</em>, 2020).</p>
 <p>In this study we analysed a dataset of interphase synchronised HeLa
 S3 cells obtained by the method published by Caudron-Herger <em>et
 al.</em> Our aim is to identify, analyse and classify RBPs and possible
-RBP candidates using bioinformatics methods and cross-referencing with
-established databases such as R-DeeP (<a href="https://r-deep.dkfz.de/" class="uri">https://r-deep.dkfz.de/</a>; Caudron Herger <em>et al.</em>,
-2019), UniProt (<a href="https://www.uniprot.org/" class="uri">https://www.uniprot.org/</a>) and RBP2GO (<a href="https://rbp2go.dkfz.de/" class="uri">https://rbp2go.dkfz.de/</a>;
+RBP candidates using bioinformatical methods in R and cross-referencing
+with established databases such as R-DeeP (<a href="https://r-deep.dkfz.de/" class="uri">https://r-deep.dkfz.de/</a>;
+Caudron Herger <em>et al.</em>, 2019), UniProt (<a href="https://www.uniprot.org/" class="uri">https://www.uniprot.org/</a>) and RBP2GO (<a href="https://rbp2go.dkfz.de/" class="uri">https://rbp2go.dkfz.de/</a>;
 Caudron-Herger <em>et al.</em>, 2021).</p>
 <div style="page-break-after: always;"></div>
 </div>
@@ -442,8 +442,8 @@ ultracentrifugation. For each condition technical triplicates were
 generated. Each fraction was then analysed using mass spectrometry.
 Proteins were identified using UniProt and the amount of protein per
 fraction, condition and replicate was stored in arbitrary units in an
-.csv-file (for full protocol see: Caudron-Herger <em>et al.</em>,
-2019).</p>
+.csv-file (for full protocol see: Caudron-Herger <em>et al.</em>, 2019).
+A</p>
 </div>
 <div id="clean-up-and-sorting-of-the-dataset" class="section level2">
 <h2>Clean-Up and sorting of the dataset</h2>
@@ -462,8 +462,8 @@ protein in each condition needs to be normalized.</p>
 <h3>Fraction-wise normalization</h3>
 <p>Normaliziation for each fraction was done using the following
 equation:</p>
-<p><span class="math inline">\(Protein(Norm) =
-\frac{maxcolsums}{Colsumme} * Protein(before)\)</span></p>
+<p><span class="math display">\[Protein(Norm) =
+\frac{maxcolsums}{Colsumme} * Protein(before)\]</span></p>
 <p><em>Protein(Norm)</em> describes the normalized amount of a single
 protein per fraction and replicate. <em>maxcolsums</em> is the selected
 maximum total protein amount per fraction and replicate. For each
@@ -477,20 +477,37 @@ fraction and replicate prior to normalization.</p>
 100</h3>
 <p>For better comparability of the protein amount per fraction was
 displayed as relative using the following equation:</p>
-<p><span class="math inline">\(Protein(Relative) =
-\frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100\)</span></p>
+<p><span class="math display">\[Protein(Relative) =
+\frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100\]</span></p>
 <p><em>Protein(Relative)</em> describes the relative protein amount per
 fraction on relation to the total amount of the protein per replicate.
 <em>Protein(Frac)</em> represents the amount of a protein per fraction
 and replicate. Total amount of protein per Replicate is given by
 <em>Total per Rep</em>.</p>
 </div>
+<div id="create-separate-dataframes" class="section level3">
+<h3>Create separate dataframes</h3>
+<p>Next, dataframes for each individual fraction and condition were
+created, containing the triplicate values for each protein.</p>
+<p>They follow the naming convention:\ 1. Fraction1_Ctrl for the
+triplicate values of first fraction of the control group</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Fraction_8_RNAse for the triplicate values of eighth fraction of the
+RNase treated sample</li>
+</ol>
 </div>
 </div>
-<div id="calculation-of-means-and-standard-deviation" class="section level1">
-<h1>Calculation of Means and standard deviation</h1>
-<p>To control if the values obtained for each protein in each replicate
-after the normalization are still normally distributed</p>
+<div id="calculation-of-means-and-standard-deviation" class="section level2">
+<h2>Calculation of Means and standard deviation</h2>
+<p>Mean and standard deviation for each protein in each fraction was
+calculated using the built-in functions <em>mean-</em><span class="math inline">\(\overline x\)</span> and <em>sd-function</em><span class="math inline">\((\sigma)\)</span> of R. Outliers were detected
+using <span class="math inline">\(\overline x \pm 3\sigma\)</span> as
+cut-off. All values below and above were replaced with NA and not
+accounted.</p>
+</div>
+<div id="section" class="section level2">
+<h2></h2>
+</div>
 </div>
 
 

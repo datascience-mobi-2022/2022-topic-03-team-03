@@ -28,12 +28,12 @@ include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure1.png")
 
 Several approaches to study RNA-Protein interaction and to identify new RBPs have been established such as RaPID and CLIP-Seq. These methods only allow to analyse the interaction between RNA of interest and proteins (RaPID) or a protein of interest and the RNAs it is interacting with (CLIP-Seq) (Qin *et al.*, 2021). Therefore several global approaches have been made to study RNA-Binding Protein interaction networks (Sternburg and Karginov, 2020). A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes and identification of new RBPs through RNase treatment and density gradient ultracentrifugation. This is followed by a bioinformatic analysis of fraction shifts from proteins identified with mass spectrometry (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
 
-In this study we analysed a dataset of interphase synchronised HeLa S3 cells obtained by the method published by Caudron-Herger *et al.* Our aim is to identify, analyse and classify RBPs and possible RBP candidates using bioinformatics methods and cross-referencing with established databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021).
+In this study we analysed a dataset of interphase synchronised HeLa S3 cells obtained by the method published by Caudron-Herger *et al.* Our aim is to identify, analyse and classify RBPs and possible RBP candidates using bioinformatical methods in R and cross-referencing with established databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021).
 
 \newpage
 # Methods
 ## Generation of the dataset
-Interphasic HeLa S3 cells were harvested and lysed. The lysate was split into two samples and one sample was treated with an RNase mixture (referred to as RNase (RNA)) the other sample was left untreated (referred to as control (ctrl)). Both samples were loaded on a 5 % to 25 % sucrose density gradient grouped in 25 fractions and separated using ultracentrifugation. For each condition technical triplicates were generated. Each fraction was then analysed using mass spectrometry. Proteins were identified using UniProt and the amount of protein per fraction, condition and replicate was stored in arbitrary units in an .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
+Interphasic HeLa S3 cells were harvested and lysed. The lysate was split into two samples and one sample was treated with an RNase mixture (referred to as RNase (RNA)) the other sample was left untreated (referred to as control (ctrl)). Both samples were loaded on a 5 % to 25 % sucrose density gradient grouped in 25 fractions and separated using ultracentrifugation. For each condition technical triplicates were generated. Each fraction was then analysed using mass spectrometry. Proteins were identified using UniProt and the amount of protein per fraction, condition and replicate was stored in arbitrary units in an .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019). A
 
 ## Clean-Up and sorting of the dataset
 Using the R package tidyverse two seperate dataframes were generated containing either all untreated (_ctrl) or RNAse treated (_RNA) replicates. Both data frames as well as the raw dataset were screened for rows containing only zeros. Identified rows were removed from the data frame and stored in a different data frame.
@@ -44,19 +44,32 @@ To rule out batch to batch effects and technical errors the protein amount per r
 ### Fraction-wise normalization 
 Normaliziation for each fraction was done using the following equation:
 
-$Protein(Norm) = \frac{maxcolsums}{Colsumme} * Protein(before)$
+$$Protein(Norm) = \frac{maxcolsums}{Colsumme} * Protein(before)$$
 
 *Protein(Norm)* describes the normalized amount of a single protein per fraction and replicate. *maxcolsums* is the selected maximum total protein amount per fraction and replicate. For each Fraction one maxium was chosen. *Colsumme* represents the total amount of protein per Fraction and replicate. The Parameter *Protein(before)* describes the amount of a single protein per fraction and replicate prior to normalization.
 
 ### Sacling the protein distrubition per replicate and condition to 100
 For better comparability of the protein amount per fraction was displayed as relative using the following equation:
 
-$Protein(Relative) = \frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100$
+$$Protein(Relative) = \frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100$$
 
 *Protein(Relative)* describes the relative protein amount per fraction on relation to the total amount of the protein per replicate. *Protein(Frac)* represents the amount of a protein per fraction and replicate. Total amount of protein per Replicate is given by *Total per Rep*.
 
-# Calculation of Means and standard deviation
-Means and standard deviation for each protein in each fraction was calculated using the *mean-* and *sd-function* of R. To detect any outliers 
+### Create separate dataframes
+Next, dataframes for each individual fraction and condition were created, containing the triplicate values for each protein. 
+
+They follow the naming convention:
+
+1. Fraction1_Ctrl for the triplicate values of first fraction of the control group
+
+2. Fraction_8_RNAse for the triplicate values of eighth fraction of the RNase treated sample
+
+## Calculation of Means and standard deviation
+Mean and standard deviation for each protein in each fraction was calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as cut-off. All values below and above were replaced with NA and not accounted in following calculations.
+
+## Shapiro-Wilk Test
+To test for normal distribution Shapiro-Wilk Test is chosen due to its high power in small populations in comparison to other tests. The test is performed using an built-in R function *shapiro_test()*. 
+
 
 
 
