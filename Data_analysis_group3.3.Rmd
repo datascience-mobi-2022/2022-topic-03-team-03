@@ -1069,8 +1069,8 @@ We were curious if on the other hand side the cut-off (shift > 2) resulted in be
 ### x Shift > 2 results
 
 ```{r True/False RBP}
-load("/Users/carina/Desktop/HS_RBPs.RData")
-load("/Users/carina/Desktop/HS_non_RBPs.RData")
+load("/Users/Mirja/Desktop/HS_RBPs.RData")
+load("/Users/Mirja/Desktop/HS_non_RBPs.RData")
 
 # True RBP
 Match_RBP_2 <- HS_RBPs$Entry_Name.x %in% row_2
@@ -1202,28 +1202,22 @@ Quotienten = c()
 
 quotienten_HeLa_RNAse <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNAse), ncol=25, byrow=FALSE)
-q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TR
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
 ```
-```{r}
- mini2 <- c()
 
- for (i in 1:7081) {
- 
-  if (mini_RNAse[i] == 0){ mini2[i] <- 0
-  } else {mini2[i] <- 1/mini_RNAse[i]}
- 
-  
- }
-
-
-
-```
 
 ```{r variables derived from quotient}
 maxi_RNAse <- apply(q_HeLa_mat,1, max)
 mini_RNAse <- apply(q_HeLa_mat, 1, min)
 mean <- rowMeans(q_HeLa_mat)
 x_abs <- abs(x_shifts)
+
+ mini2 <- c()
+ for (i in 1:7081) {
+  if (mini_RNAse[i] == 0){ mini2[i] <- 0
+  } else {mini2[i] <- 1/mini_RNAse[i]}
+ }
+
 abs_mat_both_q <- cbind(abs_max_both, maxi_RNAse, mini_RNAse, mean,q_mat_sums,mini2)
 dif <- abs_mat_both_q$maxi_RNAse - abs_mat_both_q$mini_RNAse
 abs_mat_both_q <- cbind(abs_mat_both_q, dif,x_abs)
@@ -1421,7 +1415,7 @@ plot(maxi_RNAse, x_shifts, col ="blue", abline(modell), xlim = c(1, 100), ylim =
 ```{r linear regression}
 proteins <- c(1:7081)
 samples.numbers.training <- sample(proteins,5000)
-samples.numbers.test <- proteins[-c(samples.numbers)]
+samples.numbers.test <- proteins[-c(samples.numbers.training)]
 
 
 random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,11,12,13)]
@@ -1436,21 +1430,30 @@ summary(modell)
 plot(x_abs, maxi_RNAse, col ="blue", abline(modell))
 
 ``` 
+
 ```{r}
 
 c <- predict(modell, newdata = random.samples.test)
 
 i <- c(1:2081)
 shift_direction.regression <- c()
-for(x in 1:2081){shift_direction.regression[x] <- if(c[x] < 1) {'no shift'
-}else  {' shift'}
-
+for(x in i){shift_direction.regression[x] <- if(c[x] < 1) {'no shift'
+}else  {'shift'}
 }
 
-compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shift_direction[samples.numbers.test])
+shifters <- x_shifts[samples.numbers.test]
+shift_direction.code <- c()
+for(x in i){shift_direction.code[x] <- if(shifters[x] == 0) {'no shift'
+}else  {'shift'}
+}
+
+compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shifters, shift_direction[samples.numbers.test])
+
+compare.shifts <- (shift_direction.regression[i] == shift_direction.code[i])
 
 
-length(which(shift_direction.regression == "no shift"))
-length(which(shift_direction[samples.numbers.test]== "no shift"))
+length (which(compare.shifts == TRUE))
+length (which(compare.shifts == FALSE))
+
 
 ```
