@@ -3,8 +3,8 @@ title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cell
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "`r Sys.Date()`"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 df_print: paged
 ---
 
@@ -56,7 +56,7 @@ $$Protein(Relative) = \frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100$$
 *Protein(Relative)* describes the relative protein amount per fraction on relation to the total amount of the protein per replicate. *Protein(Frac)* represents the amount of a protein per fraction and replicate. Total amount of protein per Replicate is given by *Total per Rep*.
 
 ### Create separate dataframes
-Next, dataframes for each individual fraction and condition were created, containing the triplicate values for each protein. 
+Dataframes for each individual fraction and condition were created, containing the triplicate values for each protein. 
 
 They follow the naming convention:
 
@@ -68,7 +68,16 @@ They follow the naming convention:
 Mean and standard deviation for each protein in each fraction was calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as cut-off. All values below and above were replaced with NA and not accounted in following calculations.
 
 ## Shapiro-Wilk Test
-To test for normal distribution Shapiro-Wilk Test is chosen due to its high power in small populations in comparison to other tests. The test is performed using an built-in R function *shapiro_test()*. 
+To test for normal distribution Shapiro-Wilk Test is chosen due to its high power in small populations in comparison to other tests. The test is performed using an built-in R function *shapiro_test()*.
+
+## Determination of Maxima
+For all proteins in the control group and treated with RNase the global and local maxima were determined For this purpose, the protein content (y-value) was compared to two neighbors right and left of the analyzed fraction (x-position). As relevant local maxima only those maxima were selceted that contained more than 2 \% of the protein.
+
+## Detection of Protein Shifts
+As previous publisehd only peaks 
+
+
+
 
 
 

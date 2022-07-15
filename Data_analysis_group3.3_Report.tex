@@ -66,7 +66,7 @@
 \title{Proteome wide screen for RNA-dependent Proteins in interphasic
 HeLa cells}
 \author{Bolz, C., Bonsen, M., Pott, M., Simon, M.}
-\date{2022-07-14}
+\date{2022-07-15}
 
 \begin{document}
 \maketitle
@@ -127,7 +127,7 @@ Caudron-Herger \emph{et al.}, 2020).
 In this study we analysed a dataset of interphase synchronised HeLa S3
 cells obtained by the method published by Caudron-Herger \emph{et al.}
 Our aim is to identify, analyse and classify RBPs and possible RBP
-candidates using bioinformatics methods and cross-referencing with
+candidates using bioinformatical methods in R and cross-referencing with
 established databases such as R-DeeP (\url{https://r-deep.dkfz.de/};
 Caudron Herger \emph{et al.}, 2019), UniProt
 (\url{https://www.uniprot.org/}) and RBP2GO
@@ -150,7 +150,7 @@ using ultracentrifugation. For each condition technical triplicates were
 generated. Each fraction was then analysed using mass spectrometry.
 Proteins were identified using UniProt and the amount of protein per
 fraction, condition and replicate was stored in arbitrary units in an
-.csv-file (for full protocol see: Caudron-Herger \emph{et al.}, 2019).
+.csv-file (for full protocol see: Caudron-Herger \emph{et al.}, 2019). A
 
 \hypertarget{clean-up-and-sorting-of-the-dataset}{%
 \subsection{Clean-Up and sorting of the
@@ -166,8 +166,8 @@ data frame and stored in a different data frame.
 \subsection{Normalization}\label{normalization}}
 
 To rule out batch to batch effects and technical errors the protein
-amount per replicate and fraction as well as for each protein in each
-condition needs to be normalized.
+amount per replicate (Rep) and fraction (Frac) as well as for each
+protein in each condition needs to be normalized.
 
 \hypertarget{fraction-wise-normalization}{%
 \subsubsection{Fraction-wise
@@ -175,7 +175,7 @@ normalization}\label{fraction-wise-normalization}}
 
 Normaliziation for each fraction was done using the following equation:
 
-\(Protein(Norm) = \frac{maxcolsums}{Colsumme} * Protein(before)\)
+\[Protein(Norm) = \frac{maxcolsums}{Colsumme} * Protein(before)\]
 
 \emph{Protein(Norm)} describes the normalized amount of a single protein
 per fraction and replicate. \emph{maxcolsums} is the selected maximum
@@ -190,8 +190,66 @@ prior to normalization.
 condition to
 100}\label{sacling-the-protein-distrubition-per-replicate-and-condition-to-100}}
 
-For better comparability of the values for each replicate the total
-protein over\\
-\#\#\# Test for normally distributed values after normalization
+For better comparability of the protein amount per fraction was
+displayed as relative using the following equation:
+
+\[Protein(Relative) = \frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100\]
+
+\emph{Protein(Relative)} describes the relative protein amount per
+fraction on relation to the total amount of the protein per replicate.
+\emph{Protein(Frac)} represents the amount of a protein per fraction and
+replicate. Total amount of protein per Replicate is given by \emph{Total
+per Rep}.
+
+\hypertarget{create-separate-dataframes}{%
+\subsubsection{Create separate
+dataframes}\label{create-separate-dataframes}}
+
+Dataframes for each individual fraction and condition were created,
+containing the triplicate values for each protein.
+
+They follow the naming convention:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Fraction1\_Ctrl for the triplicate values of first fraction of the
+  control group
+\item
+  Fraction\_8\_RNAse for the triplicate values of eighth fraction of the
+  RNase treated sample
+\end{enumerate}
+
+\hypertarget{calculation-of-means-and-standard-deviation}{%
+\subsection{Calculation of Means and standard
+deviation}\label{calculation-of-means-and-standard-deviation}}
+
+Mean and standard deviation for each protein in each fraction was
+calculated using the built-in functions \emph{mean()-}(\(\overline x\))
+and \emph{sd()-function}\((\sigma)\) of R. Outliers were detected using
+\(\overline x \pm 3\sigma\) as cut-off. All values below and above were
+replaced with NA and not accounted in following calculations.
+
+\hypertarget{shapiro-wilk-test}{%
+\subsection{Shapiro-Wilk Test}\label{shapiro-wilk-test}}
+
+To test for normal distribution Shapiro-Wilk Test is chosen due to its
+high power in small populations in comparison to other tests. The test
+is performed using an built-in R function \emph{shapiro\_test()}.
+
+\hypertarget{determination-of-maxima}{%
+\subsection{Determination of Maxima}\label{determination-of-maxima}}
+
+For all proteins in the control group and treated with RNase the global
+and local maxima were determined For this purpose, the protein content
+(y-value) was compared to two neighbors right and left of the analyzed
+fraction (x-position). As relevant local maxima only those maxima were
+selceted that contained more than 2 \% of the protein.
+
+\hypertarget{detection-of-protein-shifts}{%
+\subsection{Detection of Protein
+Shifts}\label{detection-of-protein-shifts}}
+
+As previous publisehd only peaks
 
 \end{document}
