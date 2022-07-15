@@ -41,6 +41,8 @@ Using the R package tidyverse two seperate dataframes were generated containing 
 ## Normalization
 To rule out batch to batch effects and technical errors the protein amount per replicate (Rep) and fraction (Frac) as well as for each protein in each condition needs to be normalized.
 
+Normalization visualized by plotting protein distribution in both conditions prior to normalization in comparison to protein distribution after normalization. 
+
 ### Fraction-wise normalization 
 Normaliziation for each fraction was done using the following equation:
 
@@ -100,13 +102,31 @@ If *var.test()* is performed on all zero samples NA/NaN is returned. Those value
 If the returned p-value is smaller than 0.01 it was checked whether they were crucial at the shifting points of the maxima. Hence with the list of maxima, those necessary p-values were checked again as described above.
 
 ### Students T-Test
-Two-tailed unpaired t-test was used to identify proteins with significant change in maxima after treatment. P-Values were calculated for each protein per fraction using the built-in R function *t.test()*. Fractions with detected maxima were compared to the significance of 0.05. Test was deemed positive if $p-value < 0.05$ therefore the change in maxima could be regarded as significant.
+Two-tailed unpaired t-test was used to identify proteins with significant change in maxima after treatment. P-Values were calculated for each protein per fraction using the built-in R function *t.test()*. P-Values of fractions with detected global maxima were compared to the significance of 0.05. Test was deemed positive if $p-value < 0.05$ therefore the change in maxima could be regarded as significant.
 
+Since t-test was performed on both conditions the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for ctrl and RNAse maxima. If the value is TRUE the p-value is smaller than the significane level and if its is FALSE the p-value is greater than the significance level. Proteins with either TRUE/FALSE, FALSE/TRUE or FALSE/FALSE as result were excluded from further analysis.
 
+## Identification of potential RBPs by analysis of x- and y-shift
 
+## k-means clustering
+Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. 
+## Linear regression analysis
 
+\newpage
+# Results
+The initial data set consisted of 7086 proteins. After clean-up 7081 proteins remained for further analysis. Normalization was visualized for several reported Sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins are:
 
+Sure-Shifters: Sin3A, HDAC1, HNRPU, RFC2
 
+Non-Shifters: ASNS, MCM2, MCM3
+<center>
+```{r, echo = FALSE, fig.width=4, fig.height=2}
+library(knitr)
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
+```
+</center>
+**Figure 2:**
 
+# Discussion
 
 
