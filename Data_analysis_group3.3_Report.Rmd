@@ -14,63 +14,61 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). Furthermore, studies have shown that proteins need RNA for their catalytic activity for example in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). On the other hand some RNAs depend on Proteins for their synthesis and stability (Kishore *et al.*, 2010). A family of proteins which describe this symbiotic relationship are RNA-binding proteins (RBPs). RBPs describe a class of proteins whose interactome depends on RNA and have shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022) and genetic disease (Gebauer *et al.*, 2021). Therefore a deeper understanding of the mechanisms of RNA binding and RNA-Protein interaction enhances our ability to regulate and modulate these processes.
+RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). Vice versa, studies have shown that proteins need RNA for their catalytic activity, for instance in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA depends on proteins for its synthesis and stability (Kishore *et al.*, 2010). A family of proteins which illustrates this symbiotic relationship are RNA-binding proteins (RBPs). RBPs present a class of proteins whose interactome depends on RNA. They were shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022), and genetic disease (Gebauer *et al.*, 2021). Therefore, a deeper understanding of RNA binding and RNA-Protein interaction strengthens our ability to adjust and modulate the cellular mechanisms affected.
 
-RBPs can be further categorised in “true” RBPs (e.g. DICER, NPM3), RNA-binding proteins which directly bind to RNAs and “RBP interacting proteins” which interact with “true” RBPs (eg. RBBP7). Furthermore “true RBPs” can be subcategorized in “RNA-dependent”, relying on RNA for their full and correct function (eg. DICER) and “partially RNA dependent”, only requiring RNAs for certain functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
+RBPs can be further categorized into “true” RBPs (e.g. DICER, NPM3), those RNA-binding proteins which directly bind to RNA, and “RBP interacting proteins” which merely interact with “true” RBPs (eg. RBBP7). Furthermore, “true" RBPs can be subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function (eg. DICER) and “partially RNA dependent”, those that only require RNA for certain functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
+
 <center>
 ```{r, echo = FALSE, fig.width=6, fig.height=4}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure1.png")
 ```
 </center>
-**Figure 1**. Categorization of RNA-binding proteins: RBPs can be categorised in “true” RBPs, RNA-binding proteins which directly bind to RNAs, “RBP interacting proteins” which interact with “true” RBPs. “True” RBPs are subcategorized as “RNA-dependent” relying on RNA for their full and correct function and “partially RNA dependent” only requiring RNAs for certain functions or transport. DICER = Endoribonuclease Dicer; NPM3 = Nucleoplasmin 3; RBBP7 = RNA-binding protein binding protein 7.
+**Figure 1**. Categorization of RNA-binding proteins: RBPs can be categorized into “true” RBPs, those RNA-binding proteins which directly bind to RNA, “RBP interacting proteins” which merely interact with “true” RBPs. “True” RBPs are subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function and “partially RNA dependent”, those that only require RNA for certain functions or transport. DICER = Endoribonuclease Dicer; NPM3 = Nucleoplasmin 3; RBBP7 = RNA-binding protein binding protein 7.
 
+Several approaches to study RNA-Protein interaction and to identify new RBPs were established such as RaPID and CLIP-Seq. These methods either only analyze the interaction between the RNA of interest and additional proteins (RaPID) or a protein of interest and the different RNA it is interacting with (CLIP-Seq) (Qin *et al.*, 2021). Therefore, approaching  the study of RNA-Binding Protein interaction networks globally (Sternburg and Karginov, 2020) has become a matter of interest. A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes. Furthermore, it allows for identification of new RBPs through RNase treatment and density gradient ultracentrifugation. Subsequently, the resulting fraction shifts of proteins identified with mass spectrometry were analyzed bioinformatically (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
 
-Several approaches to study RNA-Protein interaction and to identify new RBPs have been established such as RaPID and CLIP-Seq. These methods only allow to analyse the interaction between RNA of interest and proteins (RaPID) or a protein of interest and the RNAs it is interacting with (CLIP-Seq) (Qin *et al.*, 2021). Therefore several global approaches have been made to study RNA-Binding Protein interaction networks (Sternburg and Karginov, 2020). A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes and identification of new RBPs through RNase treatment and density gradient ultracentrifugation. This is followed by a bioinformatic analysis of fraction shifts from proteins identified with mass spectrometry (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
-
-In this study we analysed a dataset of interphase synchronised HeLa S3 cells obtained by the method published by Caudron-Herger *et al.* Our aim is to identify, analyse and classify RBPs and possible RBP candidates using bioinformatical methods in R and cross-referencing with established databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021).
+In this project, we aimed to identify RBPs and possible RBP candidates using bioinformatics in R. Beyond that, we hoped to discover crucial determining variables in our data hinting to RBPs without following our entire analysis protocol. We cross-referenced our results with established databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021). Our dataset focusing on of interphase synchronized HeLa S3 cells was obtained by the aforementioned method published by Caudron-Herger *et al.*
 
 \newpage
 # Methods
 ## Generation of the dataset
-Interphasic HeLa S3 cells were harvested and lysed. The lysate was split into two samples and one sample was treated with an RNase mixture (referred to as RNase (RNA)) the other sample was left untreated (referred to as control (ctrl)). Both samples were loaded on a 5 % to 25 % sucrose density gradient grouped in 25 fractions and separated using ultracentrifugation. For each condition technical triplicates were generated. Each fraction was then analysed using mass spectrometry. Proteins were identified using UniProt and the amount of protein per fraction, condition and replicate was stored in arbitrary units in an .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
+Interphasic HeLa S3 cells were harvested and lyzed. The lyzate was split in two and one sample was treated with a RNase mixture (referred to as RNase (RNA)). The other sample was left untreated (referred to as control (ctrl)). Both samples were loaded onto a 5 % to 25 % sucrose density gradient, grouped in 25 fractions and separated using ultracentrifugation. For each condition, technical triplicates were generated. Each fraction was then analyzed using mass spectrometry. Proteins were identified using UniProt. The amount of protein per fraction, condition and replicate were stored in arbitrary units as a .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
 
 ## Clean-Up and sorting of the dataset
-Using the R package tidyverse two seperate dataframes were generated containing either all untreated (_ctrl) or RNAse treated (_RNA) replicates. Both data frames as well as the raw dataset were screened for rows containing only zeros. Identified rows were removed from the data frame and stored in a different data frame.
+Using the R package tidyverse two separate data frames were generated containing either all untreated (_ctrl) or RNase treated (_RNA) replicates. Both data frames as well as the raw data set were screened for rows containing  zeros only. Those rows were removed from the data frame and stored in a new data frame.
 
 ## Normalization
-To rule out batch to batch effects and technical errors the protein amount per replicate (Rep) and fraction (Frac) as well as for each protein in each condition needs to be normalized.
+To rule out batch to batch effects and technical errors, the protein amount per replicate (Rep) and fraction (Frac) were normalized as well with regard to each condition.
 
 Normalization visualized by plotting protein distribution in both conditions prior to normalization in comparison to protein distribution after normalization. 
 
 ### Fraction-wise normalization 
-Normaliziation for each fraction was done using the following equation:
+Normalization for each fraction was performed applying the following equation:
 
-$$Protein(Norm) = \frac{maxcolsums}{Colsumme} * Protein(before)$$
+$$Protein(norm) = \frac{maxcolsums}{ColSumme} * Protein(before)$$
 
-*Protein(Norm)* describes the normalized amount of a single protein per fraction and replicate. *maxcolsums* is the selected maximum total protein amount per fraction and replicate. For each Fraction one maxium was chosen. *Colsumme* represents the total amount of protein per Fraction and replicate. The Parameter *Protein(before)* describes the amount of a single protein per fraction and replicate prior to normalization.
+*Protein(norm)* describes the normalized amount of a single protein per fraction and replicate.*ColSumme* represents the total amount of protein per fraction and replicate. For each fraction, one maximum was chosen. *maxcolsums* is the selected maximum total protein amount per fraction and replicate. The parameter *Protein(before)* describes the arbitrary amount of a single protein per fraction and replicate prior to normalization.
 
-### Scaling the protein distrubition per replicate and condition to 100
-For better comparability of the protein amount per fraction was displayed as relative using the following equation:
+### Scaling the protein distrubition per replicate and condition
+For better comparison, the protein amount per fraction was converted to a relative percentage scale applying the following equation:
 
-$$Protein(Relative) = \frac{Protein(Frac)}{Protein(Total\ per\ Rep)}*100$$
+$$Protein(relative) = \frac{Protein(norm)}{RowSum}*100$$
 
-*Protein(Relative)* describes the relative protein amount per fraction on relation to the total amount of the protein per replicate. *Protein(Frac)* represents the amount of a protein per fraction and replicate. Total amount of protein per Replicate is given by *Total per Rep*.
+*Protein(relative)* describes the relative protein amount per fraction in relation to the total amount of the protein per replicate. *Protein(norm)* represents the normalized amount of a single protein per fraction and replicate. The total amount of a single protein per replicate is given by *RowSum*.
 
 ### Create separate dataframes
-Dataframes for each individual fraction and condition were created, containing the triplicate values for each protein. 
+Next, data frames for each individual fraction and condition were created, containing the triplicate values for each protein. 
 
 They follow the naming convention:
+1. Fraction1_Ctrl for the triplicate values of the first fraction of the control group
+2. Fraction_8_RNAse for the triplicate values of the eighth fraction of the RNase treated sample
 
-1. Fraction1_Ctrl for the triplicate values of first fraction of the control group
-
-2. Fraction_8_RNAse for the triplicate values of eighth fraction of the RNase treated sample
-
-## Calculation of Means and standard deviation
-Mean and standard deviation for each protein in each fraction was calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as cut-off. All values below and above were replaced with NA and not accounted in following calculations.
+## Calculation of means and standard deviation
+The mean and standard deviation of the triplicates for each protein in each fraction were calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as a cut-off. All values below and above were replaced with NA and not considered in the following calculations.
 
 ## Shapiro-Wilk Test
-To test for normal distribution Shapiro-Wilk Test is chosen due to its high power in small populations in comparison to other tests. The test is performed using the built-in R function *shapiro_test()*.
+To test the normal distribution of the triplicate values, the Shapiro-Wilk test was chosen due to its high power in small populations in comparison to other tests. The test was performed using the built-in R function *shapiro_test()*. 
 
 ## Determination of Maxima
 For all proteins in the control group and treated with RNase the global and local maxima were determined. For this purpose, the protein content (y-value) was compared to two neighbors right and left of the analyzed fraction (x-position). As relevant local maxima only those maxima were selceted that contained more than $2\%$ of the protein.
