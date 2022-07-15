@@ -150,7 +150,7 @@ using ultracentrifugation. For each condition technical triplicates were
 generated. Each fraction was then analysed using mass spectrometry.
 Proteins were identified using UniProt and the amount of protein per
 fraction, condition and replicate was stored in arbitrary units in an
-.csv-file (for full protocol see: Caudron-Herger \emph{et al.}, 2019). A
+.csv-file (for full protocol see: Caudron-Herger \emph{et al.}, 2019).
 
 \hypertarget{clean-up-and-sorting-of-the-dataset}{%
 \subsection{Clean-Up and sorting of the
@@ -244,12 +244,17 @@ For all proteins in the control group and treated with RNase the global
 and local maxima were determined For this purpose, the protein content
 (y-value) was compared to two neighbors right and left of the analyzed
 fraction (x-position). As relevant local maxima only those maxima were
-selceted that contained more than 2 \% of the protein.
+selceted that contained more than \(2\%\) of the protein.
 
 \hypertarget{detection-of-protein-shifts}{%
 \subsection{Detection of Protein
 Shifts}\label{detection-of-protein-shifts}}
 
-As previous publisehd only peaks
+As previous published (see Caudron-Herger \emph{et al.}, 2019) only
+maxima with values \(\geqq 25\%\) of the global maxima were used for
+shift detection.
+
+For this we defined a function selecting the global maxima of each
+protein and condition
 
 \end{document}

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Bolz, C., Bonsen, M., Pott, M., Simon, M." />
 
-<meta name="date" content="2022-07-14" />
+<meta name="date" content="2022-07-15" />
 
 <title>Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells</title>
 
@@ -366,7 +366,7 @@ pre code {
 <h1 class="title toc-ignore">Proteome wide screen for RNA-dependent
 Proteins in interphasic HeLa cells</h1>
 <h4 class="author">Bolz, C., Bonsen, M., Pott, M., Simon, M.</h4>
-<h4 class="date">2022-07-14</h4>
+<h4 class="date">2022-07-15</h4>
 
 </div>
 
@@ -442,8 +442,8 @@ ultracentrifugation. For each condition technical triplicates were
 generated. Each fraction was then analysed using mass spectrometry.
 Proteins were identified using UniProt and the amount of protein per
 fraction, condition and replicate was stored in arbitrary units in an
-.csv-file (for full protocol see: Caudron-Herger <em>et al.</em>, 2019).
-A</p>
+.csv-file (for full protocol see: Caudron-Herger <em>et al.</em>,
+2019).</p>
 </div>
 <div id="clean-up-and-sorting-of-the-dataset" class="section level2">
 <h2>Clean-Up and sorting of the dataset</h2>
@@ -487,26 +487,91 @@ and replicate. Total amount of protein per Replicate is given by
 </div>
 <div id="create-separate-dataframes" class="section level3">
 <h3>Create separate dataframes</h3>
-<p>Next, dataframes for each individual fraction and condition were
-created, containing the triplicate values for each protein.</p>
-<p>They follow the naming convention:\ 1. Fraction1_Ctrl for the
-triplicate values of first fraction of the control group</p>
-<ol start="2" style="list-style-type: decimal">
-<li>Fraction_8_RNAse for the triplicate values of eighth fraction of the
-RNase treated sample</li>
+<p>Dataframes for each individual fraction and condition were created,
+containing the triplicate values for each protein.</p>
+<p>They follow the naming convention:</p>
+<ol style="list-style-type: decimal">
+<li><p>Fraction1_Ctrl for the triplicate values of first fraction of the
+control group</p></li>
+<li><p>Fraction_8_RNAse for the triplicate values of eighth fraction of
+the RNase treated sample</p></li>
 </ol>
 </div>
 </div>
 <div id="calculation-of-means-and-standard-deviation" class="section level2">
 <h2>Calculation of Means and standard deviation</h2>
 <p>Mean and standard deviation for each protein in each fraction was
-calculated using the built-in functions <em>mean-</em><span class="math inline">\(\overline x\)</span> and <em>sd-function</em><span class="math inline">\((\sigma)\)</span> of R. Outliers were detected
-using <span class="math inline">\(\overline x \pm 3\sigma\)</span> as
-cut-off. All values below and above were replaced with NA and not
-accounted.</p>
+calculated using the built-in functions <em>mean()-</em>(<span class="math inline">\(\overline x\)</span>) and
+<em>sd()-function</em><span class="math inline">\((\sigma)\)</span> of
+R. Outliers were detected using <span class="math inline">\(\overline x
+\pm 3\sigma\)</span> as cut-off. All values below and above were
+replaced with NA and not accounted in following calculations.</p>
 </div>
-<div id="section" class="section level2">
-<h2></h2>
+<div id="shapiro-wilk-test" class="section level2">
+<h2>Shapiro-Wilk Test</h2>
+<p>To test for normal distribution Shapiro-Wilk Test is chosen due to
+its high power in small populations in comparison to other tests. The
+test is performed using the built-in R function
+<em>shapiro_test()</em>.</p>
+</div>
+<div id="determination-of-maxima" class="section level2">
+<h2>Determination of Maxima</h2>
+<p>For all proteins in the control group and treated with RNase the
+global and local maxima were determined For this purpose, the protein
+content (y-value) was compared to two neighbors right and left of the
+analyzed fraction (x-position). As relevant local maxima only those
+maxima were selceted that contained more than <span class="math inline">\(2\%\)</span> of the protein.</p>
+</div>
+<div id="detection-of-protein-shifts" class="section level2">
+<h2>Detection of Protein Shifts</h2>
+<p>As previous published (see Caudron-Herger <em>et al.</em>, 2019) only
+maxima with values <span class="math inline">\(\geqq 25\%\)</span> of
+the global maxima were used for shift detection.</p>
+<p>The following convention was made:</p>
+<ol style="list-style-type: decimal">
+<li><p>Left-shift:Value &lt; 1</p></li>
+<li><p>Right-shift:Value &gt; 1</p></li>
+<li><p>No-Shift:Vaule = 0</p></li>
+</ol>
+<p>These criteria are based on the equation used in the definde function
+for shift detection. The function selects the global maxima of each
+protein and condition and subtracts the fraction absolutes. The
+reuslting values is used for Shift-direction determination.</p>
+<p><span class="math display">\[Shift\ Value = |absolute\_max\_ctrl| -
+|absolute\_max\_rnase|\]</span> The variables <em>absolute_max_ctrl</em>
+and <em>absolute_max_rnase</em> describe the selected fraction with the
+global maxima for control and RNAse treatment respectivley. <em>Shift
+Value</em> is the determined value used for Shift-direction
+classification.</p>
+<p>Only Shifts with values <span class="math inline">\(\geqq
+|1|\)</span> were used for further analysis</p>
+</div>
+<div id="statistical-analysis" class="section level2">
+<h2>Statistical analysis</h2>
+<p>To identify significant shifts statistical analysis on the difference
+in the relative protein amount (y-value) for each protein in the global
+maxima fraction of RNAse treatment was performed. Analysed were all
+proteins with Shift values <span class="math inline">\(\geqq
+|1|\)</span>.</p>
+<div id="f-test" class="section level3">
+<h3>F-Test</h3>
+<p>To test whether our sample variances are comparable and therefore
+suitable for significance analysis two-sided F Test was performed on
+each protein and fraction using the built-in R function
+<em>var.test()</em>. Significance level (p-value) was set to 0.05. Test
+was deemed positive if <span class="math inline">\(p-value(protein) &gt;
+0.05\)</span>.</p>
+<p>If <em>var.test()</em> is performed on all zero samples NA/NaN is
+returned. Those values can be ignoried in further analysis since they
+are not relevant for maxima analysis.</p>
+<p>If the returned p-value is smaller than 0.05 it was checked whether
+they were crucial at the shifiting points of the maxima. Hence with the
+list of maxima, those necessary p-values were checked again as described
+above.</p>
+</div>
+</div>
+<div id="students-t-test" class="section level2">
+<h2>Students T-Test</h2>
 </div>
 </div>
 

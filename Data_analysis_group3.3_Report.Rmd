@@ -3,8 +3,8 @@ title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cell
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 df_print: paged
 ---
 
@@ -33,7 +33,7 @@ In this study we analysed a dataset of interphase synchronised HeLa S3 cells obt
 \newpage
 # Methods
 ## Generation of the dataset
-Interphasic HeLa S3 cells were harvested and lysed. The lysate was split into two samples and one sample was treated with an RNase mixture (referred to as RNase (RNA)) the other sample was left untreated (referred to as control (ctrl)). Both samples were loaded on a 5 % to 25 % sucrose density gradient grouped in 25 fractions and separated using ultracentrifugation. For each condition technical triplicates were generated. Each fraction was then analysed using mass spectrometry. Proteins were identified using UniProt and the amount of protein per fraction, condition and replicate was stored in arbitrary units in an .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019). A
+Interphasic HeLa S3 cells were harvested and lysed. The lysate was split into two samples and one sample was treated with an RNase mixture (referred to as RNase (RNA)) the other sample was left untreated (referred to as control (ctrl)). Both samples were loaded on a 5 % to 25 % sucrose density gradient grouped in 25 fractions and separated using ultracentrifugation. For each condition technical triplicates were generated. Each fraction was then analysed using mass spectrometry. Proteins were identified using UniProt and the amount of protein per fraction, condition and replicate was stored in arbitrary units in an .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
 
 ## Clean-Up and sorting of the dataset
 Using the R package tidyverse two seperate dataframes were generated containing either all untreated (_ctrl) or RNAse treated (_RNA) replicates. Both data frames as well as the raw dataset were screened for rows containing only zeros. Identified rows were removed from the data frame and stored in a different data frame.
@@ -68,13 +68,39 @@ They follow the naming convention:
 Mean and standard deviation for each protein in each fraction was calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as cut-off. All values below and above were replaced with NA and not accounted in following calculations.
 
 ## Shapiro-Wilk Test
-To test for normal distribution Shapiro-Wilk Test is chosen due to its high power in small populations in comparison to other tests. The test is performed using an built-in R function *shapiro_test()*.
+To test for normal distribution Shapiro-Wilk Test is chosen due to its high power in small populations in comparison to other tests. The test is performed using the built-in R function *shapiro_test()*.
 
 ## Determination of Maxima
-For all proteins in the control group and treated with RNase the global and local maxima were determined For this purpose, the protein content (y-value) was compared to two neighbors right and left of the analyzed fraction (x-position). As relevant local maxima only those maxima were selceted that contained more than 2 \% of the protein.
+For all proteins in the control group and treated with RNase the global and local maxima were determined For this purpose, the protein content (y-value) was compared to two neighbors right and left of the analyzed fraction (x-position). As relevant local maxima only those maxima were selceted that contained more than $2\%$ of the protein.
 
 ## Detection of Protein Shifts
-As previous publisehd only peaks 
+As previous published (see Caudron-Herger *et al.*, 2019) only maxima with values $\geqq 25\%$ of the global maxima were used for shift detection.
+
+The following convention was made:
+
+1. Left-shift:\tab    Value < 1
+
+2. Right-shift:\tab   Value > 1
+
+3. No-Shift:\tab      Vaule = 0
+
+These criteria are based on the equation used in the definde function for shift detection. The function selects the global maxima of each protein and condition and subtracts the fraction absolutes. The reuslting values is used for Shift-direction determination.
+
+$$Shift\ Value = |absolute\_max\_ctrl| - |absolute\_max\_rnase|$$
+The variables *absolute\_max\_ctrl* and *absolute\_max\_rnase* describe the selected fraction with the global maxima for control and RNAse treatment respectivley. *Shift Value* is the determined value used for Shift-direction classification.
+
+## Statistical analysis
+To identify significant shifts statistical analysis on the difference in the relative protein amount (y-value) for each protein in the global maxima fraction of RNAse treatment was performed. Analysed were all proteins with Shift values $\geqq |1|$.
+
+### F-Test
+To test whether our sample variances are comparable and therefore suitable for significance analysis two-sided F Test was performed on each protein and fraction using the built-in R function *var.test()*. Significance level (p-value) was set to 0.01. Test was deemed positive if $p-value > 0.01$.
+
+If *var.test()* is performed on all zero samples NA/NaN is returned. Those values can be ignoried in further analysis since they are not relevant for maxima analysis.
+
+If the returned p-value is smaller than 0.01 it was checked whether they were crucial at the shifting points of the maxima. Hence with the list of maxima, those necessary p-values were checked again as described above.
+
+### Students T-Test
+Two-tailed unpaired t-test was used to identify proteins with significant change in maxima after treatment. P-Values were calculated for each protein per fraction using the built-in R function *t.test()*. Fractions with detected maxima were compared to the significance of 0.05. Test was deemed positive if $p-value < 0.05$ therefore the change in maxima could be regarded as significant.
 
 
 
