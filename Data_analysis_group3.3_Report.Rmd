@@ -119,9 +119,22 @@ The two-tailed unpaired t-test was used to identify proteins with significant y-
 Since the t-test was performed on y-values of x-positions of global maxima for both conditions separately, the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for the ctrl and RNAse maxima. Only proteins with positive t-tests (p-value < 0.01) for the global maximum in both conditions (TRUE/TRUE) were considered for further analysis.
 
 ## Identification of potential RBPs by analysis of x- and y-shift
+Potential RBPs were selected by filtering out proteins with significant y-shift but no significant x-shift. To different cut-off conditions were tested.
+
+1. significant y-shift and x-shift < 1
+
+2. significant y-shift and x-shift < 2
+
+Proteins filtered by this method were removed from the data frame and stored separately for further analysis.
+
+### Checking for false positive and false negative results
+False positives and negatives were determined by cross-referencing the obtained proteins through our analysis with two data sets which were provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). The provided data sets contain further information about previously as RBP or non-RBP identified proteins by different researchers.
+
+## Identification of potential RBD Proteins
+Potential RNA-binding dependent (RBD) protein candidates were identified by cross-referencing proteins determined as false positive with a data set provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). The provided data set contains further information about previously as RBD identified proteins by different researchers. 
 
 ## k-means clustering
-Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. 
+Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. For clustering the follwing variables were selected:
 
 -quotient function: RNAse-value/ctrl-value (high values if it's a shifter)
 -calculated rowSums of each proteins quotient (25 each)
@@ -134,18 +147,22 @@ Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering wa
 
 \newpage
 # Results
-The initial data set consisted of 7086 proteins. After clean-up 7081 proteins remained for further analysis. Normalization was visualized for several reported Sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins are:
+The initial data set consisted of 7086 proteins. After clean-up 7081 proteins remained for further analysis. Normalization was visualized for several reported sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins are:
 
-Sure-Shifters: Sin3A, HDAC1, HNRPU, RFC2
+Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
 
-Non-Shifters: ASNS, MCM2, MCM3
+Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
+
+The conducted normalization process was successfully for sure-shifters as well as non-shifters because the obtained arbitrary values were converted into relative values and the overall distribution of protein amount per fraction is comparable to the distribution prior to normalization. Figure 2 highlights this with RFC2_HUMAN (sure-shifter) and MCM2_HUMAN (non-shifter) as example.
 <center>
 ```{r, echo = FALSE, fig.width=4, fig.height=2}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 ```
 </center>
-**Figure 2:**
+**Figure 2: Example of normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins the overall distribution trend is comparable.
+
+Shapiro-Wilk test concluded that all values obtained were normally distributed for both conditions. Therefore 
 
 # Discussion
 
