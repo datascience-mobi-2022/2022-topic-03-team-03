@@ -71,12 +71,21 @@ The mean and standard deviation of the triplicates for each protein in each frac
 To test the normal distribution of the triplicate values, the Shapiro-Wilk test was chosen due to its high power in small populations in comparison to other tests. The test was performed using the built-in R function *shapiro_test()*. 
 
 ## Determination of Maxima
-For all proteins in the control group and treated with RNase the global and local maxima were determined. For this purpose, the protein content (y-value) was compared to two neighbors right and left of the analyzed fraction (x-position). As relevant local maxima only those maxima were selceted that contained more than $2\%$ of the protein.
+For all proteins, the global maximum for the RNase-treated and untreated sample was determined. For this purpose, the protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position).
 
 ## Detection of Protein Shifts
-As previous published (see Caudron-Herger *et al.*, 2019) only maxima with values $\geqq 25\%$ of the global maxima were used for shift detection.
 
-The following convention was made:
+In our analysis, we considered shifts in the global maximum comparing RNA-treated and untreated samples as a proxy for the presence of RNA. Those "shifting proteins" had to show both a significant x-shift and y-shift to improve precision.
+
+### x-shifts
+
+First, the x-position of the global maximum in both conditions was compared. To quantify the shift, the difference in the fraction number of the control group and the RNAse treated sample was calculated.
+
+$$x-shift = |fracs\_max\_ctrl| - |fracs\_max\_rnase|$$
+
+The variables *fracs\_max\_ctrl* and *fracs\_max\_rnase* describe the x-position of the global maxima for control and RNase treatment respectively. *x-shift* is the resulting value and used for Shift-direction determination.
+
+The following convention regarding x-shifts was used:
 
 1. Left-shift:\tab    Value < 1
 
@@ -84,25 +93,30 @@ The following convention was made:
 
 3. No-Shift:\tab      Value = 0
 
-These criteria are based on the equation used in the defined function for shift detection. The function selects the global maxima of each protein and condition and subtracts the fraction absolutes. The resulting value is used for Shift-direction determination.
+### y-shifts
 
-$$Shift\ Value = |absolute\_max\_ctrl| - |absolute\_max\_rnase|$$
-The variables *absolute\_max\_ctrl* and *absolute\_max\_rnase* describe the selected fraction with the global maxima for control and RNAse treatment respectivley. *Shift Value* is the determined value used for Shift-direction classification.
+The total value of the y-shift was calculated as the difference between the y-values of the global maxima for both conditions.
+
+$$y-shift\_total = |absolute\_max\_ctrl| - |absolute\_max\_rnase|$$
+
+The variables *absolute\_max\_ctrl* and *absolute\_max\_rnase* describe the y-value of the global maxima for control and RNase treatment respectively. *y-shift\_total* is the resulting value.
+
+This value serves as a first hint and possibly a way to check on our results regarding the significance of the y-shift. However, statistical tests were applied to both the y-values ctrl vs RNase at the x-position of the global maximum in the RNase treated and untreated sample.  
 
 ## Statistical analysis
-To identify significant shifts statistical analysis on the difference in the relative protein amount (y-value) for each protein in the global maxima fraction of RNAse treatment was performed. All proteins with Shift values $\geqq |1|$ were analyzed.
+To identify significant y-shifts, statistical analysis targeted the difference in the relative protein amount (y-value) for each protein in the global maximum fraction of RNase-treated and untreated samples. All proteins with x-shift values $\geqq |1|$ were considered.
 
 ### F-Test
-To test whether our sample variances are comparable and therefore suitable for significance analysis a two-sided F Test was performed on each protein and fraction using the built-in R function *var.test()*. Significance level (p-value) was set to 0.01. Test was deemed positive if $p-value > 0.01$.
+To test whether our sample variances are comparable and therefore suitable for significance analysis, a two-sided F-Test was performed on the triplicates of each protein and fraction using the built-in R function *var.test()*. The significance level (p-value) was set to α = 0.01. The test was deemed positive if $p-value > 0.01$.
 
-If *var.test()* is performed on all zero samples NA/NaN is returned. Those values can be ignored in further analysis since they are not relevant for maxima analysis.
+If *var.test()* was performed on all zero samples, NA/NaN was returned. Therefore, the F-test filtered out those samples that were not relevant for maxima analysis anyways.
 
-If the returned p-value is smaller than 0.01 it was checked whether they were crucial at the shifting points of the maxima. Hence with the list of maxima, those necessary p-values were checked again as described above.
+Since only the comparison of y-values at the x-positions of the global maxima mattered for our further analysis, proteins that failed the F-test (p-value < 0.01) at those x-positions were excluded.
 
 ### Students T-Test
-The two-tailed unpaired t-test was used to identify proteins with significant change in maxima after treatment. P-Values were calculated for each protein per fraction using the built-in R function *t.test()*. Fractions with detected maxima were compared to the significance of 0.05. The test was deemed positive if $p-value < 0.05$ therefore the change in maxima could be regarded as significant.
+The two-tailed unpaired t-test was used to identify proteins with significant y-value changes in global maxima x-positions after treatment. P-Values were calculated for each triplicate per protein per fraction using the built-in R function *t.test()*. Fractions with a global maximum were compared to the significance level α = 0.05. The test was deemed positive if $p-value < 0.05$. Therefore, the change was considered significant.
 
-Since t-test was performed on both conditions the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for ctrl and RNAse maxima. If the value is TRUE the p-value is smaller than the significane level and if its is FALSE the p-value is greater than the significance level. Proteins with either TRUE/FALSE, FALSE/TRUE or FALSE/FALSE as result were excluded from further analysis.
+Since the t-test was performed on y-values of x-positions of global maxima for both conditions separately, the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for the ctrl and RNAse maxima. Only proteins with positive t-tests (p-value < 0.01) for the global maximum in both conditions (TRUE/TRUE) were considered for further analysis.
 
 ## Identification of potential RBPs by analysis of x- and y-shift
 
