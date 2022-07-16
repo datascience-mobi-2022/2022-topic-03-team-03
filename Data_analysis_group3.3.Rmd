@@ -19,15 +19,16 @@ library(dplyr)
 ```
 
 
-### Raw data
-```{r  Load the Data}
-#load the data
+### Load Raw data
+
+```{r  Load Experiment Data}
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 ```
 
-```{r}
-#CProteins
-proteinnames <- c(rownames(Raw_data)) # Protein names
+```{r Load extra data}
+HS_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/1_HS_RBPs.csv", header=TRUE, sep = ",")
+
+HS_non_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/2_HS_non_RBPs.csv", header=TRUE, sep = ",")
 ```
 
 ###Normalization
@@ -1069,9 +1070,6 @@ We were curious if on the other hand side the cut-off (shift > 2) resulted in be
 ### x Shift > 2 results
 
 ```{r True/False RBP}
-load("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\HS_RBPs.RData")
-load("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\HS_non_RBPs.RData")
-
 # True RBP
 Match_RBP_2 <- HS_RBPs$Entry_Name.x %in% row_2
 True_RBP_pos_2 <- which(Match_RBP_2 == TRUE)
@@ -1298,8 +1296,6 @@ heatmap(cor(HeLa_Ctrl_mean, HeLa_RNAse_mean))
 
 ```{r RBP - new data}
 #über Github laden ist vermutlich keine gute Idee
-load("C:/Users/Mirja/Desktop/HS_RBPs.RData")
-load("C:/Users/Mirja/Desktop/HS_non_RBPs.RData")
 
 proteins.new.RBPs <- c(HS_RBPs$Entry_Name.x)
 proteins.new.non.RBPs <- c(HS_non_RBPs$Entry_Name.x)
