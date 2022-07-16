@@ -14,9 +14,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). Vice versa, studies have shown that proteins need RNA for their catalytic activity, for instance in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA depends on proteins for its synthesis and stability (Kishore *et al.*, 2010). A family of proteins which illustrates this symbiotic relationship are RNA-binding proteins (RBPs). RBPs present a class of proteins whose interactome depends on RNA. They were shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022), and genetic disease (Gebauer *et al.*, 2021). Therefore, a deeper understanding of RNA binding and RNA-Protein interaction strengthens our ability to adjust and modulate the cellular mechanisms affected.
+RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). The opposite is also true, studies have shown that proteins need RNA for their catalytic activity, for instance in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA sequences depend on proteins for their synthesis and stability (Kishore *et al.*, 2010). A family of proteins which illustrates this symbiotic relationship are the RNA-binding proteins (RBPs). RBPs present a class of proteins whose interactome depends on RNA. They were shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022), and genetic disease (Gebauer *et al.*, 2021). Therefore, a deeper understanding of RNA binding and RNA-protein interaction strengthens our ability to adjust and manipulate the cellular mechanisms affected.
 
-RBPs can be further categorized into “true” RBPs (e.g. DICER, NPM3), those RNA-binding proteins which directly bind to RNA, and “RBP interacting proteins” which merely interact with “true” RBPs (eg. RBBP7). Furthermore, “true" RBPs can be subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function (eg. DICER) and “partially RNA dependent”, those that only require RNA for certain functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
+RBPs can be categorized into “true” RBPs (e.g. DICER, NPM3), those RNA-binding proteins which directly bind to RNA, and “RBP interacting proteins” which merely interact with “true” RBPs (eg. RBBP7). Furthermore, “true" RBPs can be subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function (eg. DICER) and “partially RNA dependent”, those that only require RNA for certain functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
 
 <center>
 ```{r, echo = FALSE, fig.width=6, fig.height=4}
@@ -26,22 +26,20 @@ include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure1.png")
 </center>
 **Figure 1**. Categorization of RNA-binding proteins: RBPs can be categorized into “true” RBPs, those RNA-binding proteins which directly bind to RNA, “RBP interacting proteins” which merely interact with “true” RBPs. “True” RBPs are subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function and “partially RNA dependent”, those that only require RNA for certain functions or transport. DICER = Endoribonuclease Dicer; NPM3 = Nucleoplasmin 3; RBBP7 = RNA-binding protein binding protein 7.
 
-Several approaches to study RNA-Protein interaction and to identify new RBPs were established such as RaPID and CLIP-Seq. These methods either only analyze the interaction between the RNA of interest and additional proteins (RaPID) or a protein of interest and the different RNA it is interacting with (CLIP-Seq) (Qin *et al.*, 2021). Therefore, approaching  the study of RNA-Binding Protein interaction networks globally (Sternburg and Karginov, 2020) has become a matter of interest. A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes. Furthermore, it allows for identification of new RBPs through RNase treatment and density gradient ultracentrifugation. Subsequently, the resulting fraction shifts of proteins identified with mass spectrometry were analyzed bioinformatically (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
+Several approaches to study RNA-protein interaction and to identify new RBPs were established such as RaPID and CLIP-Seq. These methods either analyze the interaction between the RNA of interest and additional proteins (RaPID) or the interaction between a protein of interest and the different RNA with which it is interacting (CLIP-Seq) (Qin *et al.*, 2021). Therefore, approaching  the global study of RNA-binding protein, interaction networks (Sternburg and Karginov, 2020) has become a matter of interest. A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes. Furthermore, this method allows for identification of new RBPs through RNase treatment and density gradient ultracentrifugation. Subsequently, the resulting fraction shifts of proteins identified via mass spectrometry were analyzed using bioinformatic techniques (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
 
-In this project, we aimed to identify RBPs and possible RBP candidates using bioinformatics in R. Beyond that, we hoped to discover crucial determining variables in our data hinting to RBPs without following our entire analysis protocol. We cross-referenced our results with established databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021). Our dataset focusing on of interphase synchronized HeLa S3 cells was obtained by the aforementioned method published by Caudron-Herger *et al.*
+In this project, we identified RBPs and possible RBP candidates using bioinformatics in R. Beyond that, we further identified contributing variables in our data differentiating RBPs without relying on our entire analysis protocol. We cross-referenced our results with known databases such as R-DeeP (https://r-deep.dkfz.de/; Caudron Herger *et al.*, 2019), UniProt (https://www.uniprot.org/) and RBP2GO (https://rbp2go.dkfz.de/; Caudron-Herger *et al.*, 2021). Our dataset focusing on interphase synchronized HeLa S3 cells was obtained by the method published by Caudron-Herger *et al.* cited above.
 
 \newpage
 # Methods
 ## Generation of the dataset
-Interphasic HeLa S3 cells were harvested and lyzed. The lyzate was split in two and one sample was treated with a RNase mixture (referred to as RNase (RNA)). The other sample was left untreated (referred to as control (ctrl)). Both samples were loaded onto a 5 % to 25 % sucrose density gradient, grouped in 25 fractions and separated using ultracentrifugation. For each condition, technical triplicates were generated. Each fraction was then analyzed using mass spectrometry. Proteins were identified using UniProt. The amount of protein per fraction, condition and replicate were stored in arbitrary units as a .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
+Interphasic HeLa S3 cells were harvested and lyzed. The lyzate was split into two samples and one sample was treated with a RNase mixture, referred to as RNase ("RNA"). The other sample was left untreated, referred to as a control ("ctrl"). Both samples were loaded onto a 5 % to 25 % sucrose density gradient, grouped in 25 fractions and separated using ultracentrifugation. For either sample, technical triplicates were generated. Each fraction was then analyzed using mass spectrometry. Proteins were identified using UniProt. The data for the amount of protein per fraction, condition and replicate was collected in arbitrary units and stored in a .csv-file (for full protocol see: Caudron-Herger *et al.*, 2019).
 
 ## Clean-Up and sorting of the dataset
-Using the R package tidyverse two separate data frames were generated containing either all untreated (_ctrl) or RNase treated (_RNA) replicates. Both data frames as well as the raw data set were screened for rows containing  zeros only. Those rows were removed from the data frame and stored in a new data frame.
+Using the R package tidyverse, two separate data frames were generated containing either all untreated ("_ctrl") or RNase treated ("_RNA") replicates. Both data frames, as well as the raw data set, were screened for rows containing zeros only. Those zero rows were removed from the data frame and stored in a new data frame.
 
 ## Normalization
-To rule out batch to batch effects and technical errors, the protein amount per replicate (Rep) and fraction (Frac) were normalized as well with regard to each condition.
-
-Normalization visualized by plotting protein distribution in both conditions prior to normalization in comparison to protein distribution after normalization. 
+To rule out batch to batch effects and technical error, the protein amount per replicate ("Rep") and fraction ("Frac") were additionally normalized with respect to each sample.The normalized results were then visualized by plotting the protein distribution in both samples.
 
 ### Fraction-wise normalization 
 Normalization for each fraction was performed applying the following equation:
@@ -65,21 +63,19 @@ They follow the naming convention:
 2. Fraction_8_RNAse for the triplicate values of the eighth fraction of the RNase treated sample
 
 ## Calculation of means and standard deviation
-The mean and standard deviation of the triplicates for each protein in each fraction were calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as a cut-off. All values below and above were replaced with NA and not considered in the following calculations.
+The mean and standard deviation of the triplicates for each protein in each fraction were calculated using the built-in functions *mean()-*($\overline x$) and *sd()-function*$(\sigma)$ of R. Outliers were detected using $\overline x \pm 3\sigma$ as a cut-off. All values below and above the three sigma cut-off were replaced with NA and not considered in the following calculations.
 
 ## Shapiro-Wilk Test
-To test the normal distribution of the triplicate values, the Shapiro-Wilk test was chosen due to its high power in small populations in comparison to other tests. The test was performed using the built-in R function *shapiro_test()*. 
+To test the normal distribution of the triplicate values, the Shapiro-Wilk test was chosen due to its high power in small populations compared to other tests. The test was performed using the built-in R function *shapiro_test()*. 
 
 ## Determination of Maxima
-For all proteins, the global maximum for the RNase-treated and untreated sample was determined. For this purpose, the protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position).
+We determined the global maximum for the RNase-treated and untreated sample for all proteins.The protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position).
 
 ## Detection of Protein Shifts
-
-In our analysis, we considered shifts in the global maximum comparing RNA-treated and untreated samples as a proxy for the presence of RNA. Those "shifting proteins" had to show both a significant x-shift and y-shift to improve precision.
+In our analysis, we considered shifts in the global maximum comparing RNA-treated and untreated samples as a proxy for the presence of RNA. We required "shifting proteins" show both a significant x-shift and y-shift to improve precision.
 
 ### x-shifts
-
-First, the x-position of the global maximum in both conditions was compared. To quantify the shift, the difference in the fraction number of the control group and the RNAse treated sample was calculated.
+First, we compared the x-position of the global maximum in both samples. To quantify the shift, we determined the difference in the fraction number of the control group and the RNase treated sample.
 
 $$x-shift = |fracs\_max\_ctrl| - |fracs\_max\_rnase|$$
 
@@ -94,44 +90,43 @@ The following convention regarding x-shifts was used:
 3. No-Shift:\tab      Value = 0
 
 ### y-shifts
-
 The total value of the y-shift was calculated as the difference between the y-values of the global maxima for both conditions.
 
 $$y-shift\_total = |absolute\_max\_ctrl| - |absolute\_max\_rnase|$$
 
 The variables *absolute\_max\_ctrl* and *absolute\_max\_rnase* describe the y-value of the global maxima for control and RNase treatment respectively. *y-shift\_total* is the resulting value.
 
-This value serves as a first hint and possibly a way to check on our results regarding the significance of the y-shift. However, statistical tests were applied to both the y-values ctrl vs RNase at the x-position of the global maximum in the RNase treated and untreated sample.  
+This value presents a way to check our results regarding the significance of the y-shift. However, statistical tests were applied to both the y-values ctrl vs RNase at the x-position of the global maximum in the RNase treated and untreated samples.  
 
 ## Statistical analysis
-To identify significant y-shifts, statistical analysis targeted the difference in the relative protein amount (y-value) for each protein in the global maximum fraction of RNase-treated and untreated samples. All proteins with x-shift values $\geqq |1|$ were considered.
+To identify significant y-shifts, we used statistical analysis to determine the difference in the relative protein amount (y-value) for each protein in the global maximum fraction of RNase-treated and untreated samples. All proteins with x-shift values $\geqq |1|$ were considered.
 
 ### F-Test
-To test whether our sample variances are comparable and therefore suitable for significance analysis, a two-sided F-Test was performed on the triplicates of each protein and fraction using the built-in R function *var.test()*. The significance level (p-value) was set to α = 0.01. The test was deemed positive if $p-value > 0.01$.
+To determine whether our sample variances were comparable and therefore suitable for the two-tailed, unpaired t-test, a two-sided F-Test was performed on the triplicates of each protein and fraction using the built-in R function *var.test()*. The significance level (p-value) was set to α = 0.01. The test was deemed positive if $p-value > 0.01$.
 
-If *var.test()* was performed on all zero samples, NA/NaN was returned. Therefore, the F-test filtered out those samples that were not relevant for maxima analysis anyways.
+If *var.test()* was performed on all zero samples, NA/NaN was returned. Therefore, the F-test filtered out those samples that were not relevant for maxima analysis.
 
-Since only the comparison of y-values at the x-positions of the global maxima mattered for our further analysis, proteins that failed the F-test (p-value < 0.01) at those x-positions were excluded.
+Since only the comparison of y-values at the x-positions of the global maxima mattered for our subsequent analysis, proteins that failed the F-test (p-value < 0.01) at those x-positions were excluded.
 
 ### Students T-Test
-The two-tailed unpaired t-test was used to identify proteins with significant y-value changes in global maxima x-positions after treatment. P-Values were calculated for each triplicate per protein per fraction using the built-in R function *t.test()*. Fractions with a global maximum were compared to the significance level α = 0.05. The test was deemed positive if $p-value < 0.05$. Therefore, the change was considered significant.
+The two-tailed, unpaired t-test was used to identify proteins with significant y-value changes in global maxima x-positions after treatment. P-Values were calculated for each triplicate per protein per fraction using the built-in R function *t.test()*. Fractions with a global maximum were compared to the significance level α = 0.05. The test was deemed positive if $p-value < 0.05$. Therefore, the change was considered significant.
 
 Since the t-test was performed on y-values of x-positions of global maxima for both conditions separately, the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for the ctrl and RNAse maxima. Only proteins with positive t-tests (p-value < 0.01) for the global maximum in both conditions (TRUE/TRUE) were considered for further analysis.
 
 ## Identification of potential RBPs by analysis of x- and y-shift
-Potential RBPs were selected by filtering out proteins with significant y-shift but no significant x-shift. To different cut-off conditions were tested.
+Potential RBPs were selected by filtering out proteins with significant y-shift following the t-test but no significant x-shift in the global maxima. Two different cut-off conditions were tested.
 
 1. significant y-shift and x-shift < 1
 
 2. significant y-shift and x-shift < 2
 
-Proteins filtered by this method were removed from the data frame and stored separately for further analysis.
+Proteins filtered out by this method were removed from the data frame and stored separately for further analysis.
 
 ### Checking for false positive and false negative results
-False positives and negatives were determined by cross-referencing the obtained proteins through our analysis with two data sets which were provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). The provided data sets contain further information about previously as RBP or non-RBP identified proteins by different researchers.
+False-positive and false-negative proteins were determined by cross-referencing with two data sets which were provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). The data contains information on RBPs and non-RBPs previously identified by different researchers.
 
 ## Identification of potential RBD Proteins
-Potential RNA-binding dependent (RBD) protein candidates were identified by cross-referencing proteins determined as false positive with a data set provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). The provided data set contains further information about previously as RBD identified proteins by different researchers. 
+Potential RNA-binding dependent (RBD) protein candidates were identified by cross-referencing false-positive proteins with the data set provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). 
 
 ## k-means clustering
 Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. For clustering the follwing variables were selected:
@@ -153,14 +148,14 @@ Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
 
 Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
 
-The conducted normalization process was successfully for sure-shifters as well as non-shifters because the obtained arbitrary values were converted into relative values and the overall distribution of protein amount per fraction is comparable to the distribution prior to normalization. Figure 2 highlights this with RFC2_HUMAN (sure-shifter) and MCM2_HUMAN (non-shifter) as example.
+Through normalization the arbitrary values were converted into relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
 <center>
 ```{r, echo = FALSE, fig.width=4, fig.height=2}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 ```
 </center>
-**Figure 2: Example of normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins the overall distribution trend is comparable.
+**Figure 2: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
 
 Shapiro-Wilk test concluded that all values obtained were normally distributed for both conditions. Therefore 
 
