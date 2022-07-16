@@ -7,7 +7,6 @@ output:
   pdf_document: default
 df_print: paged
 ---
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -71,7 +70,8 @@ The mean and standard deviation of the triplicates for each protein in each frac
 To test the normal distribution of the triplicate values, the Shapiro-Wilk test was chosen due to its high power in small populations in comparison to other tests. The test was performed using the built-in R function *shapiro_test()*. 
 
 ## Determination of Maxima
-For all proteins, the global maximum for the RNase-treated and untreated sample was determined. For this purpose, the protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position).
+For all proteins, the global maximum for the RNase-treated and untreated sample was determined. For this purpose, the protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position). For fractions 1 and 25 only the neighbors right or left of the fraction could be compared due to border limitations. For fractions 2 and 24 only one neighbor could be compared left or right.
+Obtained values were stored in a sperate data frame.
 
 ## Detection of Protein Shifts
 
@@ -101,17 +101,13 @@ $$y-shift\_total = |absolute\_max\_ctrl| - |absolute\_max\_rnase|$$
 
 The variables *absolute\_max\_ctrl* and *absolute\_max\_rnase* describe the y-value of the global maxima for control and RNase treatment respectively. *y-shift\_total* is the resulting value.
 
-This value serves as a first hint and possibly a way to check on our results regarding the significance of the y-shift. However, statistical tests were applied to both the y-values ctrl vs RNase at the x-position of the global maximum in the RNase treated and untreated sample.  
-
 ## Statistical analysis
 To identify significant y-shifts, statistical analysis targeted the difference in the relative protein amount (y-value) for each protein in the global maximum fraction of RNase-treated and untreated samples. All proteins with x-shift values $\geqq |1|$ were considered.
 
 ### F-Test
 To test whether our sample variances are comparable and therefore suitable for significance analysis, a two-sided F-Test was performed on the triplicates of each protein and fraction using the built-in R function *var.test()*. The significance level (p-value) was set to α = 0.01. The test was deemed positive if $p-value > 0.01$.
 
-If *var.test()* was performed on all zero samples, NA/NaN was returned. Therefore, the F-test filtered out those samples that were not relevant for maxima analysis anyways.
-
-Since only the comparison of y-values at the x-positions of the global maxima mattered for our further analysis, proteins that failed the F-test (p-value < 0.01) at those x-positions were excluded.
+If *var.test()* was performed on all zero samples, NA/NaN was returned. Therefore, the F-test filtered out those samples that were not relevant for maxima analysis anyways. Since only the comparison of y-values at the x-positions of the global maxima mattered for our further analysis, proteins that failed the F-test (p-value < 0.01) at those x-positions were excluded.To quantifiy how many proteins failed F-test RNAse- and ctrl-maximum spots were analyzed. To refer the F-test results back to the actual proteins, a more visual matrix was created labeld *p_value_matrix*.
 
 ### Students T-Test
 The two-tailed unpaired t-test was used to identify proteins with significant y-value changes in global maxima x-positions after treatment. P-Values were calculated for each triplicate per protein per fraction using the built-in R function *t.test()*. Fractions with a global maximum were compared to the significance level α = 0.05. The test was deemed positive if $p-value < 0.05$. Therefore, the change was considered significant.
@@ -147,6 +143,7 @@ Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering wa
 
 \newpage
 # Results
+## Clean-Up and normalization
 The initial data set consisted of 7086 proteins. After clean-up 7081 proteins remained for further analysis. Normalization was visualized for several reported sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins are:
 
 Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
@@ -154,6 +151,7 @@ Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
 Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
 
 The conducted normalization process was successfully for sure-shifters as well as non-shifters because the obtained arbitrary values were converted into relative values and the overall distribution of protein amount per fraction is comparable to the distribution prior to normalization. Figure 2 highlights this with RFC2_HUMAN (sure-shifter) and MCM2_HUMAN (non-shifter) as example.
+
 <center>
 ```{r, echo = FALSE, fig.width=4, fig.height=2}
 library(knitr)
@@ -162,9 +160,35 @@ include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 </center>
 **Figure 2: Example of normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins the overall distribution trend is comparable.
 
-Shapiro-Wilk test concluded that all values obtained were normally distributed for both conditions. Therefore 
+## Calculation of mean, sd and Shapiro-Wilk Test
+With the proposed 3$\sigma$ rule we were able to detect not a single protein in which at least one replicate was not congruent with a normal distribution. To verify this result Shapiro-Wilk testwas conducted. Test concluded that all values obtained for each protein were normally distributed for both conditions. Therefore they were suitable for statistical analysis with F-Test and two-tailed unpaired t-test.
+
+## Statisitcal analysis and Identification of potential RBPs by analysis of x- and y-shift
+The obtained x- and y-shift as well as the fraction of the global maxima, shift direction and y-shift values were stored in a data frame labeled *abs_max_both*.
+
+7081 proteins were tested with F-Test. Only the obtained p-values for fractions were a global maximum was detected were deemed relevant for identification of potential RBP candidates. Of 7081 proteins 1196 failed the test and were excluded from further analysis. 5885 remained. Quantification of FALSE Results in F-Test resulted that  10 % of all analyzed proteins fail F-Test. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  Because it seems like some FALSE F-test results originate from outlier values (see Discussion) and otherwise we would experience a great exclusion of data, significance level was set to α = 0.01 instead of the previously usual α = 0.05. With α = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable.
+
+Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters.
+
+With the defined cut-off parameters significant y-shift and x-shift > 1 or significant y-shift and x-shift > 2 these potential shifters were further analysed. 
+
+The cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 false-positives out of 636 total. Of the 120 false-positives six were identified with cross-recferencing as RBD proteins. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 false-positives out of 489 total. Of the 91 false-positives six were identified with cross-referencing as RBD proteins. The six identified proteins were identical for both cut-off parameters (see Tab.1, data frames *RBD_true_port_df1* and *RBD_true_prot_df2*).
+
+In both cases, about 80% of identified RBP were correct when cross-referenced. Since the >1 x-shift cut-off did not worsen this quote but instead delivered more results overall (636 compared to 489), >1 x-shift cut-off is used for our analysis.
+
+**Table.1: Amount of identified RBPs:** True RBP quantification results after cross-referencing obtained proteins with the additional data provided by Caudron-Herger. TP = True positive, TN = True negative, FP = False positive, FN = False negative.
+
+----
+Criteria | x-Shift > 1 | x-shift > 2 |
+Total identified | 636 | 489 |
+TP | 513 | 398 |
+FP | 120| 91 |
+RBD| 6 | 6|
+---
+
+## K-Means Clustering and Regression model
 
 # Discussion
+Lorem ipsum
 
-
-
+\end{document}
