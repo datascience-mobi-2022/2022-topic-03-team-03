@@ -14,6 +14,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(dplyr)
+library(corrplot)
+library(cluster) 
+library(factoextra)
+library(ggpubr)
+library(readxl)
+library(FactoMineR)
+library(ggplot2)
 ```
 
 ## Load Raw data
@@ -667,10 +674,32 @@ abs_max_both_t_y0 <- abs_max_both_t[!rownames(abs_max_both_t) %in% trash_t_y0, ]
 
 nrow(abs_max_both_t_y0)
 ```
+## Plotting Shifters
+```{r plotting shifters}
+# Assign numbers for shift behavior
+i <- c(1:7081)
+ID <- c()
+for(x in i){
+ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1
+} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2
+} else {abs_mat_both_q$ID[x] =3}
+}
+# Plot all proteins
+control_fraction <- as.matrix(abs_mat_both_q$fracs_ctrl)
+RNase_fraction <- as.matrix(abs_mat_both_q$fracs_RNAse)
+cols <- c(1,3)
 
+colors <- c("right_shifters" = "green", "left_shifters" = "red", "non_shifters" = "black")
 
+p_all <- ggplot(abs_mat_both_q[,cols], aes(x = RNase_fraction, y=control_fraction, color = ID, show.legend = TRUE)) +
+geom_point(color = ID) +
+  geom_density_2d(alpha = 0.5)+
+  scale_colour_manual(values = colors)
+   
+p0 <- p_all + labs(title = "All proteins")
+p0
+```
 ## Methods for Identification of potential RBPs
-
 For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1)
 ```{r x shift > 1}
 # At least 1 or more fractions x shift
@@ -678,7 +707,6 @@ trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shift
 abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
 abs_max_both_x_y_1
 nrow(abs_max_both_x_y_1)
-```{r}
 
 # Function to identify True RBP
 Find_true_RBP <- function(potential_RBP) {
@@ -719,8 +747,8 @@ Find_RBD <- function(potential_RBD) {
   return(RBD_true_prot_names)
 }
 ```
-# Sum up results
 
+# Sum up results
 ```{r True/False RBP}
 # True RBP
 True_RBP_t1 <- Find_true_RBP(row_1)
@@ -755,14 +783,8 @@ rm(HeLa_cleaned, HeLa_cleaned_NA)
 ```
 
 # Clustering
-
 ```{r}
-# Load libraries
-library(corrplot)# Clustering
-library(cluster) 
-library(factoextra)
-
-# Define function for Quotient for CLustering variables
+# Define function for Quotient for Clustering variables
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -809,7 +831,6 @@ abs_mat_both_q <- cbind(abs_mat_both_q, dif,x_abs)
 cluster_data <- data.frame(maxi_RNAse, q_mat_sums)
 
 # Calculating optimal number of Clusters
-library(factoextra)
 fviz_nbclust(cluster_data, kmeans, method='silhouette')
 
 # Cluster
@@ -823,11 +844,9 @@ fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse
 sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
 fviz_silhouette(sil)
 ```
-
 ## Clustering results
-
 First, we created vectors containing the assigned protein names of each cluster.
-```{r Extract Cluster Information}
+```{r}
 # Extract information on cluster centers
 cluster_centers <- data.frame(kmeans_fancy$centers)
 cluster_centers
@@ -845,13 +864,9 @@ Cluster_A <- proteinnames[which(kmeans_fancy$cluster==Cluster_A_number)]
 # All tested
 Cluster_total <- c(Cluster_C, Cluster_B, Cluster_A)
 ```
-
-
-#### Cluster C
-
+### Cluster C
 Cluster C was supposed to be a safe "true RBP" cluster. This was tested:
-
-```{r True/False RBP}
+```{r}
 # True RBP
 True_RBP_C <- Find_true_RBP(Cluster_C)
 length(True_RBP_C)
@@ -859,138 +874,141 @@ length(True_RBP_C)
 # False RBP
 False_RBP_C <- Find_false_RBP(Cluster_C)
 length(False_RBP_C)
-```
 
-```{r RBD status}
+#RBD status
 False_RBP_true_RBD_C <- Find_RBD(False_RBP_C)
 length(False_RBP_true_RBD_C)
-```
 
-```{r}
-# >1 x-shift
+False_RBP_true_RBD_C == False_RBP_true_RBD_t1
+
+# Senstivity and specifity markers
 ( length(True_RBP_C) / length(Cluster_C) ) * 100 # True positive quote
 ( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
 ```
-
-### Comparing Clustering Results
-
-Next, we wondered whether our clustering results matched the previously identified RBP in other studies. So we wanted to test the reliability of our clustering.
-
-```{r}
-Cluster_3 <- c("BSN_HUMAN","CCD86_HUMAN","CETN3_HUMAN","CG050_HUMAN","CND2_HUMAN","DDX27_HUMAN","DDX50_HUMAN","DHX30_HUMAN","EXOS3_HUMAN","F120A_HUMAN","FMO1_HUMAN","GPTC2_HUMAN","H10_HUMAN","H11_HUMAN","H12_HUMAN","H13_HUMAN","H14_HUMAN","H1FOO_HUMAN","H1T_HUMAN","HNF6_HUMAN","HNRC1_HUMAN","HNRC2_HUMAN","HNRC3_HUMAN","HNRLL_HUMAN","HOOK3_HUMAN","IF2A_HUMAN","KPYM_HUMAN","KPYR_HUMAN","MRES1_HUMAN","PNISR_HUMAN","PTTG_HUMAN","PUR6_HUMAN","R39L5_HUMAN","RBL2_HUMAN","RBM22_HUMAN","RBM28_HUMAN","RIR1_HUMAN","RISC_HUMAN","RL10A_HUMAN","RL15_HUMAN","RL17_HUMAN","RL27A_HUMAN","RL27_HUMAN","RL30_HUMAN","RL37_HUMAN","RL3_HUMAN","RL7A_HUMAN","RL7L_HUMAN","RNZ2_HUMAN","RP1BL_HUMAN","RRNAD_HUMAN","RRP7A_HUMAN","RRP7B_HUMAN","RS12_HUMAN","RS19_HUMAN","RS28_HUMAN","RS30_HUMAN","RS3A_HUMAN","SHLB2_HUMAN","STPAP_HUMAN","TBL1R_HUMAN","TOM7_HUMAN","TRIP4_HUMAN","ZBT41_HUMAN","ZN703_HUMAN")
-
-length(Cluster_3)
-```
-
---> Cluster 3 (pretty safely RBP?)
-
-```{r}
+### Cluster B  
+We anticipate Cluster B to suggest more RBP, although with reduced precision.
+```{r True}
 # True RBP
-Match_RBP_C3 <- HS_RBPs$Entry_Name.x %in% Cluster_3
-True_RBP_pos_C3 <- which(Match_RBP_C3 == TRUE)
-True_RBP_names_C3 <- HS_RBPs$Entry_Name.x[True_RBP_pos_C3]
-length(True_RBP_names_C3)
+True_RBP_B <- Find_true_RBP(Cluster_B)
+length(True_RBP_B)
 
 # False RBP
-Match_non_RBP_C3 <- HS_non_RBPs$Entry_Name.x %in% Cluster_3
-False_RBP_pos_C3 <- which(Match_non_RBP_C3 == TRUE)
-False_RBP_names_C3 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_C3]
-length(False_RBP_names_C3)
+False_RBP_B <- Find_false_RBP(Cluster_B)
+length(False_RBP_B)
 
-False_RBP_names_C3
+#RBD status
+False_RBP_true_RBD_B <- Find_RBD(False_RBP_B)
+length(False_RBP_true_RBD_B)
 
-# Not listed
-not_listed_C3 <- Cluster_3 %in% True_RBP_names_C3
-not_listed_C3_pos <- which(not_listed_C3 == FALSE)
-not_listed_C3_names <- Cluster_3[not_listed_C3_pos]
+False_RBP_true_RBD_B == False_RBP_true_RBD_t1
 
-not_listed_C3_2 <- not_listed_C3_names %in% False_RBP_names_C3
-not_listed_C3_pos_2 <- which(not_listed_C3_2 == FALSE)
-not_listed_C3_names <- Cluster_3[not_listed_C3_pos_2]
-
-not_listed_C3_names
+#Senstivity and specifity markers
+( length(True_RBP_B) / length(Cluster_B) ) * 100 # True positive quote
+( length(False_RBP_B) / length(Cluster_B) ) * 100 # False positive quote
 ```
-
-Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
-
-```{r RBD status}
-# Show RBD status 
-RBD_stat_non_RBP_C3 <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
-row.names(RBD_stat_non_RBP_C3) <- HS_non_RBPs$Entry_Name.x
-RBD_stat_non_RBP_t_C3 <- RBD_stat_non_RBP_C3[rownames(RBD_stat_non_RBP_C3) %in% False_RBP_names_C3, ]
-
-# Quantify RBD status
-RBD_true_prot_df_C3 <- RBD_stat_non_RBP_t_C3[RBD_stat_non_RBP_t_C3$RBD_status == "RBD", ]
-RBD_true_prot_names_C3 <- rownames(RBD_true_prot_df_C3)
-length(RBD_true_prot_names_C3)
-RBD_true_prot_names_C3
-```
-
-This RBD protein is listed on Uniprot as q putative ribosomal RNA-processing protein. Therefore it is probably a truly identified RBP after all. 
-
+### Cluster A
+We anticipate Cluster A to suggest mostly non-RBP.
 ```{r}
-( length(True_RBP_names_C3) / length(Cluster_3) ) * 100 # True positive quote
-( length(False_RBP_names_C3) / length(Cluster_3) ) * 100 # False positive quote
+# True non-RBP
+True_non_RBP_A <- Find_true_non_RBP(Cluster_A)
+length(True_non_RBP_A)
+
+# False non-RBP
+False_non_RBP_A <- Find_false_non_RBP(Cluster_A)
+length(False_non_RBP_A)
+
+#Senstivity and specifity markers
+( length(True_non_RBP_A) / length(Cluster_A) ) * 100 # True positive quote
+( length(False_non_RBP_A) / length(Cluster_A) ) * 100 # False positive quote
 ```
-
-The quotes do nod add up to 100 % because two proteins were not listed in the used reference data frames. Looking them up online reveals, that both should be RBPs.
-
+### Clustering vs Statistical Tests
 ```{r}
-( (length(True_RBP_names_C3) + length(not_listed_C3_names)) / length(Cluster_3) ) * 100 # True positive quote
-( length(False_RBP_names_C3) / length(Cluster_3) ) * 100 # False positive quote
+# Comparing potential "true RBPs" identified by statistical analysis and Clustering  
+True_RBP_BC <- c(True_RBP_B, True_RBP_C)
+length(True_RBP_BC)
+length(True_RBP_t1)
+
+table(True_RBP_BC %in% True_RBP_t1)
 ```
-
-Cluster 3 therefore shows at least 83 % true positive RBPs and compares to the precision of the t-test analysis.
-
-
 #Linear regression 
+## Train the model
 ```{r linear regression}
-
-#select proteins to train the model
+# Select 5000 proteins from raw data randomly
 proteins <- c(1:7081)
 samples.numbers.training <- sample(proteins,5000)
 samples.numbers.test <- proteins[-c(samples.numbers.training)]
 
-random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,12)]
-colnames(random.samples.training) <- c("x","max","sum")
+random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,11,12,13)]
+colnames(random.samples.training) <- c("x","max","mea","sum","min")
 
-random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,12)]
-colnames(random.samples.test) <- c("x","max","sum")
+random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,11,12,13)]
+colnames(random.samples.test) <- c("x","max","mea","sum","min")
 
-#train the model 
-modell <- lm(x ~ sum + max, data = random.samples.training )
-
+modell <- lm(x ~ sum + mea  + max  , data = random.samples.training )
 summary(modell)
 
-plot(random.samples.training$x,random.samples.training$max, col ="blue", abline(modell), ylim = c(0,15), xlab = "x-shift", ylab = " Maximum of quotients")
-plot(random.samples.training$x,random.samples.training$sum, col ="blue", abline(modell), ylim = c(0,15), xlab = "x-shift", ylab = "Sums of quotients"
-     
-```
+plot(x_abs, maxi_RNAse, col ="blue", abline(modell))
 
-## test regression 
-```{r test the regression}
-# use model to predict x-shifts for the test set
-predicted.x_shifts <- predict(modell, newdata = random.samples.test)
+``` 
+## Test the model
+```{r}
+# Use remaining 2081 proteins to test the regression model
+c <- predict(modell, newdata = random.samples.test)
 
-# analyse predicted values 
 i <- c(1:2081)
 shift_direction.regression <- c()
-for(x in i){shift_direction.regression[x] <- if(predicted.x_shifts[x] < 1) {'no shift'
+for(x in i){shift_direction.regression[x] <- if(c[x] < 1) {'no shift'
 }else  {'shift'}
 }
 
-# identified x-shifts with the code
-x_shifters <- x_shifts[samples.numbers.test]
+shifters <- x_shifts[samples.numbers.test]
 shift_direction.code <- c()
-for(x in i){shift_direction.code[x] <- if(x_shifters[x] == 0) {'no shift'
+for(x in i){shift_direction.code[x] <- if(shifters[x] == 0) {'no shift'
 }else  {'shift'}
 }
 
-# compare code and regression results 
-compare <- cbind(predicted.x_shifts, x_abs[samples.numbers.test], shift_direction.regression, shift_direction.code)
+compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shifters, shift_direction[samples.numbers.test])
 
 compare.shifts <- (shift_direction.regression[i] == shift_direction.code[i])
 
 length (which(compare.shifts == TRUE))
 length (which(compare.shifts == FALSE))
+```
+## Results Regression
+Now we will compare the results with the additional data.
+```{r}
+Regression_data <- data.frame(compare)
+
+RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "shift")]
+non_RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "no shift")]
+
+length(RBP_regression)
+length(non_RBP_regression)
+
+# True RBP
+True_RBP_reg <- Find_true_RBP(RBP_regression)
+length(True_RBP_reg)
+
+# False RBP
+False_RBP_reg <- Find_false_RBP(RBP_regression)
+length(False_RBP_reg)
+
+# True non-RBP
+True_non_RBP_reg <- Find_true_non_RBP(non_RBP_regression)
+length(True_non_RBP_reg)
+
+# False non-RBP
+False_non_RBP_reg <- Find_false_non_RBP(non_RBP_regression)
+length(False_non_RBP_reg)
+
+#RBD-status
+False_RBP_true_RBD_reg <- Find_RBD(False_RBP_reg)
+length(False_RBP_true_RBD_reg)
+
+# Quantification
+( length(True_RBP_reg) / length(RBP_regression) ) * 100 # True positive quote
+( length(False_RBP_reg) / length(RBP_regression) ) * 100 # False positive quote
+
+( length(True_non_RBP_reg) / length(non_RBP_regression) ) * 100 # True negative quote
+( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
 ```
