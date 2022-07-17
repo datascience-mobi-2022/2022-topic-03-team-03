@@ -1574,3 +1574,15 @@ So some proteins may at least be RNA-dependent although not RNA-binding.
 ( length(True_non_RBP_reg) / length(non_RBP_regression) ) * 100 # True negative quote
 ( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
 ```
+
+It must also be mentioned, that not all proteins could be cross-referenced, since they apeared neither in the HS_RBPs nor the HS_non_RBPs data frame. 
+
+```{r}
+All_tested_reg <- c(True_RBP_reg, False_RBP_reg)
+length(All_tested_reg)
+length(RBP_regression)
+
+
+Difference_reg <- RBP_regression[!RBP_regression %in% All_tested_reg]
+Difference_reg
+```
