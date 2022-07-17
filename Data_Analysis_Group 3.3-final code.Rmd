@@ -638,193 +638,131 @@ table(t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
 # Either RNase or Ctrl
 table(t_max_RNase & t_max_ctrl)["TRUE"] 
 table(t_max_RNase & t_max_ctrl)["TRUE"] / nrow(abs_max_both_F)
-```
 
-It turns out, that a little below half of the proteins shows a significant y-shift in maxima positions. We created a new dataframe containing those as well as new "trash cans" for those excluded based on failing the t-test.
-
-
-```{r Sum up and remove NA}
-# NA
+# Remove NA
 t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
 t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
 
 trash_t_NA <- c(row.names(t_NA_ctrl), row.names(t_NA_RNase))
 length(trash_t_NA)
-```
-It turns out, that this time no NA values were observed. The t-test either delivers "FALSE" or "TRUE" as its output.
 
-```{r Sum up FALSE proteins}
-# FALSE
+# Remove FALSE
 t_FALSE_ctrl <- abs_max_both_F[which(t_max_ctrl == FALSE), ]
 t_FALSE_RNase <- abs_max_both_F[which(t_max_RNase == FALSE), ]
 
 trash_t_FALSE <- unique(c(row.names(t_FALSE_ctrl), row.names(t_FALSE_RNase)))
 length(trash_t_FALSE)
-```
-However, 2888 proteins fail the t-test.
 
-```{r Remove FALSE proteins}
 abs_max_both_t <- abs_max_both[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
 dim(abs_max_both_t) #dataset without FALSE
 
 t_RNase_norm <- F_RNase_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
 t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
-```
-This way, about 3536 potential shifters and therefore RNA-interacting proteins were identified.
 
-When viewing the cleaned up data frame, another problem was noticed: Fractions containing 100% of protein content in both RNA and ctrl are listed as well. This makes no sense as no y-shift truly occurs. 
-
-Those proteins therefore have a y-shift (y-ctrl - yRNAse) of 0. This will be the criterion to remove them.
-
-```{r significant y-shift}
+#Remove proteins with T-Test failure
 trash_t_y0 <- c(rownames(abs_max_both_t[which(abs_max_both_t$y_shifts == 0), ]))
+
+#Cleaned data frame
 abs_max_both_t_y0 <- abs_max_both_t[!rownames(abs_max_both_t) %in% trash_t_y0, ]
 
 nrow(abs_max_both_t_y0)
 ```
 
-So now, 2929 proteins remain with significant y-shifts.
 
+## Methods for Identification of potential RBPs
 
-### Refering back to the x-shift
-
-For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1) or (shift > 2) as comparison.
-
-```{r >2 or >1 x shift}
+For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1)
+```{r x shift > 1}
 # At least 1 or more fractions x shift
 trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 2), ]))
 abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
 abs_max_both_x_y_1
 nrow(abs_max_both_x_y_1)
+```{r}
 
-# At least 2 or more fractions x shift
-trash_no_x_2 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 3), ]))
-abs_max_both_x_y_2 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_2, ]
-abs_max_both_x_y_2
-nrow(abs_max_both_x_y_2)
+# Function to identify True RBP
+Find_true_RBP <- function(potential_RBP) {
+  Match_RBP <- HS_RBPs$Entry_Name.x %in% potential_RBP    # Compare potential RBP with RBP from other publications
+  True_RBP_pos <- which(Match_RBP == TRUE)                # Find the positions of true RBP
+  True_RBP_names <- HS_RBPs$Entry_Name.x[True_RBP_pos]    # Find names of true RBP
+  return(True_RBP_names)
+}
+
+# Function to identify False RBP
+Find_false_RBP <- function(potential_RBP) {                    
+  Match_RBP <- HS_non_RBPs$Entry_Name.x %in% potential_RBP      # Compare potential RBP with RBP from other publications
+  False_RBP_pos <- which(Match_RBP == TRUE)                     # Find the positions of false RBP
+  False_RBP_names <- HS_non_RBPs$Entry_Name.x[False_RBP_pos]    # Find names of false RBP
+  return(False_RBP_names)
+}
+
+# Function to identify true non-RBP
+Find_true_non_RBP <- function(potential_non_RBP) {
+  Match_non_RBP <- HS_non_RBPs$Entry_Name.x %in% potential_non_RBP    # Compare potential non-RBP with non-RBP from other publications
+  True_non_RBP_pos <- which(Match_non_RBP == TRUE)                    # Find the positions of true non-RBP
+  True_non_RBP_names <- HS_non_RBPs$Entry_Name.x[True_non_RBP_pos]    # Find names of true non-RBP
+  return(True_non_RBP_names)
+}
+
+# Function to identify false non-RBP
+Find_false_non_RBP <- function(potential_non_RBP) {
+  Match_non_RBP <- HS_RBPs$Entry_Name.x %in% potential_non_RBP    # Compare potential non-RBP with non-RBP from other publications
+  False_non_RBP_pos <- which(Match_non_RBP == TRUE)               # Find the positions of false non-RBP
+  False_non_RBP_names <- HS_RBPs$Entry_Name.x[False_non_RBP_pos]   # Find names of false non-RBP
+  return(False_non_RBP_names)
+}
+# Function to show RBDs
+Find_RBD <- function(potential_RBD) {
+  RBD_stat <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% potential_RBD, ]
+  RBD_true_prot_df <- RBD_stat[RBD_stat$RBD_status == "RBD", ]
+  RBD_true_prot_names <- rownames(RBD_true_prot_df_2)
+  return(RBD_true_prot_names)
+}
 ```
-
-```{r Difference >2 or >1 x shift}
-# Difference:
-row_1 <- c(rownames(abs_max_both_x_y_1))
-row_2 <- c(rownames(abs_max_both_x_y_2))
-
-doubles <- row_1 %in% row_2
-dif_pos_x_y_1_2 <- which(doubles == FALSE)
-dif_names_x_y_1_2 <- row_1[dif_pos_x_y_1_2]
-length(dif_names_x_y_1_2)
-```
-
-The proteins that were filtered out by the greater x-shift criterion are both classified as RBPs by other studies as well as non-shifters. Since other work groups used the gaussian fit, the x-shift could be determined as 0.6 for example. In our case, we are working with integers that do not allow for partial fraction shifts as in 0.6. 
-
-We were curious if on the other hand side the cut-off (shift > 2) resulted in better prediction of RBP although with reduced quantity. 
-
-### x Shift > 2 results
+# Sum up results
 
 ```{r True/False RBP}
 # True RBP
-Match_RBP_2 <- HS_RBPs$Entry_Name.x %in% row_2
-True_RBP_pos_2 <- which(Match_RBP_2 == TRUE)
-True_RBP_names_2 <- HS_RBPs$Entry_Name.x[True_RBP_pos_2]
-length(True_RBP_names_2)
+True_RBP_t1 <- Find_true_RBP(row_1)
+length(True_RBP_t1)
 
 # False RBP
-Match_non_RBP_2 <- HS_non_RBPs$Entry_Name.x %in% row_2
-False_RBP_pos_2 <- which(Match_non_RBP_2 == TRUE)
-False_RBP_names_2 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_2]
-length(False_RBP_names_2)
-```
+False_RBP_t1 <- Find_false_RBP(row_1)
+length(False_RBP_t1)
 
-Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
+# True non-RBP
+True_non_RBP_t1 <- Find_true_non_RBP(Non_RBP_t1)
+length(True_non_RBP_t1)
 
-```{r RBD status}
-# Show RBD status 
-RBD_stat_non_RBP_2 <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
-row.names(RBD_stat_non_RBP_2) <- HS_non_RBPs$Entry_Name.x
-RBD_stat_non_RBP_t_2 <- RBD_stat_non_RBP_2[rownames(RBD_stat_non_RBP_2) %in% False_RBP_names_2, ]
+# False non-RBP
+False_non_RBP_t1 <- Find_false_non_RBP(Non_RBP_t1)
+length(False_non_RBP_t1)
 
-# Quantify RBD status
-RBD_true_prot_df_2 <- RBD_stat_non_RBP_t_2[RBD_stat_non_RBP_t_2$RBD_status == "RBD", ]
-RBD_true_prot_names_2 <- rownames(RBD_true_prot_df_2)
-length(RBD_true_prot_names_2)
-```
-
-So 6 out of 91 proteins may at least be RNA-dependent although not RNA-binding.
-
-
-### x Shift > 1 results
-
-```{r True/False RBP}
-# True RBP
-Match_RBP_1 <- HS_RBPs$Entry_Name.x %in% row_1
-True_RBP_pos_1 <- which(Match_RBP_1 == TRUE)
-True_RBP_names_1 <- HS_RBPs$Entry_Name.x[True_RBP_pos_1]
-length(True_RBP_names_1)
-
-# False RBP
-Match_non_RBP_1 <- HS_non_RBPs$Entry_Name.x %in% row_1
-False_RBP_pos_1 <- which(Match_non_RBP_1 == TRUE)
-False_RBP_names_1 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_1]
-length(False_RBP_names_1)
-```
-
-Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
-
-```{r RBD status}
-# Show RBD status 
-RBD_stat_non_RBP<- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+# Show RBD status of all non-RBP
+RBD_stat_non_RBP <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
 row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
-RBD_stat_non_RBP_t_1 <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% False_RBP_names_1, ]
-RBD_stat_non_RBP_t_1
 
-# Quantify RBD status
-RBD_true_prot_df_1 <- RBD_stat_non_RBP_t_1[RBD_stat_non_RBP_t_1$RBD_status == "RBD", ]
-RBD_true_prot_names_1 <- rownames(RBD_true_prot_df_1)
-length(RBD_true_prot_names_1)
+# Specifity and Sensitivity parameters
+( length(True_RBP_t1) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
+( length(False_RBP_t1) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
+
+( length(True_non_RBP_t1) / length(Non_RBP_t1) ) * 100 # True negative quote
+( length(False_non_RBP_t1) / length(Non_RBP_t1) ) * 100 # False negative quote
+
+rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
+
+rm(HeLa_cleaned, HeLa_cleaned_NA)
 ```
 
-So 6 out of 120 proteins may at least be RNA-dependent although not RNA-binding.
+# Clustering
 
 ```{r}
-RBD_true_prot_names_1 == RBD_true_prot_names_2
-```
-
-Those are the same 6 as before. 
-
-
-### Sum up t-test results
-
-So choosing the cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 (or 114) false-positives out of 636 total. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 (or 85) false-positives out of 489 total.
-
-```{r}
-# >1 x-shift
-( length(True_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
-( length(False_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
-
-# >2 x-shift
-( length(True_RBP_names_2) / nrow(abs_max_both_x_y_2) ) * 100 # True positive quote
-( length(False_RBP_names_2) / nrow(abs_max_both_x_y_2) ) * 100 # False positive quote
-```
-
-In both cases, about 80% of identified RBP were correct when compared to other publishers. Since the >1 x-shift cut-off did not worsen this quote but instead delivered more results overall (636 compared to 489), we feel that the >1 x-shift cut-off is meaningful for our analysis.
-
-
-```{r}
-#rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
-
-#rm(HeLa_cleaned, HeLa_cleaned_NA)
-```
-
-
-## Clustering
-
-```{r k means clustering packages}
+# Load libraries
 library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
-```
 
-```{r quotient function}
+# Define function for Quotient for CLustering variables
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -844,19 +782,14 @@ Quotienten = c()
   return(Quotienten)
 }
 
-```
-
-
-```{r selecting highest quotient sum values}
+# Selecting highest quotient sum values
 #Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
 
 quotienten_HeLa_RNAse <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNAse), ncol=25, byrow=FALSE)
 q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
-```
 
-
-```{r variables derived from quotient}
+# Variables derived from Quotient
 maxi_RNAse <- apply(q_HeLa_mat,1, max)
 mini_RNAse <- apply(q_HeLa_mat, 1, min)
 mean <- rowMeans(q_HeLa_mat)
@@ -871,96 +804,73 @@ x_abs <- abs(x_shifts)
 abs_mat_both_q <- cbind(abs_max_both, maxi_RNAse, mini_RNAse, mean,q_mat_sums,mini2)
 dif <- abs_mat_both_q$maxi_RNAse - abs_mat_both_q$mini_RNAse
 abs_mat_both_q <- cbind(abs_mat_both_q, dif,x_abs)
-```
 
-```{r cluster data.frame}
+# Creating Cluster data frame
 cluster_data <- data.frame(maxi_RNAse, q_mat_sums)
-```
 
-
-```{r optimal number of clusters}
+# Calculating optimal number of Clusters
 library(factoextra)
 fviz_nbclust(cluster_data, kmeans, method='silhouette')
-```
 
-```{r cluster plot}
+# Cluster
 kmeans_fancy <- kmeans(scale(cluster_data), 3, nstart = 25)
 kmeans_fancy
-# plot the clusters
+
+# Plot the cluster
 fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
 
-
-shiftsafe <- proteinnames[which(kmeans_fancy$cluster==1)]
-```
-
-```{r clusters silhouette plot}
+# Shilouette plot for cluster quality
 sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
 fviz_silhouette(sil)
 ```
-```{r plotting library}
-library(ggplot2)
-library(ggpubr)
-library(readxl)
-library(FactoMineR)
-library(ggplot2)
+
+## Clustering results
+
+First, we created vectors containing the assigned protein names of each cluster.
+```{r Extract Cluster Information}
+# Extract information on cluster centers
+cluster_centers <- data.frame(kmeans_fancy$centers)
+cluster_centers
+
+# Cluster A closest to origin, cluster C farthest away
+Cluster_C_number <- which.max(cluster_centers$maxi_RNAse)
+Cluster_A_number <- which.min(cluster_centers$maxi_RNAse)
+Cluster_B_number <- (1+2+3) - Cluster_C_number - Cluster_A_number
+
+# Cluster content
+Cluster_C <- proteinnames[which(kmeans_fancy$cluster==Cluster_C_number)]
+Cluster_B <- proteinnames[which(kmeans_fancy$cluster==Cluster_B_number)]
+Cluster_A <- proteinnames[which(kmeans_fancy$cluster==Cluster_A_number)]
+
+# All tested
+Cluster_total <- c(Cluster_C, Cluster_B, Cluster_A)
 ```
 
-```{r plotting shifters}
-cluster1a <- as.matrix(abs_mat_both_q$fracs_ctrl[left_shift])
-cluster1b <- as.matrix(abs_mat_both_q$fracs_RNAse[left_shift])
-cluster2a <- as.matrix(abs_mat_both_q$fracs_ctrl[no_shift])
-cluster2b <- as.matrix(abs_mat_both_q$fracs_RNAse[no_shift])
-cluster3a <- as.matrix(abs_mat_both_q$fracs_ctrl[right_shift])
-cluster3b <- as.matrix(abs_mat_both_q$fracs_RNAse[right_shift])
 
-y_axis <- as.matrix(abs_mat_both_q$fracs_ctrl)
-x_axis <- as.matrix(abs_mat_both_q$fracs_RNAse)
-cols <- c(1,3)
+#### Cluster C
 
-p_all <- ggplot(abs_mat_both_q[,cols], aes(x = x_axis, y=y_axis), color = cyl) +
-geom_point() +
-  geom_density_2d(alpha = 0.5)
-p0 <- p_all + labs(title = "All proteins")
-p0
+Cluster C was supposed to be a safe "true RBP" cluster. This was tested:
 
-p_left <- ggplot(abs_mat_both_q[left_shift,cols], aes(x = cluster1a, y=cluster1b))+ 
-  geom_point()+
-    geom_density_2d(alpha = 0.5)
-p1 <- p_left + labs(title = "Left shifters")
-p1
+```{r True/False RBP}
+# True RBP
+True_RBP_C <- Find_true_RBP(Cluster_C)
+length(True_RBP_C)
 
-p_no <- ggplot(abs_mat_both_q[no_shift,cols], aes(x = cluster2a, y=cluster2b)) +
-  geom_point()+
-  geom_density_2d(alpha = 0.5)
-p2 <- p_no + labs(title = "Non-shifters")
-p2
-
-p_right <- ggplot(abs_mat_both_q[right_shift,cols], aes(x = cluster3a, y=cluster3b)) +
-  geom_point()+
-  geom_density_2d(alpha = 0.5)
-p3 <- p_right + labs(title = "Right shifters")
-p3
+# False RBP
+False_RBP_C <- Find_false_RBP(Cluster_C)
+length(False_RBP_C)
 ```
 
-```{r heatmap correlation}
-heatmap(cor(HeLa_Ctrl_mean, HeLa_RNAse_mean))
+```{r RBD status}
+False_RBP_true_RBD_C <- Find_RBD(False_RBP_C)
+length(False_RBP_true_RBD_C)
 ```
 
-```{r RBP - new data}
-#über Github laden ist vermutlich keine gute Idee
-
-proteins.new.RBPs <- c(HS_RBPs$Entry_Name.x)
-proteins.new.non.RBPs <- c(HS_non_RBPs$Entry_Name.x)
-
-non.RBPs.same <- proteins.new.non.RBPs %in% rownames
-non <-  which(non.RBPs.same == TRUE)
-non.RBPs <- data.frame( mean_HeLa[non,],abs_max_both[non,], HS_non_RBPs[ non,])
-
-RBPs.same <- proteins.new.RBPs %in% rownames
-bp <-  which(RBPs.same == TRUE)
-RBPs <- data.frame(mean_HeLa[ bp,], abs_mat_both_q[bp,], HS_RBPs[ bp,])
+```{r}
+# >1 x-shift
+( length(True_RBP_C) / length(Cluster_C) ) * 100 # True positive quote
+( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
 ```
-
 
 ### Comparing Clustering Results
 
