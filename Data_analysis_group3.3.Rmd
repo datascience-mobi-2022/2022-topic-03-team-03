@@ -1571,53 +1571,39 @@ length(RBP_regression)
 length(non_RBP_regression)
 ```
 
-
-
-
-
 ```{r True/False RBP}
 # True RBP
-Match_RBP_1 <- HS_RBPs$Entry_Name.x %in% row_1
-True_RBP_pos_1 <- which(Match_RBP_1 == TRUE)
-True_RBP_names_1 <- HS_RBPs$Entry_Name.x[True_RBP_pos_1]
-length(True_RBP_names_1)
+True_RBP_reg <- Find_true_RBP(RBP_regression)
+length(True_RBP_reg)
 
 # False RBP
-Match_non_RBP_1 <- HS_non_RBPs$Entry_Name.x %in% row_1
-False_RBP_pos_1 <- which(Match_non_RBP_1 == TRUE)
-False_RBP_names_1 <- HS_non_RBPs$Entry_Name.x[False_RBP_pos_1]
-length(False_RBP_names_1)
+False_RBP_reg <- Find_false_RBP(RBP_regression)
+length(False_RBP_reg)
+
+# True non-RBP
+True_non_RBP_reg <- Find_true_non_RBP(non_RBP_regression)
+length(True_non_RBP_reg)
+
+# False non-RBP
+False_non_RBP_reg <- Find_false_non_RBP(non_RBP_regression)
+length(False_non_RBP_reg)
 ```
 
 Perhaps some of our proteins that were non-shifters (although we classified them as shifters) are RNA dependent nonetheless:
 
 ```{r RBD status}
-# Show RBD status 
-RBD_stat_non_RBP<- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
-row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
-RBD_stat_non_RBP_t_1 <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% False_RBP_names_1, ]
-RBD_stat_non_RBP_t_1
-
-# Quantify RBD status
-RBD_true_prot_df_1 <- RBD_stat_non_RBP_t_1[RBD_stat_non_RBP_t_1$RBD_status == "RBD", ]
-RBD_true_prot_names_1 <- rownames(RBD_true_prot_df_1)
-length(RBD_true_prot_names_1)
+False_RBP_true_RBD_reg <- Find_RBD(False_RBP_reg)
+length(False_RBP_true_RBD_reg)
 ```
 
-So 6 out of 120 proteins may at least be RNA-dependent although not RNA-binding.
+So some proteins may at least be RNA-dependent although not RNA-binding.
 
 ```{r}
-RBD_true_prot_names_1 == RBD_true_prot_names_2
+# Quantification
+( length(True_RBP_reg) / length(RBP_regression) ) * 100 # True positive quote
+( length(False_RBP_reg) / length(RBP_regression) ) * 100 # False positive quote
+
+( length(True_non_RBP_reg) / length(non_RBP_regression) ) * 100 # True negative quote
+( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
+
 ```
-
-Those are the same 6 as before. 
-
-
-### Sum up t-test results
-
-So choosing the cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 (or 114) false-positives out of 636 total. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 (or 85) false-positives out of 489 total.
-
-```{r}
-# >1 x-shift
-( length(True_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
-( length(False_RBP_names_1) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
