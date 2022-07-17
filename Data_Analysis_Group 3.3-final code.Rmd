@@ -510,6 +510,9 @@ rm(absolute_max_ctrl, fracs_ctrl, absolute_max_RNase, fracs_RNase,peaks_ctrl_25,
 # Statisitcal analysis
 
 ## F-test
+
+Next, our data was analyzed per protein per fraction ctrl vs. RNase. The calculated p-values can now be tested against the significance level of 0.01.
+
 ```{r Applying it to our data}
 
 HeLa_Ctrl_Norm <- Norm_HeLa %>% select(contains("Ctrl"))
@@ -530,43 +533,40 @@ for (i in 1:nrow(HeLa_Ctrl_Norm)) {
   }
 }
 
-# Testing if automation works
-k = 1 # Testing for row 1 with fraction k = 1
-HeLa_Ctrl_Norm[1, c(k, (25+k), (50+k))]
-HeLa_RNase_Norm[1, c(k, (25+k), (50+k))]
-F_test_p_values[1]
-var.test(as.numeric(HeLa_Ctrl_Norm[1, c(1, (25+k), (50+k))]), as.numeric(HeLa_RNase_Norm[1,c(1, (25+k), (50+k))]), alternative = "two.sided")
-
-# Creating p-values matrix
+# Create p-values matrix
 p_value_matrix <- matrix(data = F_test_p_values, byrow = TRUE, ncol = 25)
 
 col_names_p <-  sapply(c(1:25), function(x) {
     str_glue(x)
 })
-# Creating data frame
+
+# Create p-value data frame
 p_value_df <- data.frame(p_value_matrix)
 rownames(p_value_df) <-  row.names(HeLa_Ctrl_Norm)
 colnames(p_value_df) <-  col_names_p
 
-# Cecking ctrl maxima for p-value
+# Check ctrl maxima for p-value > 0.01
 F_max_ctrl <- c()
 for (i in 1:nrow(p_value_df)) {
   boolian <- p_value_df[i, abs_max_both$fracs_ctrl[i]] > 0.01
   F_max_ctrl <- c(F_max_ctrl, boolian)
 }
 
-# For RNase maxima
+# Check RNase maxima for p-value > 0.01
 F_max_RNase <- c()
 for (i in 1:nrow(p_value_df)) {
   boolian <- p_value_df[i, abs_max_both$fracs_RNase[i]] > 0.01
   F_max_RNase <- c(F_max_RNase, boolian)
 }
 list_F_max_RNase <- F_max_RNase
+```
 
-# Excluding proteins with FALSE or NaN/NA F-test results from further analysis
+Proteins failing the F-test were filtered out, either because of FALSE or NaN/NA F-test results.
+
+```{r}
 # Selecting FALSE proteins
-F_FALSE_ctrl <- abs_max_both[which(F_max_ctrl_1 == FALSE), ]
-F_FALSE_RNase <- abs_max_both[which(F_max_RNase_1 == FALSE), ]
+F_FALSE_ctrl <- abs_max_both[which(F_max_ctrl == FALSE), ]
+F_FALSE_RNase <- abs_max_both[which(F_max_RNase == FALSE), ]
 
 trash_F_FALSE <- unique(c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase)))
 length(trash_F_FALSE)
@@ -578,14 +578,14 @@ F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase_1)), ]
 trash_F_NA <- unique(c(row.names(F_NA_ctrl), row.names(F_NA_RNase)))
 length(trash_F_NA)
 
-# Removal of slected FALSE and Na proteins
+# Removal of selected FALSE and Na proteins
 abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_FALSE, ]
 abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_NA, ]
 
 # Number of proteins after F-Test
 dim(abs_max_both_F)
 
-# Creating dataframe only with F-Test positve proteins
+# Create dataframe with F-Test positive proteins only
 F_RNase_norm <- HeLa_RNase_Norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
 F_RNase_norm <- HeLa_RNase_Norm[!rownames(abs_max_both) %in% trash_F_NA, ]
 
@@ -680,32 +680,9 @@ abs_max_both_t_y0 <- abs_max_both_t[!rownames(abs_max_both_t) %in% trash_t_y0, ]
 
 nrow(abs_max_both_t_y0)
 ```
-## Plotting Shifters
-```{r plotting shifters}
-# Assign numbers for shift behavior
-i <- c(1:7081)
-ID <- c()
-for(x in i){
-ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1
-} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2
-} else {abs_mat_both_q$ID[x] =3}
-}
-# Plot all proteins
-control_fraction <- as.matrix(abs_mat_both_q$fracs_ctrl)
-RNase_fraction <- as.matrix(abs_mat_both_q$fracs_RNase)
-cols <- c(1,3)
 
-colors <- c("right_shifters" = "green", "left_shifters" = "red", "non_shifters" = "black")
-
-p_all <- ggplot(abs_mat_both_q[,cols], aes(x = RNase_fraction, y=control_fraction, color = ID, show.legend = TRUE)) +
-geom_point(color = ID) +
-  geom_density_2d(alpha = 0.5)+
-  scale_colour_manual(values = colors)
-   
-p0 <- p_all + labs(title = "All proteins")
-p0
-```
 ## Methods for Identification of potential RBPs
+
 For the next analysis, we further filtered out significant y-shifters that showed no significant x-shift (shift > 1)
 ```{r x shift > 1}
 # At least 1 or more fractions x shift
@@ -714,6 +691,15 @@ abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_
 abs_max_both_x_y_1
 nrow(abs_max_both_x_y_1)
 
+# All proteins that entered analysis
+All_potential_candidates <- row.names(HeLa_Ctrl_Norm)
+
+# Results t-test
+RBP_t <- c(rownames(abs_max_both_x_y_1)) # Proteins passing t-test = RBP
+Non_RBP_t <- All_potential_candidates[!All_potential_candidates %in% RBP_t] # Proteins failing t-test = non-RBP
+```
+
+```{r}
 # Function to identify True RBP
 Find_true_RBP <- function(potential_RBP) {
   Match_RBP <- HS_RBPs$Entry_Name.x %in% potential_RBP    # Compare potential RBP with RBP from other publications
@@ -749,7 +735,7 @@ Find_false_non_RBP <- function(potential_non_RBP) {
 Find_RBD <- function(potential_RBD) {
   RBD_stat <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% potential_RBD, ]
   RBD_true_prot_df <- RBD_stat[RBD_stat$RBD_status == "RBD", ]
-  RBD_true_prot_names <- rownames(RBD_true_prot_df_2)
+  RBD_true_prot_names <- rownames(RBD_true_prot_df)
   return(RBD_true_prot_names)
 }
 ```
@@ -757,31 +743,31 @@ Find_RBD <- function(potential_RBD) {
 # Sum up results
 ```{r True/False RBP}
 # True RBP
-True_RBP_t1 <- Find_true_RBP(row_1)
-length(True_RBP_t1)
+True_RBP_t <- Find_true_RBP(RBP_t)
+length(True_RBP_t)
 
 # False RBP
-False_RBP_t1 <- Find_false_RBP(row_1)
-length(False_RBP_t1)
+False_RBP_t <- Find_false_RBP(RBP_t)
+length(False_RBP_t)
 
 # True non-RBP
-True_non_RBP_t1 <- Find_true_non_RBP(Non_RBP_t1)
-length(True_non_RBP_t1)
+True_non_RBP_t <- Find_true_non_RBP(Non_RBP_t)
+length(True_non_RBP_t)
 
 # False non-RBP
-False_non_RBP_t1 <- Find_false_non_RBP(Non_RBP_t1)
-length(False_non_RBP_t1)
+False_non_RBP_t <- Find_false_non_RBP(Non_RBP_t)
+length(False_non_RBP_t)
 
 # Show RBD status of all non-RBP
 RBD_stat_non_RBP <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
 row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
 
 # Specifity and Sensitivity parameters
-( length(True_RBP_t1) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
-( length(False_RBP_t1) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
+( length(True_RBP_t) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
+( length(False_RBP_t) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
 
-( length(True_non_RBP_t1) / length(Non_RBP_t1) ) * 100 # True negative quote
-( length(False_non_RBP_t1) / length(Non_RBP_t1) ) * 100 # False negative quote
+( length(True_non_RBP_t) / length(Non_RBP_t) ) * 100 # True negative quote
+( length(False_non_RBP_t) / length(Non_RBP_t) ) * 100 # False negative quote
 
 rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
 
@@ -795,13 +781,13 @@ quoti <- function(data1, data2){
   
 Quotienten = c()
   for (k in 1:7081) {
-    dat1 = data1[k,]
+    dat = data1[k,]
     dat2 = data2[k,]
     Quotient = c()
     
       for (i in 1:25) {
         if (dat2[i] == 0)  { quotient <- 0 }
-        else quotient <- dat1[i]/dat2[i]
+        else quotient <- dat[i]/dat2[i]
         Quotient = c(Quotient, quotient)
       }
       Quotienten = rbind(Quotienten, Quotient)
@@ -815,23 +801,15 @@ Quotienten = c()
 
 quotienten_HeLa_RNase <- quoti(HeLa_RNase_mean, HeLa_Ctrl_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNase), ncol=25, byrow=FALSE)
-q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+
 
 # Variables derived from Quotient
 maxi_RNase <- apply(q_HeLa_mat,1, max)
-mini_RNase <- apply(q_HeLa_mat, 1, min)
 mean <- rowMeans(q_HeLa_mat)
 x_abs <- abs(x_shifts)
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+abs_mat_both_q <- cbind(abs_max_both, maxi_RNase, x_abs, mean,q_mat_sums)
 
- mini2 <- c()
- for (i in 1:7081) {
-  if (mini_RNase[i] == 0){ mini2[i] <- 0
-  } else {mini2[i] <- 1/mini_RNase[i]}
- }
-
-abs_mat_both_q <- cbind(abs_max_both, maxi_RNase, mini_RNase, mean,q_mat_sums,mini2)
-dif <- abs_mat_both_q$maxi_RNase - abs_mat_both_q$mini_RNase
-abs_mat_both_q <- cbind(abs_mat_both_q, dif,x_abs)
 
 # Creating Cluster data frame
 cluster_data <- data.frame(maxi_RNase, q_mat_sums)
@@ -885,8 +863,6 @@ length(False_RBP_C)
 False_RBP_true_RBD_C <- Find_RBD(False_RBP_C)
 length(False_RBP_true_RBD_C)
 
-False_RBP_true_RBD_C == False_RBP_true_RBD_t1
-
 # Senstivity and specifity markers
 ( length(True_RBP_C) / length(Cluster_C) ) * 100 # True positive quote
 ( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
@@ -905,8 +881,6 @@ length(False_RBP_B)
 #RBD status
 False_RBP_true_RBD_B <- Find_RBD(False_RBP_B)
 length(False_RBP_true_RBD_B)
-
-False_RBP_true_RBD_B == False_RBP_true_RBD_t1
 
 #Senstivity and specifity markers
 ( length(True_RBP_B) / length(Cluster_B) ) * 100 # True positive quote
@@ -932,10 +906,37 @@ length(False_non_RBP_A)
 # Comparing potential "true RBPs" identified by statistical analysis and Clustering  
 True_RBP_BC <- c(True_RBP_B, True_RBP_C)
 length(True_RBP_BC)
-length(True_RBP_t1)
+length(True_RBP_t)
 
-table(True_RBP_BC %in% True_RBP_t1)
+table(True_RBP_BC %in% True_RBP_t)
 ```
+
+## Plotting Shifters
+```{r plotting shifters}
+# Assign numbers for shift behavior
+i <- c(1:7081)
+ID <- c()
+for(x in i){
+ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1
+} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2
+} else {abs_mat_both_q$ID[x] =3}
+}
+# Plot all proteins
+control_fraction <- as.matrix(abs_mat_both_q$fracs_ctrl)
+RNase_fraction <- as.matrix(abs_mat_both_q$fracs_RNase)
+cols <- c(1,3)
+
+colors <- c("right_shifters" = "green", "left_shifters" = "red", "non_shifters" = "black")
+
+p_all <- ggplot(abs_mat_both_q[,cols], aes(x = RNase_fraction, y=control_fraction, color = ID, show.legend = TRUE)) +
+geom_point(color = ID) +
+  geom_density_2d(alpha = 0.5)+
+  scale_colour_manual(values = colors)
+   
+p0 <- p_all + labs(title = "All proteins")
+p0
+```
+
 #Linear regression 
 ## Train the model
 ```{r linear regression}
@@ -944,16 +945,17 @@ proteins <- c(1:7081)
 samples.numbers.training <- sample(proteins,5000)
 samples.numbers.test <- proteins[-c(samples.numbers.training)]
 
-random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,11,12,13)]
-colnames(random.samples.training) <- c("x","max","mea","sum","min")
+random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,12)]
+colnames(random.samples.training) <- c("x","max","sum")
 
-random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,11,12,13)]
-colnames(random.samples.test) <- c("x","max","mea","sum","min")
+random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,12)]
+colnames(random.samples.test) <- c("x","max","sum")
 
-modell <- lm(x ~ sum + mea  + max  , data = random.samples.training )
+modell <- lm(x ~ sum + max  , data = random.samples.training )
 summary(modell)
 
-plot(x_abs, maxi_RNase, col ="blue", abline(modell))
+plot(random.samples.training$x,random.samples.training$max, col ="blue", abline(lm(x ~ max, data = random.samples.training )), ylim = c(0,15), xlab = "x-shift", ylab = " Maximum of quotients", main = "Regression value Maxima")
+plot(random.samples.training$x,random.samples.training$sum, col ="blue", abline(lm(x ~ sum, data = random.samples.training )), ylim = c(0,15), xlab = "x-shift", ylab = "Sums of quotients", main = "Regression value Sum")
 
 ``` 
 ## Test the model
