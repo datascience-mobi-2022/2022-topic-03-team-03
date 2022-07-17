@@ -19,15 +19,16 @@ library(dplyr)
 ```
 
 
-### Raw data
-```{r  Load the Data}
-#load the data
+### Load Raw data
+
+```{r  Load Experiment Data}
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
 ```
 
-```{r}
-#CProteins
-proteinnames <- c(rownames(Raw_data)) # Protein names
+```{r Load extra data}
+HS_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/1_HS_RBPs.csv", header=TRUE, sep = ",")
+
+HS_non_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/2_HS_non_RBPs.csv", header=TRUE, sep = ",")
 ```
 
 ###Normalization
@@ -1069,9 +1070,6 @@ We were curious if on the other hand side the cut-off (shift > 2) resulted in be
 ### x Shift > 2 results
 
 ```{r True/False RBP}
-load("/Users/Mirja/Desktop/HS_RBPs.RData")
-load("/Users/Mirja/Desktop/HS_non_RBPs.RData")
-
 # True RBP
 Match_RBP_2 <- HS_RBPs$Entry_Name.x %in% row_2
 True_RBP_pos_2 <- which(Match_RBP_2 == TRUE)
@@ -1124,7 +1122,7 @@ Perhaps some of our proteins that were non-shifters (although we classified them
 # Show RBD status 
 RBD_stat_non_RBP<- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
 row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
-RBD_stat_non_RBP_t_1 <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP_1) %in% False_RBP_names_1, ]
+RBD_stat_non_RBP_t_1 <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% False_RBP_names_1, ]
 RBD_stat_non_RBP_t_1
 
 # Quantify RBD status
@@ -1169,15 +1167,12 @@ In both cases, about 80% of identified RBP were correct when compared to other p
 ## Clustering
 
 ```{r k means clustering packages}
-#loading the clustering packages
-library(corrplot)
+library(corrplot)# Clustering
 library(cluster) 
 library(factoextra)
 ```
 
 ```{r quotient function}
-#Creating a function that works with the means of the fraction triplicate values. Here each RNase value of each protein and fraction is divided by the same protein and fraction control value. The quotient values are then saved in a new dataframe.
-
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -1201,7 +1196,7 @@ Quotienten = c()
 
 
 ```{r selecting highest quotient sum values}
-#Here we used the quotient function on our control and RNase mean values and saved the generated quotient values in a new matrix: q_HeLa_mat. Then we calculated the quotient sum value of each protein.
+#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
 
 quotienten_HeLa_RNAse <- quoti(HeLa_RNAse_mean, HeLa_Ctrl_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNAse), ncol=25, byrow=FALSE)
@@ -1210,7 +1205,6 @@ q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
 
 
 ```{r variables derived from quotient}
-#Here we calculated different variables from our quotient matrix, to potentially use them for our clustering and regression analysis.
 maxi_RNAse <- apply(q_HeLa_mat,1, max)
 mini_RNAse <- apply(q_HeLa_mat, 1, min)
 mean <- rowMeans(q_HeLa_mat)
@@ -1228,36 +1222,29 @@ abs_mat_both_q <- cbind(abs_mat_both_q, dif,x_abs)
 ```
 
 ```{r cluster data.frame}
-#Here we created a dataframe containing the two variables that generated the cluster with the best within cluster square distance.
-cluster_data <- data.frame(maxi_RNAse, q_mat_sums)
+cluster_data <- data.frame(maxi_RNAse, mini2)
 ```
 
 
 ```{r optimal number of clusters}
-#We loaded the neccessary package and then used a function from that package that applies the silhouette method to our variables. This method gives us an optimal number of clusters of two.
 library(factoextra)
 fviz_nbclust(cluster_data, kmeans, method='silhouette')
 ```
 
 ```{r cluster plot}
-#We are using kmeans clustering to cluster our data into three clusters. Although the silhouette plot gave us two as the optimal number of clusters, we found that three worked better and gave us better results. We then also plottet our clustered data.
-
-kmeans_fancy <- kmeans(scale(cluster_data), 3, nstart = 25)
+kmeans_fancy <- kmeans(scale(cluster_data), 2, nstart = 25)
 kmeans_fancy
 # plot the clusters
-
-kmeans_fancy
 fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
 
+
+shiftsafe <- proteinnames[which(kmeans_fancy$cluster==1)]
 ```
 
 ```{r clusters silhouette plot}
-#Here we did a silhouette plot with our clustered data, so we can see if our number of clusters is well chosen and if the data can be assigned well.
-
 sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
 fviz_silhouette(sil)
 ```
-
 ```{r plotting library}
 library(ggplot2)
 library(ggpubr)
@@ -1267,7 +1254,6 @@ library(ggplot2)
 ```
 
 ```{r plotting shifters}
-#Here we plottet our previously defined left, right and non shifters using the ggplot2 package. This is for visualization purposes.
 cluster1a <- as.matrix(abs_mat_both_q$fracs_ctrl[left_shift])
 cluster1b <- as.matrix(abs_mat_both_q$fracs_RNAse[left_shift])
 cluster2a <- as.matrix(abs_mat_both_q$fracs_ctrl[no_shift])
@@ -1310,8 +1296,6 @@ heatmap(cor(HeLa_Ctrl_mean, HeLa_RNAse_mean))
 
 ```{r RBP - new data}
 #über Github laden ist vermutlich keine gute Idee
-load("C:/Users/Mirja/Desktop/HS_RBPs.RData")
-load("C:/Users/Mirja/Desktop/HS_non_RBPs.RData")
 
 proteins.new.RBPs <- c(HS_RBPs$Entry_Name.x)
 proteins.new.non.RBPs <- c(HS_non_RBPs$Entry_Name.x)
@@ -1410,6 +1394,12 @@ plot (abs_max_both)
 cor(sums20_value, abs_max_both$y_shifts2)
 ```
 
+
+```{r}
+#Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20 (around 900 proteins).
+likely_shifters <- proteinnames[sums20_index]
+likely_shifters
+```
 
 ```{r}
 modell <- lm(x_shifts ~ maxi_RNAse)

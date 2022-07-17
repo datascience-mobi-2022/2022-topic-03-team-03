@@ -3,8 +3,8 @@ title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cell
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 df_print: paged
 ---
 ```{r setup, include=FALSE}
@@ -19,8 +19,8 @@ RBPs can be categorized into “true” RBPs (e.g. DICER, NPM3), those RNA-bindi
 
 <center>
 ```{r, echo = FALSE, fig.width=6, fig.height=4}
-#library(knitr)
-#include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure1.png")
+library(knitr)
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure1.png")
 ```
 </center>
 **Figure 1**. Categorization of RNA-binding proteins: RBPs can be categorized into “true” RBPs, those RNA-binding proteins which directly bind to RNA, “RBP interacting proteins” which merely interact with “true” RBPs. “True” RBPs are subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function and “partially RNA dependent”, those that only require RNA for certain functions or transport. DICER = Endoribonuclease Dicer; NPM3 = Nucleoplasmin 3; RBBP7 = RNA-binding protein binding protein 7.
@@ -148,8 +148,8 @@ Through normalization the arbitrary values were converted into relative percenta
 
 <center>
 ```{r, echo = FALSE, fig.width=4, fig.height=2}
-#library(knitr)
-#include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
+library(knitr)
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 ```
 </center>
 **Figure 2: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
