@@ -12,9 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ****
-**Abstract** The Protein-RNA interactome and the analysis of it is a highly dynamic field of research. Several approaches have been published and numerous RNA-binding and RNA-interacting proteins have been identified. Using established bioinformatic and statistical methods such as t-test, k-means and linear regression modelling we propose a simple and swift way to screen the RNA-Protein interactome data  for RNA-binding protiens obtained by sucrose gradient ultra-centrifugation method. Efficiency of this method is proven by identifying MCM3 as a potential RBP in a data set of in interphase synchronized HeLa cells as well as confirming the detection of other previously identified RPBs.
+**Abstract** Unraveling the protein-RNA interactome poses a highly dynamic field of research. Several approaches were undertaken and numerous RNA-binding and RNA-interacting proteins have been identified. Harnessing bioinformatics and statistical analysis, we propose a simple and swift way to screen RNA-protein interactome data for RNA-binding proteins obtained by sucrose gradient ultra-centrifugation. We included t-tests, k-means and linear regression modelling in our analysis. Efficiency of these methods is proven through the successful identification of MCM3 as a potential RBP. This was possible, because our unique data set consists of HeLa cells synchronized in the interphase of the cell cycle. Furthermore, we confirmed the detection of other previously identified RPBs.
 
-***
+****
 
 # Introduction
 
