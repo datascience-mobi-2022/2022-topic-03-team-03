@@ -24,15 +24,22 @@ library(ggplot2)
 ```
 
 ## Load Raw Data
+
+First, the experimental data is added.
 ```{r  Load Experiment Data}
 Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+```
 
+Furthermore, we added data on previously found RBPs and non-RBPs.
+```{r Load extra data for comparison of results}
 HS_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/1_HS_RBPs.csv", header=TRUE, sep = ",")
 
 HS_non_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/2_HS_non_RBPs.csv", header=TRUE, sep = ",")
 ```
 
-## Reorganizing the Data
+## Reorganize Data
+
+We split the data into the two samples: RNase treated and control group.
 ```{r Split Ctrl and RNase}
 # Control
 HeLa_Ctrl = Raw_data %>% select(contains("Ctrl")) 
@@ -42,6 +49,8 @@ HeLa_RNase = Raw_data %>% select(contains("RNA"))
 ```
 
 ## Remove Rows of Zero
+
+For some proteins no data was found (rows of zeroes). These proteins are excluded from the analysis.
 ```{r Rows of zero}
 # Find rows of zeroes
 trash <- c(which(rowMeans(HeLa_Ctrl) == 0),which(rowMeans(HeLa_RNase) == 0))
@@ -56,16 +65,14 @@ HeLa_cleaned <- Raw_data[- trash, ]
 HeLa_Ctrl = HeLa_cleaned %>% select(contains("Ctrl")) 
 # RNase
 HeLa_RNase = HeLa_cleaned %>% select(contains("RNA"))
-
-rm(Raw_data)
 ```
 
 # Normalization
 
 ## Normalize columns
-```{r Normalize columns}
-# Create functions for fraction-wise normalization
 
+For every fraction and every protein, we adjusted the total value of all three reps up to the same value. This step makes the individually obtained repeats of the experiment more comparable. 
+```{r Normalize columns functions}
 # 1. Create function that calculates the sum of the colums for each fraction for all three replicates
 Spalten_Norm <- function(x){
   ColSumme = colSums(x)
@@ -103,20 +110,26 @@ Spalten_Norm_2 <- function(x, ColSumme, maxcolsums){
   }
   return(Quotient)
 }
+```
 
+Then, we applied our set of functions.
+```{r Normalize columns}
 # Apply created functions on our data set to calculate the normalized protein values per fraction and replicate
 ColSumme<- Spalten_Norm(HeLa_cleaned)
 maxcolsums <- Spalten_Norm_1(HeLa_cleaned)
 Quotient <- Spalten_Norm_2(HeLa_cleaned, ColSumme, maxcolsums)
 Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
 
+# Remove excess objects
 rm(Spalten_Norm, Spalten_Norm_1, Spalten_Norm_2)
 rm(ColSumme, maxcolsums, Quotient)
 ```
 
 ## Normalize rows
+
+Next, we brought the arbitrary values to a common percentage scale. For that purpose, we normalized the rows (by protein). The resulting values represent how much content of the total protein content was present in each fraction.
 ```{r Normalize rows}
-# Sort data set to select replicates 
+# Sort data set to select individual replicates 
 # Control
 HeLa_Ctrl_colnorm = Hela_Col_Norm %>% select(contains("Ctrl")) 
 HeLa_Ctrl1 = HeLa_Ctrl_colnorm %>% select(contains("Rep1"))
@@ -148,9 +161,6 @@ Norm_HeLa_RNase2 <- rowPercent(HeLa_RNase2)
 Norm_HeLa_RNase3 <- rowPercent(HeLa_RNase3)
 
 Norm_HeLa <- cbind(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_RNase1, Norm_HeLa_RNase2, Norm_HeLa_RNase3)
-
-rm(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_RNase1, Norm_HeLa_RNase2, Norm_HeLa_RNase3)
-rm(rowPercent)
 ```
 
 ## Create separate dataframes
