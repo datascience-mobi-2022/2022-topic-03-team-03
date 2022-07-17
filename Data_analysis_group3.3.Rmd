@@ -1144,9 +1144,9 @@ row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
 
 # Function to show RBDs
 Find_RBD <- function(potential_RBD) {
-  RBD_stat <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% potential_RBD, ]
-  RBD_true_prot_df <- RBD_stat[RBD_stat$RBD_status == "RBD", ]
-  RBD_true_prot_names <- rownames(RBD_true_prot_df_2)
+  RBD_stat <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% potential_RBD, ]     # Show only proteins from entered vector
+  RBD_true_prot_df <- RBD_stat[RBD_stat$RBD_status == "RBD", ]                      # Show those with RBD status
+  RBD_true_prot_names <- rownames(RBD_true_prot_df)                                 # Give names of RBD positives
   return(RBD_true_prot_names)
 }
 ```
@@ -1345,31 +1345,80 @@ length(False_RBP_C)
 ```{r RBD status}
 False_RBP_true_RBD_C <- Find_RBD(False_RBP_C)
 length(False_RBP_true_RBD_C)
+
+False_RBP_true_RBD_C == False_RBP_true_RBD_t1
 ```
 
+The none of the RBD positive proteins from the t-test were identified again via clustering!
+
 ```{r}
-# >1 x-shift
 ( length(True_RBP_C) / length(Cluster_C) ) * 100 # True positive quote
 ( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
 ```
 
-#### Cluster B
+Approximately 80% of identified RBP in Cluster C were true RBP. 
 
-false und true neg/pos
+#### Cluster B  
 
-#### Cluster C
+We anticipate Cluster B to suggest more RBP, although with reduced precision.
+```{r True/False RBP}
+# True RBP
+True_RBP_B <- Find_true_RBP(Cluster_B)
+length(True_RBP_B)
 
-false und true neg
+# False RBP
+False_RBP_B <- Find_false_RBP(Cluster_B)
+length(False_RBP_B)
+```
+
+```{r RBD status}
+False_RBP_true_RBD_B <- Find_RBD(False_RBP_B)
+length(False_RBP_true_RBD_B)
+
+False_RBP_true_RBD_B == False_RBP_true_RBD_t1
+```
+The none of the RBD positive proteins from the t-test were identified again via clustering!
+
+```{r}
+( length(True_RBP_B) / length(Cluster_B) ) * 100 # True positive quote
+( length(False_RBP_B) / length(Cluster_B) ) * 100 # False positive quote
+```
 
 
+#### Cluster A
 
+We anticipate Cluster A to suggest mostly non-RBP.
 
+```{r True/False RBP}
+# True non-RBP
+True_non_RBP_A <- Find_true_non_RBP(Cluster_A)
+length(True_non_RBP_A)
 
+# False non-RBP
+False_non_RBP_A <- Find_false_non_RBP(Cluster_A)
+length(False_non_RBP_A)
+```
 
+```{r}
+( length(True_non_RBP_A) / length(Cluster_A) ) * 100 # True positive quote
+( length(False_non_RBP_A) / length(Cluster_A) ) * 100 # False positive quote
+```
 
+#### Clustering vs Statistical Tests
 
+Since the clustering and t-test show a very similar success rate, we were curious, if the identified RBPs were the same as well!
 
+```{r}
+True_RBP_BC <- c(True_RBP_B, True_RBP_C)
+length(True_RBP_BC)
+length(True_RBP_t1)
 
+table(True_RBP_BC %in% True_RBP_t1)
+```
+
+It turns out, that most 229 out of 353 proteins in Cluster B+C were not present in identified proteins via t-test etc. 
+
+#### Cluster
 
 ```{r plotting library}
 library(ggplot2)
