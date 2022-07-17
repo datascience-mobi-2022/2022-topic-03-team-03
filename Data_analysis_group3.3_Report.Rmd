@@ -2,9 +2,7 @@
 title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells"
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "`r Sys.Date()`"
-output:
-  html_document: default
-  pdf_document: default
+output: html
 df_print: paged
 ---
 ```{r setup, include=FALSE}
@@ -124,17 +122,24 @@ False-positive and false-negative proteins were determined by cross-referencing 
 Potential RNA-binding dependent (RBD) protein candidates were identified by cross-referencing false-positive proteins with the data set provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). 
 
 ## k-means clustering
-Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. For clustering the follwing variables were selected:
+Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. First we defined a function that applies the following equation to all proteins
 
--quotient function: RNAse-value/ctrl-value (high values if it's a shifter)
--calculated rowSums of each proteins quotient (25 each)
--cluster variables: q_mat_sums (rowsum) and maximum quotient value
--best within cluster square distance with 3 clusters (although silhouette method said 2)
-- insert cluster diagramm (around (0,0) non shifters -> small rowsum and small maximum, on the top right -> shifters as they have big maximum and rowsum) and in cluster between those 2 maybe proteins that don't shift as clearly as cluster 3.
+$$Quotient =  \frac{mean\_RNAse(Protein)}{mean\_ctrl(Protein)}$$
+The resulting values were stored in a matrix labeld *q_Hela_mat*. *mean_RNAse(Protein)* describes the mean value for each protein and fraction in RNAse condition. *mena_ctrl(Protein)* describes the mean value for each protein and fraction in ctrl condition  Then we selected the maximum value (*maxi_RNAse*) for each protein and also calculated the overall quotient sum (*q_mat_sums*) for each protein and condition. These values were stored in the data frame *abs_mat_both_q*
 
-## Comparing clustering results
+Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to determine the optimal cluster number. With the built-in R function *k-means()* we clustered our proteins using the previous determined variables *q_mat_sums* and *maxi_RNAse* into three clusters.
+
+**CLuster A**: Non-shifter
+
+**Cluster B**: Potential shifter
+
+**Cluster C** Sure-shifter
+
+To check the quality of our clustering we created different silhouette plot using *factoextra*. To further analyse the results of our clustering we applied the functions created for cross-referencing our x-shift results. 
 ## Linear regression analysis
+To train our regression model we selected 5000 random proteins from our raw data set. For these proteins we selected the values *maxi_RNAse* and *q_mat_sums* from the data frame *abs_mat_both_q*. We created a function to predict the x-shift based on those values. We plotted the maximum of quotients against the x-shifts. 
 
+To test our regression model the remaining 2081 proteins were treated 
 \newpage
 # Results
 ## Clean-Up and normalization
@@ -155,7 +160,7 @@ include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 **Figure 2: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
 
 ## Calculation of mean, sd and Shapiro-Wilk Test
-With the proposed 3$\sigma$ rule we were able to detect not a single protein in which at least one replicate was not congruent with a normal distribution. To verify this result Shapiro-Wilk testwas conducted. Test concluded that all values obtained for each protein were normally distributed for both conditions. Therefore they were suitable for statistical analysis with F-Test and two-tailed unpaired t-test.
+With the proposed 3$\sigma$ rule we were able to detect not a single protein in which at least one replicate was not congruent with a normal distribution. To verify this result Shapiro-Wilk test was conducted. Test concluded that all values obtained for each protein were normally distributed for both conditions. Therefore they were suitable for statistical analysis with F-Test and two-tailed unpaired t-test.
 
 ## Statisitcal analysis and Identification of potential RBPs by analysis of x- and y-shift
 The obtained x- and y-shift as well as the fraction of the global maxima, shift direction and y-shift values were stored in a data frame labeled *abs_max_both*.
@@ -166,7 +171,7 @@ Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fracti
 
 With the defined cut-off parameters significant y-shift and x-shift > 1 or significant y-shift and x-shift > 2 these potential shifters were further analysed. 
 
-The cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 false-positives out of 636 total. Of the 120 false-positives six were identified with cross-recferencing as RBD proteins. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 false-positives out of 489 total. Of the 91 false-positives six were identified with cross-referencing as RBD proteins. The six identified proteins were identical for both cut-off parameters (see Tab.1, data frames *RBD_true_port_df1* and *RBD_true_prot_df2*).
+The cut-off >1 for the x-shift allowed us to identify 513 true RBP with 120 false-positives out of 636 total. Of the 120 false-positives six were identified with cross-referencing as RBD proteins. In comparison, the cut-off >2 for the x-shift allowed us to identify 398 true RBP with 91 false-positives out of 489 total. Of the 91 false-positives six were identified with cross-referencing as RBD proteins. The six identified proteins were identical for both cut-off parameters (see Tab.1, data frames *RBD_true_port_df1* and *RBD_true_prot_df2*).
 
 In both cases, about 80% of identified RBP were correct when cross-referenced. Since the >1 x-shift cut-off did not worsen this quote but instead delivered more results overall (636 compared to 489), >1 x-shift cut-off is used for our analysis.
 
@@ -183,4 +188,4 @@ RBD| 6 | 6|
 ## K-Means Clustering and Regression model
 
 # Discussion
-Lorem ipsum
+Lorem ipsum set dolor
