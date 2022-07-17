@@ -1,0 +1,1230 @@
+---
+title: "Code Topic 03 Team 03"
+author: "Bolz, C.,Bonsen, M.,Pott, M., Simon, M."
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r Setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Clean-Up
+
+## Load Libraries
+```{r Load libraries}
+library(tidyverse)
+library(dplyr)
+library(corrplot)
+library(cluster) 
+library(factoextra)
+library(ggpubr)
+library(readxl)
+library(FactoMineR)
+library(ggplot2)
+```
+
+## Load Raw Data
+
+First, the experimental data is added.
+```{r  Load Experiment Data}
+Raw_data <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/3a0f2d9583b56a1cd22150b399d61352d6f7b0e1/RDeeP_HeLa_Interphase.csv", header=TRUE, row.names=1, sep = ";")
+```
+
+Furthermore, we added data on previously found RBPs and non-RBPs.
+```{r Load extra data for comparison of results}
+HS_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/1_HS_RBPs.csv", header=TRUE, sep = ",")
+
+HS_non_RBPs <- read.csv("https://raw.githubusercontent.com/datascience-mobi-2022/2022-topic-03-team-03/main/2_HS_non_RBPs.csv", header=TRUE, sep = ",")
+```
+
+## Reorganize Data
+
+We split the data into the two samples: RNase treated and control group.
+```{r Split Ctrl and RNase}
+# Control
+HeLa_Ctrl = Raw_data %>% select(contains("Ctrl")) 
+
+# RNase
+HeLa_RNase = Raw_data %>% select(contains("RNA"))
+```
+
+## Remove Rows of Zero
+
+For some proteins no data was found (rows of zeroes). These proteins are excluded from the analysis.
+```{r Rows of zero}
+# Find rows of zeroes
+trash <- c(which(rowMeans(HeLa_Ctrl) == 0),which(rowMeans(HeLa_RNase) == 0))
+trash <- trash[-5]
+
+# Remove failed proteins
+HeLa_cleaned <- Raw_data[- trash, ]
+
+# Separate data sets
+
+# Control
+HeLa_Ctrl = HeLa_cleaned %>% select(contains("Ctrl")) 
+# RNase
+HeLa_RNase = HeLa_cleaned %>% select(contains("RNA"))
+```
+
+# Normalization
+
+## Normalize columns
+
+For every fraction and every protein, we adjusted the total value of all three reps up to the same value. This step makes the individually obtained repeats of the experiment more comparable. 
+```{r Normalize columns functions}
+# 1. Create function that calculates the sum of the colums for each fraction for all three replicates
+Spalten_Norm <- function(x){
+  ColSumme = colSums(x)
+  maxcolsums = c()
+  k = 3
+  for (i in 1:(ncol(x)/3)) {
+    a = ColSumme[[k*i]]
+    b = ColSumme[[k*i-1]]
+    c = ColSumme[[k*i-2]]
+    maxcolsums = c(maxcolsums, max(a,b,c))
+  }
+  return(ColSumme)
+}
+# 2. Create function that selects the maxcolsum for each fraction out of all three replicates
+Spalten_Norm_1 <- function(x){
+  ColSumme = colSums(x)
+  maxcolsums = c()
+  k = 3
+  for (i in 1:(ncol(x)/3)) {
+    a = ColSumme[[k*i]]
+    b = ColSumme[[k*i-1]]
+    c = ColSumme[[k*i-2]]
+    maxcolsums = c(maxcolsums, max(a,b,c))
+  }
+  return(maxcolsums)
+}
+# 3. Create function that calculates the quotient of maxcolsum and colsum
+Spalten_Norm_2 <- function(x, ColSumme, maxcolsums){
+  Quotient = c()
+  k = 3
+  for (i in 1:(ncol(x)/3)){
+    Quotient = c(Quotient, maxcolsums[i]/ColSumme[[k*i-2]])
+    Quotient = c(Quotient, maxcolsums[i]/ColSumme[[k*i-1]])
+    Quotient = c(Quotient, maxcolsums[i]/ColSumme[[k*i]])
+  }
+  return(Quotient)
+}
+```
+
+Then, we applied our set of functions.
+```{r Normalize columns}
+# Apply created functions on our data set to calculate the normalized protein values per fraction and replicate
+ColSumme<- Spalten_Norm(HeLa_cleaned)
+maxcolsums <- Spalten_Norm_1(HeLa_cleaned)
+Quotient <- Spalten_Norm_2(HeLa_cleaned, ColSumme, maxcolsums)
+Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
+
+# Remove excess objects
+rm(ColSumme, maxcolsums, Quotient)
+```
+
+## Normalize rows
+
+Next, we brought the arbitrary values to a common percentage scale. For that purpose, we normalized the rows (by protein). The resulting values represent how much content of the total protein content was present in each fraction.
+```{r Normalize rows}
+# Sort data set to select individual replicates 
+# Control
+HeLa_Ctrl_colnorm = Hela_Col_Norm %>% select(contains("Ctrl")) 
+HeLa_Ctrl1 = HeLa_Ctrl_colnorm %>% select(contains("Rep1"))
+HeLa_Ctrl2 = HeLa_Ctrl_colnorm %>% select(contains("Rep2"))
+HeLa_Ctrl3 = HeLa_Ctrl_colnorm %>% select(contains("Rep3"))
+# RNase
+HeLa_RNase_colnorm = Hela_Col_Norm %>% select(contains("RNA"))
+HeLa_RNase1 = HeLa_RNase_colnorm %>% select(contains("Rep1"))
+HeLa_RNase2 = HeLa_RNase_colnorm %>% select(contains("Rep2"))
+HeLa_RNase3 = HeLa_RNase_colnorm %>% select(contains("Rep3"))
+
+# Create function that scales the protein amount in each replicate per fraction to 100
+ rowPercent <- function(dataframe){
+     dt <- dataframe
+     lastrow <- dim(dataframe)[1]
+     for(i in 1:lastrow){
+         RowSum <- rowSums (dataframe[i,])
+    if (RowSum == 0) {dt[i,] <- 0}
+    else dt[i,] <- (dataframe[i,]/RowSum)*100    } 
+     return(dt)}
+ 
+# Apply created function
+Norm_HeLa_Ctrl1 <- rowPercent(HeLa_Ctrl1)
+Norm_HeLa_Ctrl2 <- rowPercent(HeLa_Ctrl2)
+Norm_HeLa_Ctrl3 <- rowPercent(HeLa_Ctrl3)
+
+Norm_HeLa_RNase1 <- rowPercent(HeLa_RNase1)
+Norm_HeLa_RNase2 <- rowPercent(HeLa_RNase2)
+Norm_HeLa_RNase3 <- rowPercent(HeLa_RNase3)
+
+Norm_HeLa <- cbind(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_RNase1, Norm_HeLa_RNase2, Norm_HeLa_RNase3)
+```
+
+## Create separate dataframes
+
+Next, data frames for each individual fraction and treatment option are created, containing the triplicate values for each protein. 
+
+They follow the naming convention: 
+- Fraction1_Ctrl for the triplicate values of the first fraction of the control group
+- Fraction_8_RNase for the triplicate values of the eighth fraction of the RNase treated sample
+
+```{r  Fractions}
+#select the fractions
+vector <- c(1, 26, 51, 76, 101, 126, 2, 27, 52, 77, 102, 127, 3, 28, 53, 78, 103, 128, 4, 29, 54, 79, 104, 129, 5, 30, 55, 80, 105, 130, 6, 31, 56, 81, 106, 131, 7, 32, 57, 82, 107, 132, 8, 33, 58, 83, 108, 133, 9, 34, 59, 84, 109, 134, 10, 35, 60, 85, 110, 135, 11, 36, 61, 86, 111, 136, 12, 37, 62, 87, 112, 137, 13, 38, 63, 88, 113, 138, 14, 39, 64, 89, 114, 139, 15, 40, 65, 90, 115, 140, 16, 41, 66, 91, 116, 141, 17, 42, 67, 92, 117, 142, 18, 43, 68, 93, 118, 143, 19, 44, 69, 94, 119, 144, 20, 45, 70, 95, 120, 145, 21, 46, 71, 96, 121, 146, 22, 47, 72, 97, 122, 147, 23, 48, 73, 98, 123, 148, 24, 49, 74, 99, 124, 149, 25, 50, 75, 100, 125, 150) 
+HeLa_Fractions  <- Norm_HeLa[vector]
+
+rm(vector)
+
+# Create list of all separate data frames for the fractions
+fractions_names <-  sapply(c(1:50), function(x) {
+  if (x%%2 == 0) 
+    str_glue("Fraction", (x/2), "_RNase")
+  else 
+    str_glue("Fraction", ((x+1)/2), "_Ctrl")
+})
+
+# Assign the names to the according fractions
+for (i in c(1:50)) {
+  assign(fractions_names[i], HeLa_Fractions[,(3*i-2):(3*i)])
+}
+```
+
+## Calculate means of triplicates with one sigma cut-off
+
+When calculating the mean value of a triplicate, sometimes outlier values in a triplicate obscured the likely true mean value for a fraction. Therefore, we excluded all values in a triplicate that differed more then one sigma from the calculated mean of all three replicates.  
+
+```{r Mean}
+# Create function to calculate mean and exclude triplicate values failing one sigma cut-off
+mean_sd <- function(x) {
+        m <- mean(x)
+        s <- sd(x)
+       for (i in 1:3)
+        if (( (m - 1 * s) > x[i]) || ((m + 1 * s) < x[i])) {x[i] <- NA} # NA for outliers
+ mean(x, na.rm =TRUE) }
+
+# Apply created function to data
+mean_Ctrl1 <- apply(Fraction1_Ctrl, 1,mean_sd)
+mean_Ctrl2 <- apply(Fraction2_Ctrl, 1,mean_sd )
+mean_Ctrl3 <- apply(Fraction3_Ctrl, 1,mean_sd )
+mean_Ctrl4 <- apply(Fraction4_Ctrl, 1,mean_sd )
+mean_Ctrl5 <- apply(Fraction5_Ctrl, 1,mean_sd)
+mean_Ctrl6 <- apply(Fraction6_Ctrl, 1,mean_sd)
+mean_Ctrl7 <- apply(Fraction7_Ctrl, 1,mean_sd)
+mean_Ctrl8 <- apply(Fraction8_Ctrl, 1,mean_sd)
+mean_Ctrl9 <- apply(Fraction9_Ctrl, 1,mean_sd)
+mean_Ctrl10 <- apply(Fraction10_Ctrl, 1, mean_sd)
+mean_Ctrl11 <- apply(Fraction11_Ctrl, 1,mean_sd)
+mean_Ctrl12 <- apply(Fraction12_Ctrl, 1,mean_sd)
+mean_Ctrl13 <- apply(Fraction13_Ctrl, 1,mean_sd)
+mean_Ctrl14 <- apply(Fraction14_Ctrl, 1,mean_sd)
+mean_Ctrl15 <- apply(Fraction15_Ctrl, 1,mean_sd)
+mean_Ctrl16 <- apply(Fraction16_Ctrl, 1,mean_sd)
+mean_Ctrl17 <- apply(Fraction17_Ctrl, 1,mean_sd)
+mean_Ctrl18 <- apply(Fraction18_Ctrl, 1,mean_sd)
+mean_Ctrl19 <- apply(Fraction19_Ctrl, 1,mean_sd)
+mean_Ctrl20 <- apply(Fraction20_Ctrl, 1,mean_sd)
+mean_Ctrl21 <- apply(Fraction21_Ctrl, 1,mean_sd)
+mean_Ctrl22 <- apply(Fraction22_Ctrl, 1,mean_sd)
+mean_Ctrl23 <- apply(Fraction23_Ctrl, 1,mean_sd)
+mean_Ctrl24 <- apply(Fraction24_Ctrl, 1,mean_sd)
+mean_Ctrl25 <- apply(Fraction25_Ctrl, 1,mean_sd)
+
+mean_RNase1 <- apply(Fraction1_RNase, 1,mean_sd)
+mean_RNase2 <- apply(Fraction2_RNase, 1,mean_sd)
+mean_RNase3 <- apply(Fraction3_RNase, 1,mean_sd)
+mean_RNase4 <- apply(Fraction4_RNase, 1,mean_sd)
+mean_RNase5 <- apply(Fraction5_RNase, 1,mean_sd)
+mean_RNase6 <- apply(Fraction6_RNase, 1,mean_sd)
+mean_RNase7 <- apply(Fraction7_RNase, 1,mean_sd)
+mean_RNase8 <- apply(Fraction8_RNase, 1,mean_sd)
+mean_RNase9 <- apply(Fraction9_RNase, 1,mean_sd)
+mean_RNase10 <- apply(Fraction10_RNase, 1,mean_sd)
+mean_RNase11 <- apply(Fraction11_RNase, 1,mean_sd)
+mean_RNase12 <- apply(Fraction12_RNase, 1,mean_sd)
+mean_RNase13 <- apply(Fraction13_RNase, 1,mean_sd)
+mean_RNase14 <- apply(Fraction14_RNase, 1,mean_sd)
+mean_RNase15 <- apply(Fraction15_RNase, 1,mean_sd)
+mean_RNase16 <- apply(Fraction16_RNase, 1,mean_sd)
+mean_RNase17 <- apply(Fraction17_RNase, 1,mean_sd)
+mean_RNase18 <- apply(Fraction18_RNase, 1,mean_sd)
+mean_RNase19 <- apply(Fraction19_RNase, 1,mean_sd)
+mean_RNase20 <- apply(Fraction20_RNase, 1,mean_sd)
+mean_RNase21 <- apply(Fraction21_RNase, 1,mean_sd)
+mean_RNase22 <- apply(Fraction22_RNase, 1,mean_sd)
+mean_RNase23 <- apply(Fraction23_RNase, 1,mean_sd)
+mean_RNase24 <- apply(Fraction24_RNase, 1,mean_sd)
+mean_RNase25 <- apply(Fraction25_RNase, 1,mean_sd)
+
+# Create seperate dataframe with mean for ctrl and RNase
+mean_HeLa <- data.frame(mean_Ctrl1, mean_RNase1, mean_Ctrl2, mean_RNase2, mean_Ctrl3,mean_RNase3, mean_Ctrl4, mean_RNase4,  mean_Ctrl5, mean_RNase5, mean_Ctrl6, mean_RNase6, mean_Ctrl7, mean_RNase7, mean_Ctrl8, mean_RNase8, mean_Ctrl9, mean_RNase9, mean_Ctrl10, mean_RNase10, mean_Ctrl11, mean_RNase11, mean_Ctrl12, mean_RNase12, mean_Ctrl13, mean_RNase13, mean_Ctrl14, mean_RNase14, mean_Ctrl15, mean_RNase15, mean_Ctrl16, mean_RNase16, mean_Ctrl17, mean_RNase17, mean_Ctrl18, mean_RNase18, mean_Ctrl19, mean_RNase19, mean_Ctrl20, mean_RNase20, mean_Ctrl21, mean_RNase21, mean_Ctrl22, mean_RNase22, mean_Ctrl23, mean_RNase23, mean_Ctrl24, mean_RNase24, mean_Ctrl25, mean_RNase25)
+
+HeLa_Ctrl_mean = mean_HeLa %>% select(contains("Ctrl"))
+HeLa_RNase_mean = mean_HeLa %>% select(contains("RNA"))
+
+# Remove excess objects
+rm(mean_Ctrl1, mean_RNase1, mean_Ctrl2, mean_RNase2, mean_Ctrl3,mean_RNase3, mean_Ctrl4, mean_RNase4,  mean_Ctrl5, mean_RNase5, mean_Ctrl6, mean_RNase6, mean_Ctrl7, mean_RNase7, mean_Ctrl8, mean_RNase8, mean_Ctrl9, mean_RNase9, mean_Ctrl10, mean_RNase10, mean_Ctrl11, mean_RNase11, mean_Ctrl12, mean_RNase12, mean_Ctrl13, mean_RNase13, mean_Ctrl14, mean_RNase14, mean_Ctrl15, mean_RNase15, mean_Ctrl16, mean_RNase16, mean_Ctrl17, mean_RNase17, mean_Ctrl18, mean_RNase18, mean_Ctrl19, mean_RNase19, mean_Ctrl20, mean_RNase20, mean_Ctrl21, mean_RNase21, mean_Ctrl22, mean_RNase22, mean_Ctrl23, mean_RNase23, mean_Ctrl24, mean_RNase24, mean_Ctrl25, mean_RNase25)
+```
+
+## Calculate how many values failed one sigma cut-off
+
+For the analysis, we quantified how many replicate values were excluded. 
+
+```{r One sigma cut-off total}
+# Function to test how many values fail one sigma cut-off
+mean_sd_na <- function(x) {
+        m <- mean(x)
+        s <- sd(x)
+       for (i in 1:3)
+        if (( (m - 1 * s) > x[i]) || ((m + 1 * s) < x[i])) {x[i] <- 1}
+        else (x[i] <- 0)
+   sum(x)
+}
+
+# Select values outside of one sigma cut-off
+na_mean_Ctrl1 <- apply(Fraction1_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl2 <- apply(Fraction2_Ctrl, 1,mean_sd_na )
+na_mean_Ctrl3 <- apply(Fraction3_Ctrl, 1,mean_sd_na )
+na_mean_Ctrl4 <- apply(Fraction4_Ctrl, 1,mean_sd_na )
+na_mean_Ctrl5 <- apply(Fraction5_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl6 <- apply(Fraction6_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl7 <- apply(Fraction7_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl8 <- apply(Fraction8_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl9 <- apply(Fraction9_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl10 <- apply(Fraction10_Ctrl, 1, mean_sd_na)
+na_mean_Ctrl11 <- apply(Fraction11_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl12 <- apply(Fraction12_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl13 <- apply(Fraction13_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl14 <- apply(Fraction14_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl15 <- apply(Fraction15_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl16 <- apply(Fraction16_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl17 <- apply(Fraction17_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl18 <- apply(Fraction18_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl19 <- apply(Fraction19_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl20 <- apply(Fraction20_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl21 <- apply(Fraction21_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl22 <- apply(Fraction22_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl23 <- apply(Fraction23_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl24 <- apply(Fraction24_Ctrl, 1,mean_sd_na)
+na_mean_Ctrl25 <- apply(Fraction25_Ctrl, 1,mean_sd_na)
+
+na_mean_RNase1 <- apply(Fraction1_RNase, 1,mean_sd_na)
+na_mean_RNase2 <- apply(Fraction2_RNase, 1,mean_sd_na)
+na_mean_RNase3 <- apply(Fraction3_RNase, 1,mean_sd_na)
+na_mean_RNase4 <- apply(Fraction4_RNase, 1,mean_sd_na)
+na_mean_RNase5 <- apply(Fraction5_RNase, 1,mean_sd_na)
+na_mean_RNase6 <- apply(Fraction6_RNase, 1,mean_sd_na)
+na_mean_RNase7 <- apply(Fraction7_RNase, 1,mean_sd_na)
+na_mean_RNase8 <- apply(Fraction8_RNase, 1,mean_sd_na)
+na_mean_RNase9 <- apply(Fraction9_RNase, 1,mean_sd_na)
+na_mean_RNase10 <- apply(Fraction10_RNase, 1,mean_sd_na)
+na_mean_RNase11 <- apply(Fraction11_RNase, 1,mean_sd_na)
+na_mean_RNase12 <- apply(Fraction12_RNase, 1,mean_sd_na)
+na_mean_RNase13 <- apply(Fraction13_RNase, 1,mean_sd_na)
+na_mean_RNase14 <- apply(Fraction14_RNase, 1,mean_sd_na)
+na_mean_RNase15 <- apply(Fraction15_RNase, 1,mean_sd_na)
+na_mean_RNase16 <- apply(Fraction16_RNase, 1,mean_sd_na)
+na_mean_RNase17 <- apply(Fraction17_RNase, 1,mean_sd_na)
+na_mean_RNase18 <- apply(Fraction18_RNase, 1,mean_sd_na)
+na_mean_RNase19 <- apply(Fraction19_RNase, 1,mean_sd_na)
+na_mean_RNase20 <- apply(Fraction20_RNase, 1,mean_sd_na)
+na_mean_RNase21 <- apply(Fraction21_RNase, 1,mean_sd_na)
+na_mean_RNase22 <- apply(Fraction22_RNase, 1,mean_sd_na)
+na_mean_RNase23 <- apply(Fraction23_RNase, 1,mean_sd_na)
+na_mean_RNase24 <- apply(Fraction24_RNase, 1,mean_sd_na)
+na_mean_RNase25 <- apply(Fraction25_RNase, 1,mean_sd_na)
+
+# Data frame with values filtered out 
+mean_HeLa_na <- data.frame (na_mean_Ctrl1, na_mean_RNase1, na_mean_Ctrl2, na_mean_RNase2, na_mean_Ctrl3,na_mean_RNase3, na_mean_Ctrl4, na_mean_RNase4,  na_mean_Ctrl5, na_mean_RNase5, na_mean_Ctrl6, na_mean_RNase6, na_mean_Ctrl7, na_mean_RNase7, na_mean_Ctrl8, na_mean_RNase8, na_mean_Ctrl9, na_mean_RNase9, na_mean_Ctrl10, na_mean_RNase10, na_mean_Ctrl11, na_mean_RNase11, na_mean_Ctrl12, na_mean_RNase12, na_mean_Ctrl13, na_mean_RNase13, na_mean_Ctrl14, na_mean_RNase14, na_mean_Ctrl15, na_mean_RNase15, na_mean_Ctrl16, na_mean_RNase16, na_mean_Ctrl17, na_mean_RNase17, na_mean_Ctrl18, na_mean_RNase18, na_mean_Ctrl19, na_mean_RNase19, na_mean_Ctrl20, na_mean_RNase20, na_mean_Ctrl21, na_mean_RNase21, na_mean_Ctrl22, na_mean_RNase22, na_mean_Ctrl23, na_mean_RNase23, na_mean_Ctrl24, na_mean_RNase24, na_mean_Ctrl25, na_mean_RNase25)
+
+# Check how many values were removed
+which(mean_HeLa_na == 3) # Three out of three values removed
+which(mean_HeLa_na == 2) # Two out of three values removed
+sum(mean_HeLa_na) # One out of three values removed
+
+rm(na_mean_Ctrl1, na_mean_RNase1, na_mean_Ctrl2, na_mean_RNase2, na_mean_Ctrl3,na_mean_RNase3, na_mean_Ctrl4, na_mean_RNase4,  na_mean_Ctrl5, na_mean_RNase5, na_mean_Ctrl6, na_mean_RNase6, na_mean_Ctrl7, na_mean_RNase7, na_mean_Ctrl8, na_mean_RNase8, na_mean_Ctrl9, na_mean_RNase9, na_mean_Ctrl10, na_mean_RNase10, na_mean_Ctrl11, na_mean_RNase11, na_mean_Ctrl12, na_mean_RNase12, na_mean_Ctrl13, na_mean_RNase13, na_mean_Ctrl14, na_mean_RNase14, na_mean_Ctrl15, na_mean_RNase15, na_mean_Ctrl16, na_mean_RNase16, na_mean_Ctrl17, na_mean_RNase17, na_mean_Ctrl18, na_mean_RNase18, na_mean_Ctrl19, na_mean_RNase19, na_mean_Ctrl20, na_mean_RNase20, na_mean_Ctrl21, na_mean_RNase21, na_mean_Ctrl22, na_mean_RNase22, na_mean_Ctrl23, na_mean_RNase23, na_mean_Ctrl24, na_mean_RNase24, na_mean_Ctrl25, na_mean_RNase25)
+```
+It turns out, that only one out of three values was removed in 122175 triplicates.
+
+Lastly, the names of the remaining proteins after noramlization were stored.
+```{r Protein names}
+proteinnames <- rownames(mean_HeLa)
+```
+
+## Check on normalization
+
+Next, the results of the clean-up were compared to the raw data. We plotted the data pre- and post-normalization for six proteins. Three of which were sure "shifters" and three that were found not to be RNA-dependent.
+
+"Shifters": SIN3A (transcriptional repressor), HDAC1 (Histone deacetylase 1), HNRPU (Heterogeneous nuclear ribonucleoprotein U)
+
+"Non-shifters": ASNS (Asparagine synthetase), MCM2 (DNA replication licensing factor MCM2), MCM3 (DNA replication licensing factor MCM3)
+
+```{r Comparing pre- and post-normalization}
+fraction_index <- c(1:25)
+
+# Repeat the following code block for the six test proteins ctrl vs RNase and pre vs post normalization
+
+# Function to create comparison plots
+compare_pre_post <- function(protein, y_limit_pre, y_limit_post) {
+
+  par(mfrow = c(1,2))
+
+  plot(fraction_index, HeLa_Ctrl1[protein,], type = 'l', col = 'forestgreen', # Control pre
+      xlab = "Fractions",
+      ylab = "Protein amount [arbitrary unit]",
+      ylim = c(0,y_limit_pre),
+      main = paste(protein, "pre-normalization"))
+   lines(x = fraction_index, y = HeLa_RNase1[protein,], type = 'l', col = 'firebrick2') # RNase pre
+   legend(x = "topright",                      # Position
+       legend = c("ctrl", "RNase"),           # Legend texts
+  col = c('darkgreen', 'red'),           # Line colors
+       lwd = 2)                               # Line width
+
+  plot(fraction_index, HeLa_Ctrl_mean[protein,], type = 'l', col = 'forestgreen', # Control post
+     xlab = "Fractions",
+     ylab = "Protein amount [%]",
+     ylim = c(0,y_limit_post),
+     main = paste(protein, "post-normalization"))
+  lines(x = fraction_index, y = HeLa_RNase_mean[protein,], type = 'l', col = 'firebrick2') # RNase post
+  legend(x = "topright",            
+       legend = c("ctrl", "RNase"),           
+       col = c('darkgreen', 'red'),         
+       lwd = 2) 
+}
+
+# Apply function to our selected proteins
+
+# Shifters
+compare_pre_post("SIN3A_HUMAN", 4000000, 25) #SIN3A
+compare_pre_post("HDAC1_HUMAN", 7500000, 25) #HDAC1
+compare_pre_post("HDAC2_HUMAN", 7500000, 25) #HDAC2
+compare_pre_post("RFC2_HUMAN", 3500000, 35) #RFC2
+
+# Non-Shifters
+compare_pre_post("ASNS_HUMAN", 2500000, 40) #ASNS
+compare_pre_post("MCM2_HUMAN", 18000000, 25) #MCM2
+compare_pre_post("MCM3_HUMAN", 25000000, 25) #MCM3
+
+```
+
+The scale represents percentages now with the area under the curve equaling 1. Furthermore, peaks should become more visible as well as "shifts".
+
+# Shapiro-Wilk test
+
+For future statistical tests, the normal distribution of our triplicate values was checked using the Shapiro-Wilk test.
+
+```{r Shapiro-Wilk test}
+# Define Shapiro test function
+shapiro_testing <- function(x) {
+  if (diff(range(x)) == 0) 
+      list()
+  else shapiro.test(x)
+}
+
+# Define function to apply shapiro testing to list of names for all fractions
+shapiro_on_name_list <- function(list) {
+  mean = c()
+  for (i in 1:length(list)) {
+    df = get(list[i])
+    list_results <- apply(df, 1, shapiro_testing)
+    p_values <- unlist(lapply(list_results, function(x) {x$p.value}))
+    # print p mean value for each fraction
+    mean = c(mean, mean(p_values))
+  }
+  mean
+}
+
+# Apply testing to data and test if all values are greater than 5 %
+shapiro_values_greater_0.05 <- shapiro_on_name_list(fractions_names) > 0.05
+
+# Remove excess variables
+rm(Fraction1_Ctrl, Fraction1_RNase, Fraction2_Ctrl, Fraction2_RNase, Fraction3_Ctrl, Fraction3_RNase, Fraction4_Ctrl, Fraction4_RNase, Fraction5_Ctrl, Fraction5_RNase, Fraction6_Ctrl, Fraction6_RNase, Fraction7_Ctrl, Fraction7_RNase, Fraction8_Ctrl, Fraction8_RNase, Fraction9_Ctrl, Fraction9_RNase, Fraction10_Ctrl, Fraction10_RNase, Fraction11_Ctrl, Fraction11_RNase, Fraction12_Ctrl, Fraction12_RNase, Fraction13_Ctrl, Fraction13_RNase, Fraction14_Ctrl, Fraction14_RNase, Fraction15_Ctrl, Fraction15_RNase, Fraction16_Ctrl, Fraction16_RNase, Fraction17_Ctrl, Fraction17_RNase, Fraction18_Ctrl, Fraction18_RNase, Fraction19_Ctrl, Fraction19_RNase, Fraction20_Ctrl, Fraction20_RNase, Fraction21_Ctrl, Fraction21_RNase, Fraction22_Ctrl, Fraction22_RNase, Fraction23_Ctrl, Fraction23_RNase, Fraction24_Ctrl, Fraction24_RNase, Fraction25_Ctrl, Fraction25_RNase)
+```
+
+# Detection of global maxima
+
+We identified the global maximum for wach protein both in the control and RNase-treated sample. 
+```{r Find global maxima}
+# Create function that selects all maxima by comparison of the protein content in a fraction with two neighboring values
+find_peaks <- function (x, m = 2){
+     shape <- diff(sign(diff(x, na.pad = FALSE)))
+     pks <- sapply(which(shape < 0), FUN = function(i){
+        z <- i - m + 1
+        z <- ifelse(z > 0, z, 1)
+        w <- i + m + 1
+        w <- ifelse(w < length(x), w, length(x))
+        if(all(x[c(z : i, (i + 2) : w)] <= x[i + 1])) return(i + 1) else return(numeric(0))
+    })
+     pks <- unlist(pks)
+     pks
+     
+     if ( sum(x[1]>x[2:(m+1)]) == 2 ) {pks <- c(pks, 1)} 
+     if ( sum(x[25]>x[24:(25-m)]) == 2 ) {pks <- c(pks, 25)}
+     pks <- unlist(pks)
+     pks
+}
+
+# Select global maxima for each protein and sample
+absolute_max_ctrl <- apply(HeLa_Ctrl_mean, 1, max)
+absolute_max_RNase <- apply(HeLa_RNase_mean, 1, max)
+
+# Find fraction, where global maximum is located
+fracs_ctrl <- max.col(HeLa_Ctrl_mean)
+fracs_RNase <- max.col(HeLa_RNase_mean)
+
+# Create data frame with global maximum value and fraction per protein and sample
+abs_max_both <- data.frame(absolute_max_ctrl, fracs_ctrl, absolute_max_RNase, fracs_RNase)
+```
+
+# Calculate x-shift and direction
+
+Next, we compared the x-positions of the global maxima in the control vs. RNase-treated sample.
+
+```{r Calculate x-shift}
+# Create for-loop that substracts fraction of global maximum of ctrl and RNase for each protein
+i <- c(1:7081)
+x_shifts <- c()
+for(x in i){x_shifts[x] <- fracs_ctrl[x] - fracs_RNase[x]
+}
+# Add those values to existing data frame
+abs_max_both$x_shifts <- x_shifts
+
+# Create for-loop that calculates the difference of the global maximum fractions for ctrl and RNase for each protein
+i <- c(1:7081)
+y_shifts <- c()
+for(x in i){y_shifts[x] <- absolute_max_ctrl[x] - absolute_max_RNase[x]
+}
+
+# Create for-loop that calculates the difference of the fraction of the global maximum ctrl and fraction values of RNase for each protein
+i <- c(1:7081)
+y_shifts2 <- c()
+for(x in i){y_shifts2[x] <- absolute_max_ctrl[x] - HeLa_RNase_mean[x,fracs_ctrl[x]]
+}
+
+# Add those values to existing data frame
+abs_max_both$y_shifts <- y_shifts
+abs_max_both$y_shifts2 <- y_shifts2
+
+# Define x-shift directions
+no_shift <- which(abs_max_both$x_shifts == 0)
+left_shift <- which(abs_max_both$x_shifts > 0)
+right_shift <- which(abs_max_both$x_shifts < 0)
+
+# Create for-loop to apply definitions for x-shift
+i <- c(1:7081)
+shift_direction <- c()
+for(x in i){shift_direction[x] <- if(abs_max_both$x_shifts[x]==0) {'no shift'}
+else if(abs_max_both$x_shifts[x] < 0) {'right shift'}
+else {'left shift'}
+}
+# Add x-shift direction to existing data frame
+abs_max_both$shift_direction <- shift_direction
+```
+
+# Statisitcal analysis
+
+## F-test
+
+Next, the varaince of our data was analyzed per protein per fraction ctrl vs. RNase. The calculated p-values were tested against the significance level of 0.01.
+
+```{r Apply F-test}
+# Different data frames for each sample
+HeLa_Ctrl_Norm <- Norm_HeLa %>% select(contains("Ctrl"))
+HeLa_RNase_Norm <- Norm_HeLa %>% select(contains("RNA"))
+
+# Select every single protein (row)
+F_test_p_values = c()
+for (i in 1:nrow(HeLa_Ctrl_Norm)) {
+  x <- as.numeric(HeLa_Ctrl_Norm[i,])
+  y <- as.numeric(HeLa_RNase_Norm[i,])
+  
+  # Select triplicate values for each fraction
+  for (k in 1:25) {  
+    result <- var.test(x[c(k, (25+k), (50+k))], y[c(k, (25+k), (50+k))], alternative = "two.sided")
+    new_p_value <- result$p.value
+     # save p-value for every protein comparing ctrl vs RNase
+     F_test_p_values <-  c(F_test_p_values, new_p_value)
+  }
+}
+
+# Create p-values matrix
+p_value_matrix <- matrix(data = F_test_p_values, byrow = TRUE, ncol = 25)
+
+col_names_p <-  sapply(c(1:25), function(x) {
+    str_glue(x)
+})
+
+# Create p-value data frame
+p_value_df <- data.frame(p_value_matrix)
+rownames(p_value_df) <-  row.names(HeLa_Ctrl_Norm)
+colnames(p_value_df) <-  col_names_p
+
+# Check ctrl maxima for p-value > 0.01
+F_max_ctrl <- c()
+for (i in 1:nrow(p_value_df)) {
+  boolian <- p_value_df[i, abs_max_both$fracs_ctrl[i]] > 0.01
+  F_max_ctrl <- c(F_max_ctrl, boolian)
+}
+
+# Check RNase maxima for p-value > 0.01
+F_max_RNase <- c()
+for (i in 1:nrow(p_value_df)) {
+  boolian <- p_value_df[i, abs_max_both$fracs_RNase[i]] > 0.01
+  F_max_RNase <- c(F_max_RNase, boolian)
+}
+list_F_max_RNase <- F_max_RNase
+```
+
+Proteins failing the F-test were filtered out, either because of FALSE or NaN/NA F-test results. Since those proteins could not be analyzed with the t-test, they will not play a role in determining the false-negative and true-negative rates.
+
+```{r Quantification of F-test results}
+# Selecting FALSE proteins
+F_FALSE_ctrl <- abs_max_both[which(F_max_ctrl == FALSE), ]
+F_FALSE_RNase <- abs_max_both[which(F_max_RNase == FALSE), ]
+
+trash_F_FALSE <- unique(c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase)))
+length(trash_F_FALSE)
+
+# Selecting NA proteins
+F_NA_ctrl <- abs_max_both[which(is.na(F_max_ctrl)), ]
+F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase)), ]
+
+trash_F_NA <- unique(c(row.names(F_NA_ctrl), row.names(F_NA_RNase)))
+length(trash_F_NA)
+
+# Removal of selected FALSE and Na proteins
+abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_FALSE, ]
+abs_max_both_F <- abs_max_both[!rownames(abs_max_both) %in% trash_F_NA, ]
+
+# Number of proteins after F-Test
+dim(abs_max_both_F)
+
+# Create dataframe with F-Test positive proteins only
+F_RNase_norm <- HeLa_RNase_Norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
+F_RNase_norm <- HeLa_RNase_Norm[!rownames(abs_max_both) %in% trash_F_NA, ]
+
+F_ctrl_norm <- HeLa_Ctrl_Norm[!rownames(abs_max_both) %in% trash_F_FALSE, ]
+F_ctrl_norm <- HeLa_Ctrl_Norm[!rownames(abs_max_both) %in% trash_F_NA, ]
+```
+So 5881 proteins will be analyzed with the t-test.
+
+## T-test
+
+With the t-test, significant y-shifts were detected.
+
+```{r t-test on data}
+t_test_p_values <- c()
+
+# Compare every row (protein) from Ctrl with corresponding RNase
+for (i in 1:nrow(F_ctrl_norm)) {
+  x <- as.numeric(F_ctrl_norm[i,])
+  y <- as.numeric(F_RNase_norm[i,])
+  
+  for (k in 1:25) {  
+    result <- t.test(x[c(k, (25+k), (50+k))], y[c(k, (25+k), (50+k))], alternative = "two.sided", var.equal = TRUE) # Comparison of triplicates
+    new_p_value <- result$p.value
+     # Save p-value for every protein comparing ctrl vs RNase
+     t_test_p_values <-  c(t_test_p_values, new_p_value)
+  }
+}
+
+# Matrix of p-values
+p_value_matrix_t <- matrix(data = t_test_p_values, byrow = TRUE, ncol = 25)
+
+col_names_p <-  sapply(c(1:25), function(x) {
+    str_glue(x)
+})
+
+p_value_df_t <- data.frame(p_value_matrix_t)
+rownames(p_value_df_t) <-  row.names(F_ctrl_norm)
+colnames(p_value_df_t) <-  col_names_p
+
+# For ctrl maxima
+t_max_ctrl <- c()
+for (i in 1:nrow(p_value_df_t)) {
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_ctrl[i]] < 0.05 # Do t-values lay under the 0.05 threshold?
+  t_max_ctrl <- c(t_max_ctrl, boolian)
+}
+
+list_t_max_ctrl <- t_max_ctrl
+
+# For RNase maxima
+t_max_RNase <- c()
+for (i in 1:nrow(p_value_df_t)) {
+  boolian <- p_value_df_t[i, abs_max_both_F$fracs_RNase[i]] < 0.05 # Do t-values lay under the 0.05 threshold?
+  t_max_RNase <- c(t_max_RNase, boolian)
+}
+
+list_t_max_RNase <- t_max_RNase
+```
+
+Proteins failing the t-test were removed.
+
+```{r Remove failed proteins}
+# Remove NA
+t_NA_ctrl <- abs_max_both_F[which(is.na(t_max_ctrl)), ]
+t_NA_RNase <- abs_max_both[which(is.na(t_max_RNase)), ]
+
+trash_t_NA <- c(row.names(t_NA_ctrl), row.names(t_NA_RNase))
+length(trash_t_NA)
+
+# Remove FALSE
+t_FALSE_ctrl <- abs_max_both_F[which(t_max_ctrl == FALSE), ]
+t_FALSE_RNase <- abs_max_both_F[which(t_max_RNase == FALSE), ]
+
+trash_t_FALSE <- unique(c(row.names(t_FALSE_ctrl), row.names(t_FALSE_RNase)))
+length(trash_t_FALSE)
+
+abs_max_both_t <- abs_max_both[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+dim(abs_max_both_t) #dataset without FALSE
+
+t_RNase_norm <- F_RNase_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+t_ctrl_norm <- F_ctrl_norm[!rownames(abs_max_both_F) %in% trash_t_FALSE, ]
+
+#Remove proteins with all zero triplicates
+trash_t_y0 <- c(rownames(abs_max_both_t[which(abs_max_both_t$y_shifts == 0), ]))
+
+#Cleaned data frame
+abs_max_both_t_y0 <- abs_max_both_t[!rownames(abs_max_both_t) %in% trash_t_y0, ]
+nrow(abs_max_both_t_y0)
+```
+
+## Methods for Identification of potential RBPs
+
+For the next analysis, we further filtered out the significant y-shifters that showed no significant x-shift (shift > 1).
+```{r x shift > 1}
+# At least 1 or more fractions x shift
+trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 2), ]))
+abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
+abs_max_both_x_y_1
+
+# All proteins that entered analysis
+All_potential_candidates <- row.names(F_ctrl_norm)
+
+# Results t-test
+RBP_t <- c(rownames(abs_max_both_x_y_1)) # Proteins passing t-test = RBP
+Non_RBP_t <- All_potential_candidates[!All_potential_candidates %in% RBP_t] # Proteins failing t-test = non-RBP
+length(RBP_t)
+length(Non_RBP_t)
+```
+
+We created functions to evaluate our results. They show how many of the detected RBPs or non-RBPs were identified previously in other publications. Furthermore, we wanted to check, if false-positive RBPs were at least RNA binding dependent (RBD).
+```{r Quantification of results functions}
+# Function to identify True RBP
+Find_true_RBP <- function(potential_RBP) {
+  Match_RBP <- HS_RBPs$Entry_Name.x %in% potential_RBP    # Compare potential RBP with RBP from other publications
+  True_RBP_pos <- which(Match_RBP == TRUE)                # Find the positions of true RBP
+  True_RBP_names <- HS_RBPs$Entry_Name.x[True_RBP_pos]    # Find names of true RBP
+  return(True_RBP_names)
+}
+
+# Function to identify False RBP
+Find_false_RBP <- function(potential_RBP) {                    
+  Match_RBP <- HS_non_RBPs$Entry_Name.x %in% potential_RBP      # Compare potential RBP with RBP from other publications
+  False_RBP_pos <- which(Match_RBP == TRUE)                     # Find the positions of false RBP
+  False_RBP_names <- HS_non_RBPs$Entry_Name.x[False_RBP_pos]    # Find names of false RBP
+  return(False_RBP_names)
+}
+
+# Function to identify true non-RBP
+Find_true_non_RBP <- function(potential_non_RBP) {
+  Match_non_RBP <- HS_non_RBPs$Entry_Name.x %in% potential_non_RBP    # Compare potential non-RBP with non-RBP from other publications
+  True_non_RBP_pos <- which(Match_non_RBP == TRUE)                    # Find the positions of true non-RBP
+  True_non_RBP_names <- HS_non_RBPs$Entry_Name.x[True_non_RBP_pos]    # Find names of true non-RBP
+  return(True_non_RBP_names)
+}
+
+# Function to identify false non-RBP
+Find_false_non_RBP <- function(potential_non_RBP) {
+  Match_non_RBP <- HS_RBPs$Entry_Name.x %in% potential_non_RBP    # Compare potential non-RBP with non-RBP from other publications
+  False_non_RBP_pos <- which(Match_non_RBP == TRUE)               # Find the positions of false non-RBP
+  False_non_RBP_names <- HS_RBPs$Entry_Name.x[False_non_RBP_pos]   # Find names of false non-RBP
+  return(False_non_RBP_names)
+}
+# Function to show RBDs
+Find_RBD <- function(potential_RBD) {
+  RBD_stat <- RBD_stat_non_RBP[rownames(RBD_stat_non_RBP) %in% potential_RBD, ]
+  RBD_true_prot_df <- RBD_stat[RBD_stat$RBD_status == "RBD", ]
+  RBD_true_prot_names <- rownames(RBD_true_prot_df)
+  return(RBD_true_prot_names)
+}
+```
+
+## Sum up t-test results
+
+The new functions were applied to evaluate the t-test.
+```{r Quantification t-test results}
+# True RBP
+True_RBP_t <- Find_true_RBP(RBP_t)
+length(True_RBP_t)
+
+# False RBP
+False_RBP_t <- Find_false_RBP(RBP_t)
+length(False_RBP_t)
+
+# True non-RBP
+True_non_RBP_t <- Find_true_non_RBP(Non_RBP_t)
+length(True_non_RBP_t)
+
+# False non-RBP
+False_non_RBP_t <- Find_false_non_RBP(Non_RBP_t)
+length(False_non_RBP_t)
+
+# Show RBD status of all non-RBP
+RBD_stat_non_RBP <- HS_non_RBPs[ ,c("Entry_Name.x", "RBD_status")]
+row.names(RBD_stat_non_RBP) <- HS_non_RBPs$Entry_Name.x
+
+# Specificity and Sensitivity parameters
+( length(True_RBP_t) / nrow(abs_max_both_x_y_1) ) * 100 # True positive quote
+( length(False_RBP_t) / nrow(abs_max_both_x_y_1) ) * 100 # False positive quote
+
+( length(True_non_RBP_t) / length(Non_RBP_t) ) * 100 # True negative quote
+( length(False_non_RBP_t) / length(Non_RBP_t) ) * 100 # False negative quote
+
+# Remove excess objects
+rm(abs_max_both_F, abs_max_both_t, F_ctrl_norm, F_FALSE_ctrl, F_FALSE_RNase, F_NA_ctrl, F_NA_RNase, F_RNase_norm,p_value_df_t, p_value_matrix_t, t_ctrl_norm, t_FALSE_ctrl, t_FALSE_RNase, t_NA_ctrl, t_NA_RNase, t_RNase_norm, p_value_matrix, result)
+
+rm(HeLa_cleaned, HeLa_cleaned_NA)
+```
+
+
+# Clustering
+
+First, we derived clustering variables from our data.
+```{r Clustering variables}
+# Define function to calculate quotient for clustering variables
+quoti <- function(data1, data2){
+  
+Quotienten = c()
+  for (k in 1:7081) {
+    dat = data1[k,]
+    dat2 = data2[k,]
+    Quotient = c()
+    
+      for (i in 1:25) {
+        if (dat2[i] == 0)  { quotient <- 0 }
+        else quotient <- dat[i]/dat2[i]
+        Quotient = c(Quotient, quotient)
+      }
+      Quotienten = rbind(Quotienten, Quotient)
+  } 
+  rownames(Quotienten) = rownames( data1)
+  return(Quotienten)
+}
+
+# Select highest quotient sum values
+# We checked the quotient sum value of each protein and selected only those above 20 (random value). Those above 20, seemed to contain many RBP's compared to the RDeep database. 
+
+quotienten_HeLa_RNase <- quoti(HeLa_RNase_mean, HeLa_Ctrl_mean)
+q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNase), ncol=25, byrow=FALSE)
+
+# Variables derived from quotient
+maxi_RNase <- apply(q_HeLa_mat,1, max)
+mean <- rowMeans(q_HeLa_mat)
+x_abs <- abs(x_shifts)
+q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
+abs_mat_both_q <- cbind(abs_max_both, maxi_RNase, x_abs, mean,q_mat_sums)
+```
+
+With the new variables, we created three clusters to predict RBPs.
+
+```{r Clustering}
+# Create cluster data frame
+cluster_data <- data.frame(maxi_RNase, q_mat_sums)
+
+# Calculate optimal number of clusters
+fviz_nbclust(cluster_data, kmeans, method='silhouette')
+
+# Cluster
+kmeans_fancy <- kmeans(scale(cluster_data), 3, nstart = 25)
+kmeans_fancy
+
+# Plot cluster
+fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
+
+# Silhouette plot for cluster quality
+sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
+fviz_silhouette(sil)
+```
+
+## Clustering results
+
+First, we created vectors containing the assigned protein names of each cluster.
+```{r Resulting cluster assingment}
+# Extract information on cluster centers
+cluster_centers <- data.frame(kmeans_fancy$centers)
+cluster_centers
+
+# Cluster A closest to origin, cluster C farthest away
+Cluster_C_number <- which.max(cluster_centers$maxi_RNase)
+Cluster_A_number <- which.min(cluster_centers$maxi_RNase)
+Cluster_B_number <- (1+2+3) - Cluster_C_number - Cluster_A_number
+
+# Cluster content
+Cluster_C <- proteinnames[which(kmeans_fancy$cluster==Cluster_C_number)]
+Cluster_B <- proteinnames[which(kmeans_fancy$cluster==Cluster_B_number)]
+Cluster_A <- proteinnames[which(kmeans_fancy$cluster==Cluster_A_number)]
+
+# All tested
+Cluster_total <- c(Cluster_C, Cluster_B, Cluster_A)
+```
+
+### Cluster C
+Cluster C was supposed to be a safe "true RBP" cluster. This was tested:
+```{r Cluster C Quantification}
+# True RBP
+True_RBP_C <- Find_true_RBP(Cluster_C)
+length(True_RBP_C)
+
+# False RBP
+False_RBP_C <- Find_false_RBP(Cluster_C)
+length(False_RBP_C)
+
+#RBD status
+False_RBP_true_RBD_C <- Find_RBD(False_RBP_C)
+length(False_RBP_true_RBD_C)
+
+# Senstivity and Specificity markers
+( length(True_RBP_C) / length(Cluster_C) ) * 100 # True positive quote
+( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
+```
+Cluster C included mostly true RBPs.
+
+### Cluster B  
+
+We anticipated Cluster B to suggest more RBP, although with reduced precision.
+```{r Cluster B Quantification}
+# True RBP
+True_RBP_B <- Find_true_RBP(Cluster_B)
+length(True_RBP_B)
+
+# False RBP
+False_RBP_B <- Find_false_RBP(Cluster_B)
+length(False_RBP_B)
+
+#RBD status
+False_RBP_true_RBD_B <- Find_RBD(False_RBP_B)
+length(False_RBP_true_RBD_B)
+
+#Senstivity and Specificity markers
+( length(True_RBP_B) / length(Cluster_B) ) * 100 # True positive quote
+( length(False_RBP_B) / length(Cluster_B) ) * 100 # False positive quote
+```
+Cluster B included mostly true RBPs.
+
+### Cluster A
+
+We anticipated Cluster A to suggest mostly non-RBP.
+```{r Cluster A Quantification}
+# True non-RBP
+True_non_RBP_A <- Find_true_non_RBP(Cluster_A)
+length(True_non_RBP_A)
+
+# False non-RBP
+False_non_RBP_A <- Find_false_non_RBP(Cluster_A)
+length(False_non_RBP_A)
+
+#Senstivity and Specificity markers
+( length(True_non_RBP_A) / length(Cluster_A) ) * 100 # True positive quote
+( length(False_non_RBP_A) / length(Cluster_A) ) * 100 # False positive quote
+```
+
+Cluster A included both several non-RBP and RBP.
+
+
+### Summarizing Cluster B + C
+
+Cluster B and C were combined because they both predicted RBPs accurately. 
+```{r Cluster BC Quantification}
+Cluster_BC <- c(Cluster_B, Cluster_C) # Combined cluster BC
+length(Cluster_BC)
+
+# True RBP
+True_RBP_BC <- Find_true_RBP(Cluster_BC)
+length(True_RBP_BC)
+
+# False RBP
+False_RBP_BC <- Find_false_RBP(Cluster_BC)
+length(False_RBP_BC)
+
+#RBD status
+False_RBP_true_RBD_BC <- Find_RBD(False_RBP_BC)
+length(False_RBP_true_RBD_BC)
+
+# Senstivity and Specificity markers
+( length(True_RBP_BC) / length(Cluster_BC) ) * 100 # True positive quote
+( length(False_RBP_BC) / length(Cluster_BC) ) * 100 # False positive quote
+```
+
+## Plotting Shifters
+
+Based on the x-shifts, we plotted our proteins as three groups: Those with x-shift = 0, x-shift > 0 or x-shift < 0. 
+
+```{r Plot shifters}
+# Assign numbers for shift behavior
+i <- c(1:7081)
+ID <- c()
+for(x in i){
+ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1 # x-shift = 0
+} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2 # x-shift > 0
+} else {abs_mat_both_q$ID[x] =3} # x-shift < 0 
+}
+# Plot all proteins
+control_fraction <- as.matrix(abs_mat_both_q$fracs_ctrl)
+RNase_fraction <- as.matrix(abs_mat_both_q$fracs_RNase)
+cols <- c(1,3)
+
+colors <- c("right_shifters" = "green", "left_shifters" = "red", "non_shifters" = "black")
+
+p_all <- ggplot(abs_mat_both_q[,cols], aes(x = RNase_fraction, y=control_fraction, color = ID, show.legend = TRUE)) +
+geom_point(color = ID) +
+  geom_density_2d(alpha = 0.5)+
+  scale_colour_manual(values = colors)
+   
+p0 <- p_all + labs(title = "All proteins")
+p0
+```
+
+#Linear regression 
+
+Lastly, we used our data for a linear regression model.
+
+## Train the model
+
+We used 5000 randomly chosen proteins to train the model.
+```{r Linear regression model}
+# Select 5000 proteins from raw data randomly
+proteins <- c(1:7081)
+samples.numbers.training <- sample(proteins,5000)
+samples.numbers.test <- proteins[-c(samples.numbers.training)]
+
+random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,12)]
+colnames(random.samples.training) <- c("x","max","sum")
+
+random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,12)]
+colnames(random.samples.test) <- c("x","max","sum")
+
+modell <- lm(x ~ sum + max  , data = random.samples.training )
+summary(modell)
+
+plot(random.samples.training$x,random.samples.training$max, col ="blue", abline(lm(x ~ max, data = random.samples.training )), ylim = c(0,15), xlab = "x-shift", ylab = " Maximum of quotients", main = "Regression value Maxima")
+plot(random.samples.training$x,random.samples.training$sum, col ="blue", abline(lm(x ~ sum, data = random.samples.training )), ylim = c(0,15), xlab = "x-shift", ylab = "Sums of quotients", main = "Regression value Sum")
+
+``` 
+
+## Test the model
+
+We then tested the model on the remaining 2081 proteins.
+```{r Testing regression model}
+# Use remaining 2081 proteins to test the regression model
+c <- predict(modell, newdata = random.samples.test)
+
+i <- c(1:2081)
+shift_direction.regression <- c()
+for(x in i){shift_direction.regression[x] <- if(c[x] < 1) {'no shift'
+}else  {'shift'}
+}
+
+shifters <- x_shifts[samples.numbers.test]
+shift_direction.code <- c()
+for(x in i){shift_direction.code[x] <- if(shifters[x] == 0) {'no shift'
+}else  {'shift'}
+}
+
+compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shifters, shift_direction[samples.numbers.test])
+
+```
+
+
+## Results Regression
+
+Now we will compare the results of the linear regression with the additional data.
+```{r Quantification of regression results}
+Regression_data <- data.frame(compare)
+
+RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "shift")] # identified RBP
+non_RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "no shift")] # indentified non-RBP
+
+# Number of RBP and non-RBP identified
+length(RBP_regression)
+length(non_RBP_regression)
+
+# True RBP
+True_RBP_reg <- Find_true_RBP(RBP_regression)
+length(True_RBP_reg)
+
+# False RBP
+False_RBP_reg <- Find_false_RBP(RBP_regression)
+length(False_RBP_reg)
+
+# True non-RBP
+True_non_RBP_reg <- Find_true_non_RBP(non_RBP_regression)
+length(True_non_RBP_reg)
+
+# False non-RBP
+False_non_RBP_reg <- Find_false_non_RBP(non_RBP_regression)
+length(False_non_RBP_reg)
+
+#RBD-status
+False_RBP_true_RBD_reg <- Find_RBD(False_RBP_reg)
+length(False_RBP_true_RBD_reg)
+
+# Quantification
+( length(True_RBP_reg) / length(RBP_regression) ) * 100 # True positive quote
+( length(False_RBP_reg) / length(RBP_regression) ) * 100 # False positive quote
+
+( length(True_non_RBP_reg) / length(non_RBP_regression) ) * 100 # True negative quote
+( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
+```
+
+## Check on 7 previously selected control proteins
+
+Lastly, we wanted to check, if the methods were able to correctly identify our selected shifters and non-shifters.
+
+```{r Checking on seven selected proteins}
+# Shifters
+shifters <- c("SIN3A_HUMAN", "HDAC1_HUMAN", "HDAC2_HUMAN", "RFC2_HUMAN")
+# Non-Shifters
+non_shifters <- c("ASNS_HUMAN", "ASNS_HUMAN", "MCM3_HUMAN")
+
+# t-test
+table(shifters %in% RBP_t)
+table(non_shifters %in% Non_RBP_t)
+table(non_shifters %in% RBP_t) # non-shifters in shifters?
+non_shifters[non_shifters %in% RBP_t]
+
+# Clustering
+table(shifters %in% Cluster_BC)
+table(non_shifters %in% Cluster_A)
+table(non_shifters %in% Cluster_BC) # non-shifters in shifters?
+
+# Regression
+table(shifters %in% RBP_regression)
+table(non_shifters %in% non_RBP_regression)
+
+```
+
+## Analyze overlap of all methods
+
+We compared whether all methods identified the same RBPs and non-RBPs or different ones.
+```{r Overlap three methods}
+# Results identification via statistical tests
+i <- c(1:7081)
+shift_direction.identification <- c()
+for(x in i){shift_direction.identification[x] <- if(rownames(abs_mat_both_q)[x] %in% Non_RBP_t) {'no shift'
+}else  {'shift'}
+}
+
+# Results clustering
+i <- 1:7081
+shift_direction.clustering <- c()
+for(x in i){shift_direction.clustering[x] <- if(rownames(abs_mat_both_q)[x] %in% Cluster_A) {'no shift'
+}else  {'shift'}
+}
+
+# Results regression
+all.samples <- abs_mat_both_q[,c(5,9,12)]
+colnames(all.samples) <- c("x","max","sum")
+
+results_regression <- predict(modell, newdata = all.samples)
+
+i <- c(1:7081)
+shift_direction.regression.all <- c()
+for(x in i){shift_direction.regression.all[x] <- if(results_regression[x] < 1) {'no shift'
+}else  {'shift'}
+}
+
+overlap <- data.frame(shift_direction.identification,shift_direction.clustering, shift_direction.regression.all)
+
+# Compare two methods with one another
+# Statistical test vs. Clustering
+compare.identification.clustering <-(shift_direction.identification[i] == shift_direction.clustering[i]) 
+length (which(compare.identification.clustering == TRUE))
+
+# Statistical test vs. Regression
+compare.identification.regression <- (shift_direction.identification[i] == shift_direction.regression.all[i])
+length (which(compare.identification.regression == TRUE))
+
+# Regression vs. Clustering
+compare.regression.clustering <- (shift_direction.regression.all[i] == shift_direction.clustering[i])
+length (which(compare.regression.clustering == TRUE))
+
+# Compare all three methods with one another
+compare.shifts.all <- c() 
+for (x in 1:7081) {
+ a <- (shift_direction.identification[x] == shift_direction.clustering[x] & shift_direction.clustering[x] == shift_direction.regression.all[x])
+ compare.shifts.all <- c(compare.shifts.all, a)
+}
+
+overlap <- cbind(overlap, compare.identification.clustering, compare.identification.regression, compare.regression.clustering, compare.shifts.all)
+
+length (which(compare.shifts.all == TRUE))
+```
+The same 5259 Proteins were identified as RBPs or non-RBPs respectively using statistical tests and clustering.
+The same 3310 Proteins were identified as RBPs or non-RBPs respectively using statistical tests and regression.
+The same 4470 Proteins were identified as RBPs or non-RBPs respectively using regression and clustering.
+
+All three methods identified the same 2979 RBPs or non-RBPs respectively.
+
+## Cross-reference overlap of all three methods
+```{r All tests overlap}
+#select proteinnames of overlap
+over.prot <- which(compare.shifts.all == TRUE)
+overlap_proteins <- proteinnames[over.prot]
+
+overlap.potential.non.RBP <-overlap_proteins[results_regression < 1]
+overlap.potential.RBPn <- overlap_proteins[results_regression > 1]
+
+# True RBP
+True_RBP_overlap <- Find_true_RBP(overlap.potential.RBPn)
+length(True_RBP_overlap)
+
+# False RBP
+False_RBP_overlap <- Find_false_RBP(overlap.potential.RBPn)
+length(False_RBP_overlap)
+
+# True non-RBP
+True_non_RBP_overlap <- Find_true_non_RBP(overlap.potential.non.RBP)
+length(True_non_RBP_overlap)
+
+# False non-RBP
+False_non_RBP_overlap <- Find_false_non_RBP(overlap.potential.non.RBP)
+length(False_non_RBP_overlap)
+``` 
+The overlap of all three methods consists of 728 true RBP, 483 false RBP, 715 true non-RBP and 1032 false RBP.
+
+## Clustering vs Statistical Tests
+
+We compared the results of the clustering and the statistical analysis, because we discovered the greatest overlap between any pairs of applied methods.
+```{r Overlap Clustering vs Statistical tests}
+#select overlap proteinnames 
+over.prot.id.clus <- which( compare.identification.clustering == TRUE)
+overlap_proteins.id.clus <- proteinnames[over.prot.id.clus]
+
+i <- 1:5240
+overlap_potential.id.clus <- c()
+for(x in i){overlap_potential.id.clus[x] <- if(overlap_proteins.id.clus[x] %in% Cluster_A) {TRUE
+}else  {FALSE}
+}
+
+overlap_potential.non.RBP.id.clus <- overlap_proteins.id.clus[c(overlap_potential.id.clus == TRUE)]
+overlap_potential.RBP.id.clus <- overlap_proteins.id.clus[c(overlap_potential.id.clus == FALSE)]
+
+# True RBP
+True_RBP_overlap <- Find_true_RBP(overlap_potential.RBP.id.clus)
+length(True_RBP_overlap)
+
+# False RBP
+False_RBP_overlap <- Find_false_RBP(overlap_potential.RBP.id.clus)
+length(False_RBP_overlap)
+
+# True non-RBP
+True_non_RBP_overlap <- Find_true_non_RBP(overlap_potential.non.RBP.id.clus)
+length(True_non_RBP_overlap)
+
+# False non-RBP
+False_non_RBP_overlap <- Find_false_non_RBP(overlap_potential.non.RBP.id.clus)
+length(False_non_RBP_overlap)
+```
+The overlap of clustering and statistical test results consists of 182 true RBP, 9 false RBP, 1623 true non-RBP and 3415 false RBP.
