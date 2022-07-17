@@ -691,7 +691,7 @@ abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_
 abs_max_both_x_y_1
 
 # All proteins that entered analysis
-All_potential_candidates <- row.names(F_ctrl_norm)
+All_potential_candidates <- row.names(F_C)
 
 # Results t-test
 RBP_t <- c(rownames(abs_max_both_x_y_1)) # Proteins passing t-test = RBP
@@ -910,6 +910,27 @@ length(True_RBP_BC)
 length(True_RBP_t)
 
 table(True_RBP_BC %in% True_RBP_t)
+```
+### Summarizing Cluster B + C
+
+```{r}
+Cluster_BC <- c(Cluster_B, Cluster_C)
+
+# True RBP
+True_RBP_BC <- Find_true_RBP(Cluster_BC)
+length(True_RBP_BC)
+
+# False RBP
+False_RBP_BC <- Find_false_RBP(Cluster_BC)
+length(False_RBP_BC)
+
+#RBD status
+False_RBP_true_RBD_BC <- Find_RBD(False_RBP_BC)
+length(False_RBP_true_RBD_BC)
+
+# Senstivity and specifity markers
+( length(True_RBP_BC) / length(Cluster_BC) ) * 100 # True positive quote
+( length(False_RBP_BC) / length(Cluster_BC) ) * 100 # False positive quote
 ```
 
 ## Plotting Shifters
