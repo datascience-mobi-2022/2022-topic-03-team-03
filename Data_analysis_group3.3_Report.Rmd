@@ -168,7 +168,9 @@ With T-Test based analysis, we detected one out of four previously selected sure
 
 The clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
 
-The clustering analysis was conducted with three clusters (see **Fig. 2B**). For Cluster 1 (C) 53 true RBP (96.4%) and 2 false RBP (3.6%) were detected. Cluster 2 (B) presented a similar accuracy of 318 true RBP (96.7%) and 10 false RBP (3%). Therefore, we decided to summarize Cluster B and C, as both accurately predicted true RBPs. For Cluster 3 (A) 2557 true non-RBP (38.2%) and 4089 false RBP (61.1%) were detected. 1 RBD was detected out of the false-RBP proteins. The results are displayed in **Fig. 2C - Clustering**. 
+The clustering analysis was conducted with three clusters (see **Fig. 2B**). For cluster 1 (in methods as cluster C) 53 true RBP (TP = 96.4%) and 2 false RBP (FP = 3.6%) were detected. Cluster 2 (B) presented a similar accuracy of 318 true RBP (TP = 96.7%) and 10 false RBP (FP = 3.1%). Therefore, we decided to combine cluster B and C, as both accurately predicted true RBPs. 
+
+For the combined cluster BC, 384 RBP were identified. 371 (TP = 96,6%) were true RBP and 12 false RBP (FP = 3,1%)  were found. One RBD was detected out of the false-RBP proteins. For cluster 3 (A) 2557 true non-RBP (38.2%) and 4089 false RBP (61.1%) were detected.  The results are displayed in **Fig. 2C - Clustering**. 
 
 With the clustering, we detected none of our previously selected sure-shifters and all non-shifters.
 
@@ -178,9 +180,14 @@ Comparison of the identified true RBP via clustering and statistical analysis sh
 
 ## Linear Regression model
 
-Since the regression takes different random proteins for the training every time, the shown results were generated once. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (59,4%) turned out as true RBPs and 347 (39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (39.2%) were true non-RBPs while 709 (59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C - Linear Regression**. 
+Since the regression takes different random proteins for the training every time, the shown results were generated once. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (TP = 59,4%) turned out as true RBPs and 347 (FP = 39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (TN = 39.2%) were true non-RBPs while 709 (FN = 59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C - Linear Regression**. 
 
 With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
+
+## Linear Regression vs. Statistical analysis
+
+## Linear Regression vs. Clustering
+
 
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
