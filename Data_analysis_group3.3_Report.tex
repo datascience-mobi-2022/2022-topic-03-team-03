@@ -4,6 +4,11 @@
 %
 \documentclass[
 ]{article}
+\title{Proteome wide screen for RNA-dependent Proteins in interphasic
+HeLa cells}
+\author{Bolz, C., Bonsen, M., Pott, M., Simon, M.}
+\date{2022-07-17}
+
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
 \usepackage{iftex}
@@ -33,6 +38,14 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 \usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells},
+  pdfauthor={Bolz, C., Bonsen, M., Pott, M., Simon, M.},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
 \usepackage[margin=1in]{geometry}
 \usepackage{longtable,booktabs,array}
 \usepackage{calc} % for calculating minipage widths
@@ -64,63 +77,37 @@
 \ifLuaTeX
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
-\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
-\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
-\urlstyle{same} % disable monospaced font for URLs
-\hypersetup{
-  hidelinks,
-  pdfcreator={LaTeX via pandoc}}
-
-\author{}
-\date{\vspace{-2.5em}}
 
 \begin{document}
-
-\begin{longtable}[]{@{}l@{}}
-\toprule()
-\textbackslash begin\{document\} \\
-\midrule()
-\endhead
-title: ``Proteome wide screen for RNA-dependent Proteins in interphasic
-HeLa cells'' \\
-author: ``Bolz, C., Bonsen, M., Pott, M., Simon, M.'' \\
-date: ``2022-07-16'' \\
-output: \\
-pdf\_document: default \\
-html\_document: default \\
-df\_print: paged \\
-\bottomrule()
-\end{longtable}
+\maketitle
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
 
 RNA and proteins represent a symbiotic system. Proteins need RNA as a
 template for their biosynthesis as stated by Francis Crick in his
-``Central Dogma of Molecular Biology'' (Crick, 1970). Vice versa,
-studies have shown that proteins need RNA for their catalytic activity,
-for instance in the RNA-induced silencing complex (Pratt and Macrae,
-2009; Wilson and Doudna, 2013). Additionally, some RNA depends on
-proteins for its synthesis and stability (Kishore \emph{et al.}, 2010).
-A family of proteins which illustrates this symbiotic relationship are
-RNA-binding proteins (RBPs). RBPs present a class of proteins whose
-interactome depends on RNA. They were shown to play a crucial role in
-RNA metabolism (Kishore \emph{et al.}, 2010), cancer development (Wei
-\emph{et al.}, 2022), and genetic disease (Gebauer \emph{et al.}, 2021).
-Therefore, a deeper understanding of RNA binding and RNA-Protein
-interaction strengthens our ability to adjust and modulate the cellular
-mechanisms affected.
+``Central Dogma of Molecular Biology'' (Crick, 1970). The opposite is
+also true, studies have shown that proteins need RNA for their catalytic
+activity, for instance in the RNA-induced silencing complex (Pratt and
+Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA sequences
+depend on proteins for their synthesis and stability (Kishore \emph{et
+al.}, 2010). A family of proteins which illustrates this symbiotic
+relationship are the RNA-binding proteins (RBPs). RBPs present a class
+of proteins whose interactome depends on RNA. They were shown to play a
+crucial role in RNA metabolism (Kishore \emph{et al.}, 2010), cancer
+development (Wei \emph{et al.}, 2022), and genetic disease (Gebauer
+\emph{et al.}, 2021). Therefore, a deeper understanding of RNA binding
+and RNA-protein interaction strengthens our ability to adjust and
+manipulate the cellular mechanisms affected.
 
-RBPs can be further categorized into ``true'' RBPs (e.g.~DICER, NPM3),
-those RNA-binding proteins which directly bind to RNA, and ``RBP
-interacting proteins'' which merely interact with ``true'' RBPs (eg.
-RBBP7). Furthermore, ``true'' RBPs can be subcategorized into
-``RNA-dependent'', meaning relying on RNA for their whole and correct
-function (eg. DICER) and ``partially RNA dependent'', those that only
-require RNA for certain functions or transport (eg. NPM3) (see Fig. 1)
-(Caudron-Herger \emph{et al.}, 2019; Corley \emph{et al.}, 2020).
-
-\includegraphics{../../Figure1.PNG}
+RBPs can be categorized into ``true'' RBPs (e.g.~DICER, NPM3), those
+RNA-binding proteins which directly bind to RNA, and ``RBP interacting
+proteins'' which merely interact with ``true'' RBPs (eg. RBBP7).
+Furthermore, ``true'' RBPs can be subcategorized into ``RNA-dependent'',
+meaning relying on RNA for their whole and correct function (eg. DICER)
+and ``partially RNA dependent'', those that only require RNA for certain
+functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger \emph{et
+al.}, 2019; Corley \emph{et al.}, 2020).
 
 \textbf{Figure 1}. Categorization of RNA-binding proteins: RBPs can be
 categorized into ``true'' RBPs, those RNA-binding proteins which
@@ -131,32 +118,31 @@ function and ``partially RNA dependent'', those that only require RNA
 for certain functions or transport. DICER = Endoribonuclease Dicer; NPM3
 = Nucleoplasmin 3; RBBP7 = RNA-binding protein binding protein 7.
 
-Several approaches to study RNA-Protein interaction and to identify new
+Several approaches to study RNA-protein interaction and to identify new
 RBPs were established such as RaPID and CLIP-Seq. These methods either
-only analyze the interaction between the RNA of interest and additional
-proteins (RaPID) or a protein of interest and the different RNA it is
-interacting with (CLIP-Seq) (Qin \emph{et al.}, 2021). Therefore,
-approaching the study of RNA-Binding Protein interaction networks
-globally (Sternburg and Karginov, 2020) has become a matter of interest.
-A method published by Caudron-Herger \emph{et al.} enables analysis and
-quantification of whole cell interactomes. Furthermore, it allows for
-identification of new RBPs through RNase treatment and density gradient
-ultracentrifugation. Subsequently, the resulting fraction shifts of
-proteins identified with mass spectrometry were analyzed
-bioinformatically (Caudron-Herger \emph{et al.}, 2019, Caudron-Herger
-\emph{et al.}, 2020).
+analyze the interaction between the RNA of interest and additional
+proteins (RaPID) or the interaction between a protein of interest and
+the different RNA with which it is interacting (CLIP-Seq) (Qin \emph{et
+al.}, 2021). Therefore, approaching the global study of RNA-binding
+protein, interaction networks (Sternburg and Karginov, 2020) has become
+a matter of interest. A method published by Caudron-Herger \emph{et al.}
+enables analysis and quantification of whole cell interactomes.
+Furthermore, this method allows for identification of new RBPs through
+RNase treatment and density gradient ultracentrifugation. Subsequently,
+the resulting fraction shifts of proteins identified via mass
+spectrometry were analyzed using bioinformatic techniques
+(Caudron-Herger \emph{et al.}, 2019, Caudron-Herger \emph{et al.},
+2020).
 
-In this project, we aimed to identify RBPs and possible RBP candidates
-using bioinformatics in R. Beyond that, we hoped to discover crucial
-determining variables in our data hinting to RBPs without following our
-entire analysis protocol. We cross-referenced our results with
-established databases such as R-DeeP (\url{https://r-deep.dkfz.de/};
-Caudron Herger \emph{et al.}, 2019), UniProt
-(\url{https://www.uniprot.org/}) and RBP2GO
+In this project, we identified RBPs and possible RBP candidates using
+bioinformatics in R. Beyond that, we further identified contributing
+variables in our data differentiating RBPs without relying on our entire
+analysis protocol. We cross-referenced our results with known databases
+such as R-DeeP (\url{https://r-deep.dkfz.de/}; Caudron Herger \emph{et
+al.}, 2019), UniProt (\url{https://www.uniprot.org/}) and RBP2GO
 (\url{https://rbp2go.dkfz.de/}; Caudron-Herger \emph{et al.}, 2021). Our
-dataset focusing on of interphase synchronized HeLa S3 cells was
-obtained by the aforementioned method published by Caudron-Herger
-\emph{et al.}
+dataset focusing on interphase synchronized HeLa S3 cells was obtained
+by the method published by Caudron-Herger \emph{et al.} cited above.
 
 \newpage
 
@@ -167,36 +153,34 @@ obtained by the aforementioned method published by Caudron-Herger
 \subsection{Generation of the dataset}\label{generation-of-the-dataset}}
 
 Interphasic HeLa S3 cells were harvested and lyzed. The lyzate was split
-in two and one sample was treated with a RNase mixture (referred to as
-RNase (RNA)). The other sample was left untreated (referred to as
-control (ctrl)). Both samples were loaded onto a 5 \% to 25 \% sucrose
-density gradient, grouped in 25 fractions and separated using
-ultracentrifugation. For each condition, technical triplicates were
-generated. Each fraction was then analyzed using mass spectrometry.
-Proteins were identified using UniProt. The amount of protein per
-fraction, condition and replicate were stored in arbitrary units as a
-.csv-file (for full protocol see: Caudron-Herger \emph{et al.}, 2019).
+into two samples and one sample was treated with a RNase mixture,
+referred to as RNase (``RNA''). The other sample was left untreated,
+referred to as a control (``ctrl''). Both samples were loaded onto a 5
+\% to 25 \% sucrose density gradient, grouped in 25 fractions and
+separated using ultracentrifugation. For either sample, technical
+triplicates were generated. Each fraction was then analyzed using mass
+spectrometry. Proteins were identified using UniProt. The data for the
+amount of protein per fraction, condition and replicate was collected in
+arbitrary units and stored in a .csv-file (for full protocol see:
+Caudron-Herger \emph{et al.}, 2019).
 
 \hypertarget{clean-up-and-sorting-of-the-dataset}{%
 \subsection{Clean-Up and sorting of the
 dataset}\label{clean-up-and-sorting-of-the-dataset}}
 
-Using the R package tidyverse two separate data frames were generated
-containing either all untreated (\_ctrl) or RNase treated (\_RNA)
-replicates. Both data frames as well as the raw data set were screened
-for rows containing zeros only. Those rows were removed from the data
-frame and stored in a new data frame.
+Using the R package tidyverse, two separate data frames were generated
+containing either all untreated (``\_ctrl'') or RNase treated
+(``\_RNA'') replicates. Both data frames, as well as the raw data set,
+were screened for rows containing zeros only. Those zero rows were
+removed from the data frame and stored in a new data frame.
 
 \hypertarget{normalization}{%
 \subsection{Normalization}\label{normalization}}
 
-To rule out batch to batch effects and technical errors, the protein
-amount per replicate (Rep) and fraction (Frac) were normalized as well
-with regard to each condition.
-
-Normalization visualized by plotting protein distribution in both
-conditions prior to normalization in comparison to protein distribution
-after normalization.
+To rule out batch to batch effects and technical error, the protein
+amount per replicate (``Rep'') and fraction (``Frac'') were additionally
+normalized with respect to each sample.The normalized results were then
+visualized by plotting the protein distribution in both samples.
 
 \hypertarget{fraction-wise-normalization}{%
 \subsubsection{Fraction-wise
@@ -250,43 +234,43 @@ The mean and standard deviation of the triplicates for each protein in
 each fraction were calculated using the built-in functions
 \emph{mean()-}(\(\overline x\)) and \emph{sd()-function}\((\sigma)\) of
 R. Outliers were detected using \(\overline x \pm 3\sigma\) as a
-cut-off. All values below and above were replaced with NA and not
-considered in the following calculations.
+cut-off. All values below and above the three sigma cut-off were
+replaced with NA and not considered in the following calculations.
 
 \hypertarget{shapiro-wilk-test}{%
 \subsection{Shapiro-Wilk Test}\label{shapiro-wilk-test}}
 
 To test the normal distribution of the triplicate values, the
 Shapiro-Wilk test was chosen due to its high power in small populations
-in comparison to other tests. The test was performed using the built-in
-R function \emph{shapiro\_test()}.
+compared to other tests. The test was performed using the built-in R
+function \emph{shapiro\_test()}.
 
 \hypertarget{determination-of-maxima}{%
 \subsection{Determination of Maxima}\label{determination-of-maxima}}
 
-For all proteins, the global maximum for the RNase-treated and untreated
-sample was determined. For this purpose, the protein content (y-value)
-was compared to the two neighbors right and left of the analyzed
-fraction (x-position). For fractions 1 and 25 only the neighbors right
-or left of the fraction could be compared due to border limitations. For
-fractions 2 and 24 only one neighbor could be compared left or right.
-Obtained values were stored in a sperate data frame.
+We determined the global maximum for the RNase-treated and untreated
+sample for all proteins. The protein content (y-value) was compared to
+the two neighbors right and left of the analyzed fraction (x-position).
+For fractions 1 and 25 only the neighbors right or left of the fraction
+could be compared due to border limitations. For fractions 2 and 24 only
+one neighbor could be compared left or right. Obtained values were
+stored in a sperate data frame.
 
 \hypertarget{detection-of-protein-shifts}{%
 \subsection{Detection of Protein
 Shifts}\label{detection-of-protein-shifts}}
 
 In our analysis, we considered shifts in the global maximum comparing
-RNA-treated and untreated samples as a proxy for the presence of RNA.
-Those ``shifting proteins'' had to show both a significant x-shift and
+RNA-treated and untreated samples as a proxy for the presence of RNA. We
+required ``shifting proteins'' show both a significant x-shift and
 y-shift to improve precision.
 
 \hypertarget{x-shifts}{%
 \subsubsection{x-shifts}\label{x-shifts}}
 
-First, the x-position of the global maximum in both conditions was
-compared. To quantify the shift, the difference in the fraction number
-of the control group and the RNAse treated sample was calculated.
+First, we compared the x-position of the global maximum in both samples.
+To quantify the shift, we determined the difference in the fraction
+number of the control group and the RNase treated sample.
 
 \[x-shift = |fracs\_max\_ctrl| - |fracs\_max\_rnase|\]
 
@@ -322,19 +306,20 @@ treatment respectively. \emph{y-shift\_total} is the resulting value.
 \hypertarget{statistical-analysis}{%
 \subsection{Statistical analysis}\label{statistical-analysis}}
 
-To identify significant y-shifts, statistical analysis targeted the
-difference in the relative protein amount (y-value) for each protein in
-the global maximum fraction of RNase-treated and untreated samples. All
-proteins with x-shift values \(\geqq |1|\) were considered.
+To identify significant y-shifts, we used statistical analysis to
+determine the difference in the relative protein amount (y-value) for
+each protein in the global maximum fraction of RNase-treated and
+untreated samples. All proteins with x-shift values \(\geqq |1|\) were
+considered.
 
 \hypertarget{f-test}{%
 \subsubsection{F-Test}\label{f-test}}
 
-To test whether our sample variances are comparable and therefore
-suitable for significance analysis, a two-sided F-Test was performed on
-the triplicates of each protein and fraction using the built-in R
-function \emph{var.test()}. The significance level (p-value) was set to
-α = 0.01. The test was deemed positive if \(p-value > 0.01\).
+To determine whether our sample variances were comparable and therefore
+suitable for the two-tailed, unpaired t-test, a two-sided F-Test was
+performed on the triplicates of each protein and fraction using the
+built-in R function \emph{var.test()}. The significance level (p-value)
+was set to α = 0.01. The test was deemed positive if \(p-value > 0.01\).
 
 If \emph{var.test()} was performed on all zero samples, NA/NaN was
 returned. Therefore, the F-test filtered out those samples that were not
@@ -349,7 +334,7 @@ created labeld \emph{p\_value\_matrix}.
 \hypertarget{students-t-test}{%
 \subsubsection{Students T-Test}\label{students-t-test}}
 
-The two-tailed unpaired t-test was used to identify proteins with
+The two-tailed, unpaired t-test was used to identify proteins with
 significant y-value changes in global maxima x-positions after
 treatment. P-Values were calculated for each triplicate per protein per
 fraction using the built-in R function \emph{t.test()}. Fractions with a
@@ -369,8 +354,8 @@ for further analysis.
 y-shift}\label{identification-of-potential-rbps-by-analysis-of-x--and-y-shift}}
 
 Potential RBPs were selected by filtering out proteins with significant
-y-shift but no significant x-shift. To different cut-off conditions were
-tested.
+y-shift following the t-test but no significant x-shift in the global
+maxima. Two different cut-off conditions were tested.
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -380,30 +365,27 @@ tested.
   significant y-shift and x-shift \textless{} 2
 \end{enumerate}
 
-Proteins filtered by this method were removed from the data frame and
-stored separately for further analysis.
+Proteins filtered out by this method were removed from the data frame
+and stored separately for further analysis.
 
 \hypertarget{checking-for-false-positive-and-false-negative-results}{%
 \subsubsection{Checking for false positive and false negative
 results}\label{checking-for-false-positive-and-false-negative-results}}
 
-False positives and negatives were determined by cross-referencing the
-obtained proteins through our analysis with two data sets which were
-provided by Maiwen Caudron-Herger at Prof.~Dr.~Sven Diederichs Lab
-(DFKZ) (unpublished Data). The provided data sets contain further
-information about previously as RBP or non-RBP identified proteins by
-different researchers.
+False-positive and false-negative proteins were determined by
+cross-referencing with two data sets which were provided by Maiwen
+Caudron-Herger at Prof.~Dr.~Sven Diederichs Lab (DFKZ) (unpublished
+Data). The data contains information on RBPs and non-RBPs previously
+identified by different researchers.
 
 \hypertarget{identification-of-potential-rbd-proteins}{%
 \subsection{Identification of potential RBD
 Proteins}\label{identification-of-potential-rbd-proteins}}
 
 Potential RNA-binding dependent (RBD) protein candidates were identified
-by cross-referencing proteins determined as false positive with a data
-set provided by Maiwen Caudron-Herger at Prof.~Dr.~Sven Diederichs Lab
-(DFKZ) (unpublished Data). The provided data set contains further
-information about previously as RBD identified proteins by different
-researchers.
+by cross-referencing false-positive proteins with the data set provided
+by Maiwen Caudron-Herger at Prof.~Dr.~Sven Diederichs Lab (DFKZ)
+(unpublished Data).
 
 \hypertarget{k-means-clustering}{%
 \subsection{k-means clustering}\label{k-means-clustering}}
@@ -448,20 +430,18 @@ Sure-shifters: Sin3A\_HUMAN, HDAC1\_HUMAN, HNRPU\_HUMAN, RFC2\_HUMAN
 
 Non-shifters: ASNS\_HUMAN, MCM2\_HUMAN, MCM3\_HUMAN
 
-The conducted normalization process was successfully for sure-shifters
-as well as non-shifters because the obtained arbitrary values were
-converted into relative values and the overall distribution of protein
-amount per fraction is comparable to the distribution prior to
-normalization. Figure 2 highlights this with RFC2\_HUMAN (sure-shifter)
-and MCM2\_HUMAN (non-shifter) as example.
+Through normalization the arbitrary values were converted into relative
+percentage scale. Yet, the overall distribution of the protein amount
+per fraction remained comparable to the distribution prior to
+normalization. Therefore, the normalization worked for sure-shifters as
+well as non-shifters. For instance, figure 2 displays the normalization
+of a sure-shifter (RFC2\_HUMAN) and a non-shifter (MCM2\_HUMAN).
 
-\includegraphics{../../Figure2.PNG}
-
-\textbf{Figure 2: Example of normalization} (A): Comparison of the
-sure-shifter RFC2\_HUMAN prior to and post normalization. (B):
+\textbf{Figure 2: Comparing pre and post normalization} (A): Comparison
+of the sure-shifter RFC2\_HUMAN prior to and post normalization. (B):
 Comparison of the non-shifter MCM3\_HUMAN prior to and post
-normalization. For both selected proteins the overall distribution trend
-is comparable.
+normalization. For both selected proteins, the overall trend of
+distribution remains comparable.
 
 \hypertarget{calculation-of-mean-sd-and-shapiro-wilk-test}{%
 \subsection{Calculation of mean, sd and Shapiro-Wilk
@@ -515,7 +495,7 @@ proteins. In comparison, the cut-off \textgreater2 for the x-shift
 allowed us to identify 398 true RBP with 91 false-positives out of 489
 total. Of the 91 false-positives six were identified with
 cross-referencing as RBD proteins. The six identified proteins were
-identical for both cut-off parameters, and (see Tab.1, data frames
+identical for both cut-off parameters (see Tab.1, data frames
 \emph{RBD\_true\_port\_df1} and \emph{RBD\_true\_prot\_df2}).
 
 In both cases, about 80\% of identified RBP were correct when
@@ -523,21 +503,30 @@ cross-referenced. Since the \textgreater1 x-shift cut-off did not worsen
 this quote but instead delivered more results overall (636 compared to
 489), \textgreater1 x-shift cut-off is used for our analysis.
 
-\hypertarget{table.1-amount-of-identified-rbps-true-rbp-quantification-results-after-cross-referencing-obtained-proteins-with-the-additional-data-provided-by-caudron-herger.-tp-true-positive-tn-true-negative-fp-false-positive-fn-false-negative}{%
-\subsection{\texorpdfstring{\textbf{Table.1: Amount of identified RBPs:}
-True RBP quantification results after cross-referencing obtained
-proteins with the additional data provided by Caudron-Herger. TP = True
-positive, TN = True negative, FP = False positive, FN = False
-negative}{Table.1: Amount of identified RBPs: True RBP quantification results after cross-referencing obtained proteins with the additional data provided by Caudron-Herger. TP = True positive, TN = True negative, FP = False positive, FN = False negative}}\label{table.1-amount-of-identified-rbps-true-rbp-quantification-results-after-cross-referencing-obtained-proteins-with-the-additional-data-provided-by-caudron-herger.-tp-true-positive-tn-true-negative-fp-false-positive-fn-false-negative}}
+\textbf{Table.1: Amount of identified RBPs:} True RBP quantification
+results after cross-referencing obtained proteins with the additional
+data provided by Caudron-Herger. TP = True positive, TN = True negative,
+FP = False positive, FN = False negative.
 
+\begin{longtable}[]{@{}l@{}}
+\toprule
+\endhead
 Criteria \textbar{} x-Shift \textgreater{} 1 \textbar{} x-shift
-\textgreater{} 2 \textbar{} Total identified \textbar{} 636 \textbar{}
-489 \textbar{} TP \textbar{} 513 \textbar{} 398 \textbar{} FP \textbar{}
-120\textbar{} 91 \textbar{} RBD\textbar{} 6 \textbar{} 6\textbar{} ---
+\textgreater{} 2 \textbar{} \\
+Total identified \textbar{} 636 \textbar{} 489 \textbar{} \\
+TP \textbar{} 513 \textbar{} 398 \textbar{} \\
+FP \textbar{} 120\textbar{} 91 \textbar{} \\
+RBD\textbar{} 6 \textbar{} 6\textbar{} \\
+\bottomrule
+\end{longtable}
+
+\hypertarget{k-means-clustering-and-regression-model}{%
+\subsection{K-Means Clustering and Regression
+model}\label{k-means-clustering-and-regression-model}}
 
 \hypertarget{discussion}{%
 \section{Discussion}\label{discussion}}
 
-\textbackslash end\{document\}
+Lorem ipsum
 
 \end{document}
