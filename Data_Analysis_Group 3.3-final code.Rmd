@@ -824,7 +824,7 @@ maxi_RNase <- apply(q_HeLa_mat,1, max)
 mean <- rowMeans(q_HeLa_mat)
 x_abs <- abs(x_shifts)
 q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
-abs_max_both_q <- cbind(abs_max_both, maxi_RNase, x_abs, mean,q_mat_sums)
+abs_mat_both_q <- cbind(abs_max_both, maxi_RNase, x_abs, mean,q_mat_sums)
 ```
 
 With the new variables, we created three clusters to predict RBPs.
@@ -942,6 +942,11 @@ length(True_RBP_t)
 
 # How many cluster true RBP also in statistical test true RBP?
 table(True_RBP_BC %in% True_RBP_t)
+
+# How many cluster RBP also in statistical test RBP?
+length(Cluster_BC)
+length(RBP_t)
+table(Cluster_BC %in% RBP_t)
 ```
 About half of true RBP identified via clustering also identified via statistical tests.
 
@@ -978,18 +983,18 @@ Based on the x-shifts, we plotted our proteins as three groups: Those with x-shi
 i <- c(1:7081)
 ID <- c()
 for(x in i){
-ID[x] <- if (abs_max_both_q$x_shifts[x] == 0){abs_max_both_q$ID[x] =1 # x-shift = 0
-} else if(abs_max_both_q$x_shifts[x] > 0){abs_max_both_q$ID[x] =2 # x-shift > 0
-} else {abs_max_both_q$ID[x] =3} # x-shift < 0 
+ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1 # x-shift = 0
+} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2 # x-shift > 0
+} else {abs_mat_both_q$ID[x] =3} # x-shift < 0 
 }
 # Plot all proteins
-control_fraction <- as.matrix(abs_max_both_q$fracs_ctrl)
-RNase_fraction <- as.matrix(abs_max_both_q$fracs_RNase)
+control_fraction <- as.matrix(abs_mat_both_q$fracs_ctrl)
+RNase_fraction <- as.matrix(abs_mat_both_q$fracs_RNase)
 cols <- c(1,3)
 
 colors <- c("right_shifters" = "green", "left_shifters" = "red", "non_shifters" = "black")
 
-p_all <- ggplot(abs_max_both_q[,cols], aes(x = RNase_fraction, y=control_fraction, color = ID, show.legend = TRUE)) +
+p_all <- ggplot(abs_mat_both_q[,cols], aes(x = RNase_fraction, y=control_fraction, color = ID, show.legend = TRUE)) +
 geom_point(color = ID) +
   geom_density_2d(alpha = 0.5)+
   scale_colour_manual(values = colors)
@@ -1011,10 +1016,10 @@ proteins <- c(1:7081)
 samples.numbers.training <- sample(proteins,5000)
 samples.numbers.test <- proteins[-c(samples.numbers.training)]
 
-random.samples.training <- abs_max_both_q[samples.numbers.training,c(5,9,12)]
+random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,12)]
 colnames(random.samples.training) <- c("x","max","sum")
 
-random.samples.test <- abs_max_both_q[samples.numbers.test,c(5,9,12)]
+random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,12)]
 colnames(random.samples.test) <- c("x","max","sum")
 
 modell <- lm(x ~ sum + max  , data = random.samples.training )
@@ -1106,12 +1111,22 @@ non_shifters <- c("ASNS_HUMAN", "ASNS_HUMAN", "MCM3_HUMAN")
 # t-test
 table(shifters %in% RBP_t)
 table(non_shifters %in% Non_RBP_t)
+table(non_shifters %in% RBP_t) # non-shifters in shifters?
+non_shifters[non_shifters %in% RBP_t]
 
 # Clustering
 table(shifters %in% Cluster_BC)
 table(non_shifters %in% Cluster_A)
+table(non_shifters %in% Cluster_BC) # non-shifters in shifters?
 
 # Regression
 table(shifters %in% RBP_regression)
 table(non_shifters %in% non_RBP_regression)
+table(non_shifters %in% RBP_regression) # non-shifters in shifters?
 ```
+
+
+```{r}
+compare_pre_post("MCM3_HUMAN", 40000000, 30)
+```
+
