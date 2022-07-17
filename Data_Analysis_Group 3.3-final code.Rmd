@@ -141,7 +141,7 @@ HeLa_RNase1 = HeLa_RNase_colnorm %>% select(contains("Rep1"))
 HeLa_RNase2 = HeLa_RNase_colnorm %>% select(contains("Rep2"))
 HeLa_RNase3 = HeLa_RNase_colnorm %>% select(contains("Rep3"))
 
-# Creating function that scales the protein amount in each replicate per fraction to 100
+# Create function that scales the protein amount in each replicate per fraction to 100
  rowPercent <- function(dataframe){
      dt <- dataframe
      lastrow <- dim(dataframe)[1]
@@ -151,7 +151,7 @@ HeLa_RNase3 = HeLa_RNase_colnorm %>% select(contains("Rep3"))
     else dt[i,] <- (dataframe[i,]/RowSum)*100    } 
      return(dt)}
  
-# Apply the created function
+# Apply created function
 Norm_HeLa_Ctrl1 <- rowPercent(HeLa_Ctrl1)
 Norm_HeLa_Ctrl2 <- rowPercent(HeLa_Ctrl2)
 Norm_HeLa_Ctrl3 <- rowPercent(HeLa_Ctrl3)
@@ -168,8 +168,8 @@ Norm_HeLa <- cbind(Norm_HeLa_Ctrl1, Norm_HeLa_Ctrl2, Norm_HeLa_Ctrl3, Norm_HeLa_
 Next, data frames for each individual fraction and treatment option are created, containing the triplicate values for each protein. 
 
 They follow the naming convention: 
-- Fraction1_Ctrl for the triplicate values of first fraction of the control group
-- Fraction_8_RNase for the triplicate values of eighth fraction of the RNase treated sample
+- Fraction1_Ctrl for the triplicate values of the first fraction of the control group
+- Fraction_8_RNase for the triplicate values of the eighth fraction of the RNase treated sample
 
 ```{r  Fractions}
 #select the fractions
@@ -193,6 +193,8 @@ for (i in c(1:50)) {
 ```
 
 ## Calculate means of triplicates with one sigma cut-off
+
+When calculating the mean value of a triplicate, sometimes outlier values in a triplicate obscured the likely true mean value for a fraction. Therefore, we excluded all values in a triplicate that differed more then one sigma from the calculated mean of all three replicates.  
 
 ```{r Mean}
 # Create function to calculate mean and exclude triplicate values failing one sigma cut-off
@@ -259,14 +261,16 @@ mean_RNase25 <- apply(Fraction25_RNase, 1,mean_sd)
 # Create seperate dataframe with mean for ctrl and RNase
 mean_HeLa <- data.frame(mean_Ctrl1, mean_RNase1, mean_Ctrl2, mean_RNase2, mean_Ctrl3,mean_RNase3, mean_Ctrl4, mean_RNase4,  mean_Ctrl5, mean_RNase5, mean_Ctrl6, mean_RNase6, mean_Ctrl7, mean_RNase7, mean_Ctrl8, mean_RNase8, mean_Ctrl9, mean_RNase9, mean_Ctrl10, mean_RNase10, mean_Ctrl11, mean_RNase11, mean_Ctrl12, mean_RNase12, mean_Ctrl13, mean_RNase13, mean_Ctrl14, mean_RNase14, mean_Ctrl15, mean_RNase15, mean_Ctrl16, mean_RNase16, mean_Ctrl17, mean_RNase17, mean_Ctrl18, mean_RNase18, mean_Ctrl19, mean_RNase19, mean_Ctrl20, mean_RNase20, mean_Ctrl21, mean_RNase21, mean_Ctrl22, mean_RNase22, mean_Ctrl23, mean_RNase23, mean_Ctrl24, mean_RNase24, mean_Ctrl25, mean_RNase25)
 
-rm(mean_Ctrl1, mean_RNase1, mean_Ctrl2, mean_RNase2, mean_Ctrl3,mean_RNase3, mean_Ctrl4, mean_RNase4,  mean_Ctrl5, mean_RNase5, mean_Ctrl6, mean_RNase6, mean_Ctrl7, mean_RNase7, mean_Ctrl8, mean_RNase8, mean_Ctrl9, mean_RNase9, mean_Ctrl10, mean_RNase10, mean_Ctrl11, mean_RNase11, mean_Ctrl12, mean_RNase12, mean_Ctrl13, mean_RNase13, mean_Ctrl14, mean_RNase14, mean_Ctrl15, mean_RNase15, mean_Ctrl16, mean_RNase16, mean_Ctrl17, mean_RNase17, mean_Ctrl18, mean_RNase18, mean_Ctrl19, mean_RNase19, mean_Ctrl20, mean_RNase20, mean_Ctrl21, mean_RNase21, mean_Ctrl22, mean_RNase22, mean_Ctrl23, mean_RNase23, mean_Ctrl24, mean_RNase24, mean_Ctrl25, mean_RNase25)
-
-
 HeLa_Ctrl_mean = mean_HeLa %>% select(contains("Ctrl"))
 HeLa_RNase_mean = mean_HeLa %>% select(contains("RNA"))
+
+# Remove excess objects
+rm(mean_Ctrl1, mean_RNase1, mean_Ctrl2, mean_RNase2, mean_Ctrl3,mean_RNase3, mean_Ctrl4, mean_RNase4,  mean_Ctrl5, mean_RNase5, mean_Ctrl6, mean_RNase6, mean_Ctrl7, mean_RNase7, mean_Ctrl8, mean_RNase8, mean_Ctrl9, mean_RNase9, mean_Ctrl10, mean_RNase10, mean_Ctrl11, mean_RNase11, mean_Ctrl12, mean_RNase12, mean_Ctrl13, mean_RNase13, mean_Ctrl14, mean_RNase14, mean_Ctrl15, mean_RNase15, mean_Ctrl16, mean_RNase16, mean_Ctrl17, mean_RNase17, mean_Ctrl18, mean_RNase18, mean_Ctrl19, mean_RNase19, mean_Ctrl20, mean_RNase20, mean_Ctrl21, mean_RNase21, mean_Ctrl22, mean_RNase22, mean_Ctrl23, mean_RNase23, mean_Ctrl24, mean_RNase24, mean_Ctrl25, mean_RNase25)
 ```
 
 ## Calculate how many values failed one sigma cut-off
+
+For the analysis, we quantified how many replicate values were excluded. 
 
 ```{r One sigma cut-off total}
 # Function to test how many values fail one sigma cut-off
@@ -582,8 +586,8 @@ trash_F_FALSE <- unique(c(row.names(F_FALSE_ctrl), row.names(F_FALSE_RNase)))
 length(trash_F_FALSE)
 
 # Selecting NA proteins
-F_NA_ctrl <- abs_max_both[which(is.na(F_max_ctrl_1)), ]
-F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase_1)), ]
+F_NA_ctrl <- abs_max_both[which(is.na(F_max_ctrl)), ]
+F_NA_RNase <- abs_max_both[which(is.na(F_max_RNase)), ]
 
 trash_F_NA <- unique(c(row.names(F_NA_ctrl), row.names(F_NA_RNase)))
 length(trash_F_NA)
@@ -701,7 +705,7 @@ abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_
 abs_max_both_x_y_1
 
 # All proteins that entered analysis
-All_potential_candidates <- row.names(F_C)
+All_potential_candidates <- row.names(F_ctrl_norm)
 
 # Results t-test
 RBP_t <- c(rownames(abs_max_both_x_y_1)) # Proteins passing t-test = RBP
@@ -1051,4 +1055,28 @@ length(False_RBP_true_RBD_reg)
 
 ( length(True_non_RBP_reg) / length(non_RBP_regression) ) * 100 # True negative quote
 ( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
+```
+
+
+## Check on 7 previously selected control proteins
+
+Lastly, we wanted to check, if the methods were able to correctly identify our selected shifters and non-shifters.
+
+```{r}
+# Shifters
+shifters <- c("SIN3A_HUMAN", "HDAC1_HUMAN", "HDAC2_HUMAN", "RFC2_HUMAN")
+# Non-Shifters
+non_shifters <- c("ASNS_HUMAN", "ASNS_HUMAN", "MCM3_HUMAN")
+
+# t-test
+table(shifters %in% RBP_t)
+table(non_shifters %in% Non_RBP_t)
+
+# Clustering
+table(shifters %in% Cluster_BC)
+table(non_shifters %in% Cluster_A)
+
+# Regression
+table(shifters %in% RBP_regression)
+table(non_shifters %in% non_RBP_regression)
 ```
