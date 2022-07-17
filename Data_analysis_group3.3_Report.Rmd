@@ -147,7 +147,7 @@ Through normalization the arbitrary values were converted into relative percenta
 <center>
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
-include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\R\\2022-topic-03-team-03\\Figure2.png")
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 ```
 </center>
 **Figure 1: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
