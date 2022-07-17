@@ -104,11 +104,11 @@ False-positive and false-negative proteins were determined by cross-referencing 
 
 Precision is defined as:
 
-$precision = \frac{TP}{TP+FP}$
+$$precision = \frac{TP}{TP+FP}$$
 
 Accuracy is defined as: 
 
-$accuracy = \frac{TP+TN}{TP+TN+FP+FN}$
+$$accuracy = \frac{TP+TN}{TP+TN+FP+FN}$$
 
 TP = True positives, FP = False positives, TN = True negatives, FN = False negatives
 
@@ -163,7 +163,7 @@ The obtained x- and y-shifts, as well as the fractions of the global maxima, shi
 
 The two-tailed unpaired t-test was applied to the remaining 5885 proteins per triplicate in the ctrl vs RNase treatment. P-Values were checked for significance at previous determined maxima positions. We identified 2929 potential shifters. Only 5838 proteins were annotated in the data set used for cross-referencing. The RBP prediction of these 5838 proteins was analyzed. The x-shift > 1 cut-off allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 identified RBP in total. Of the 121 false-positives, six were identified via cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed, 3600 proteins were false-negatives (FN) and 1614 were true-negatives (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2C**)
 
-With the t-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters. Additionally, MCM3_HUMAN - a belived non-shifter - was identified as an RBP with a significant shift. 
+With the t-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters. Additionally, MCM2_HUMAN - a belived non-shifter - was identified as an RBP with a significant shift. 
 
 ## K-Means Clustering
 
@@ -171,7 +171,7 @@ The clustering analysis concluded that 73.88 % of our data was represented. Valu
 
 The clustering analysis was conducted with three clusters (see **Fig. 2B**). For cluster 1 (in methods as cluster C) 53 true RBP (TP = 96.4%) and 2 false RBP (FP = 3.6%) were detected. Cluster 2 (B) presented a similar accuracy of 318 true RBP (TP = 96.7%) and 10 false RBP (FP = 3.1%). Therefore, we decided to combine cluster B and C, as both accurately predicted true RBPs. 
 
-For the combined cluster BC, 384 RBP were identified. 371 (TP = 96,6%) were true RBP and 12 false RBP (FP = 3,1%)  were found. One RBD was detected out of the false-RBP proteins. For cluster 3 (A) 2557 true non-RBP (38.2%) and 4089 false RBP (61.1%) were detected.  The results are displayed in **Fig. 2C - Clustering**. 
+For the combined cluster BC, 384 RBP were identified. 371 (TP = 96,6%) were true RBP and 12 false RBP (FP = 3,1%)  were found. One RBD was detected out of the false-RBP proteins. For cluster 3 (A) 2557 true non-RBP (TN = 38.2%) and 4089 false non-RBP (FN =61.1%) were detected. The results are displayed in **Fig. 2C**. This results in a precision of 96.87 % and an accuracy of 41.66 %.
 
 With the clustering, we detected none of our previously selected sure-shifters and all non-shifters.
 
@@ -181,13 +181,9 @@ Comparison of the identified true RBP via clustering and statistical analysis sh
 
 ## Linear Regression model
 
-Since the regression takes different random proteins for the training every time, the shown results were generated once. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (TP = 59,4%) turned out as true RBPs and 347 (FP = 39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (TN = 39.2%) were true non-RBPs while 709 (FN = 59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C - Linear Regression**. 
+Since the regression takes different random proteins for the training every time, the shown results were generated once. $R^2= 0.2266$. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (TP = 59,4%) turned out as true RBPs and 347 (FP = 39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (TN = 39.2%) were true non-RBPs while 709 (FN = 59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C**. This results in a precision of 60.21 % and an accuracy of 48.51 %. With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
 
-With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
-
-## Linear Regression vs. Statistical analysis
-
-## Linear Regression vs. Clustering
+## Comapring Statistical analysis vs Clustering vs. Linear Regression
 
 
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
@@ -197,9 +193,23 @@ include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure3.PNG")
 **Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima were plotted against each other, proteins can be classified as either right-shifter (green), left-shifter (red) or non-shifter (black). Density (blue) indicates that most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of identification results for Shift based identification = Shift identification, Linear Regression model and k-means clustering.
 
 # Discussion
+Our analysis allows us to detect potential RBPs that shift more than one fraction and accumulate in a single fraction after treatment with RNase. Our method only allowed us to detect absolute x-shifting values because we decided not to smoothen our data and did not apply a gaussian fit model. Therefore we were not able to detect RBPs that shift less then one absolute fractions. For example RBP2_HUMAN. RBP2_HUMAN is listed as an RBP in R-DeeP but only shifts for 0.1 fractions. Our method failed to detect this marginal shift. Another reason why we were not able to detect  this protein is that the chosen sample preparation method is not suited for this protein. A more fine density gradient could potentially result in a higher resolution able to detect the shift.
+
+Furthermore we only apply our selection method on global maxima. This result in the inability to select proteins which only within local maxima fractions or where the global maxima is not the shifting fraction upon treatment with RNase which results in an TRUE/FALSE y-shift t-test. For example HDAC1_HUMAN (see R-DeeP Database). This results in a moderate precision (80.91 %) and a low accuracy for our analysis method of choice.
+
+Our Clustering has the highest precision (96.87 % compared to 80.91 % and 60.21 %) of all applied models. Therefore Proteins which are located in Cluster B and C can be precisely identified as RBPs. Not proteins all proteins were located in these Clusters which displayed by our poor accuracy of 41.66 %. The accuracy of the clustering can be enhanced by choosing other clustering variables.
+
+The trained linear regression model displayed a low precision of 60.21 % and also a low accuracy of 48.51 %. This caused by our poor $R^2$ of 0.2266 which results in severe under-fitting. Therefore the assignment of our 2081 proteins for model testing is not good and since the proteins are randomly selected it might happen that RBPS are over and under represented in the training cohort of our model.
+
+All these aforementioned values do not add up to 100 % because only proteins that were listed in the provided data sets were cross-referenced. Therefore it might be that some potential RBPs are not detected and classified at all.
 
 
+
+Regarding the in the beginning of our analysis selected and clasifed sure-shifters and non-shifters, Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN and ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN respectively all are listed as RBPs but obtained by a different method as published by Caudron-Herger *et al.*.Our method of analysis enabled us to detect one formerly as non-shifter classified RBP MCM2_HUMAN.
+
+MCM2 serves as a S-Phase 
 \newpage
+
 # References
 
 Caudron-Herger, M., Jansen, R.E., Wassmer, E., and Diederichs, S. (2021). RBP2GO: a comprehensive pan-species database on RNA-binding proteins, their interactions and functions. Nucleic Acids Research 49.
