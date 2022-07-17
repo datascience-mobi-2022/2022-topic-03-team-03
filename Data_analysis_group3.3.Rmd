@@ -1605,5 +1605,4 @@ So some proteins may at least be RNA-dependent although not RNA-binding.
 
 ( length(True_non_RBP_reg) / length(non_RBP_regression) ) * 100 # True negative quote
 ( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
-
 ```
