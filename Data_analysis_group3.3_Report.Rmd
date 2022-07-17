@@ -183,13 +183,15 @@ With the clustering, we detected none of our previously selected sure-shifters a
 
 Comparison of the identified true RBP via clustering and statistical analysis shows, that out of 371 RBP from the clustering analysis, 189 (50,9%) were not identified by the statistical tests with more identified RBP overall. 182 (49,1%) true RBP identified via clustering were also identified by the statistical tests.
 
+After combination of Cluster Band C out of 5398 unique proteins identified with both methods 183 true RBP were identical. 8 true non-RBPs, 3597 proteins falsely classified non-RBPs and 1610 proteins falsely classified RBPs were the same.
+
 ## Linear Regression model
 
 Since the regression takes different random proteins for the training every time, the shown results were generated once. $R^2= 0.2266$. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (TP = 59,4%) turned out as true RBPs and 347 (FP = 39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (TN = 39.2%) were true non-RBPs while 709 (FN = 59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C**. This results in a precision of 60.21 % and an accuracy of 48.51 %. With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
 
 ## Connecting Statistical analysis, Clustering and Linear Regression
 
-2923 unique proteins all our methods resulted in the same classification.  723 True RBPs (TP), 478  non RBPs were classifed as actual non-RBPs (TN). 1020 proteins were falsely identified as true RBPs (FP) and  702 RBPs were not identified as RBPs (FN). This results in an overall precision of 41.48% and an accuracy of 41.09%.
+2923 unique proteins all our methods resulted in the same classification.  723 True RBPs, 478  non RBPs were classifed as actual non-RBPs. 1020 proteins were falsely identified as true RBPs and  702 RBPs were not identified as RBPs. 
 
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
@@ -213,6 +215,8 @@ The trained linear regression model worked with a low precision of 60.21 % and l
 Since the proteins are randomly selected, RBPS might be over- and under-represented in the training cohort of our model.
 
 Most of the identified RBPs plus the identified non-RBPs do not add up to 100 %. This is because  proteins listed in the provided data sets were cross-referenced only. For this reason, some potential RBPs were not evaluated and therefore not properly classified.
+
+
 
 Looking back at our previously selected and classified sure-shifters and non-shifters -  Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN and ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN - all are listed as RBPs on R-DeeP. However, some were classified as non-shifters by Caudron-Herger *et al.*. Our method detected one of those proteins formerly classified as a non-shifter - RBP MCM3_HUMAN.
 
