@@ -2,8 +2,15 @@
 title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells"
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "`r Sys.Date()`"
+<<<<<<< Updated upstream
 output: 
     html_document: default
+=======
+output:
+  word_document: default
+  html: default
+  pdf_document: default
+>>>>>>> Stashed changes
 df_print: paged
 ---
 ```{r setup, include=FALSE}

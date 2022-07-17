@@ -114,7 +114,7 @@ rm(ColSumme, maxcolsums, Quotient)
 
 ## Rep-wise normalization
 ```{r split reps}
-#Sorting the data set to select replicates mor easily
+#Sorting the data set to select replicates 
 # Control
 HeLa_Ctrl_colnorm = Hela_Col_Norm %>% select(contains("Ctrl")) 
 HeLa_Ctrl1 = HeLa_Ctrl_colnorm %>% select(contains("Rep1"))
@@ -943,75 +943,54 @@ The quotes do nod add up to 100 % because two proteins were not listed in the us
 Cluster 3 therefore shows at least 83 % true positive RBPs and compares to the precision of the t-test analysis.
 
 
-## Tests for linear regression
-
-```{r}
-
-cor(abs_max_both)
-
-plot(abs_max_both$y_shifts, abs_max_both$shifts)
-
-plot (abs_max_both)
-  
-cor(sums20_value, abs_max_both$y_shifts2)
-```
-
-
-```{r}
-#Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20 (around 900 proteins).
-likely_shifters <- proteinnames[sums20_index]
-likely_shifters
-```
-
-```{r}
-modell <- lm(x_shifts ~ maxi_RNAse)
-summary(modell)
-
-plot(maxi_RNAse, x_shifts, col ="blue", abline(modell), xlim = c(1, 100), ylim = c(1, 25))
-```
-
+#Linear regression 
 ```{r linear regression}
+
+#select proteins to train the model
 proteins <- c(1:7081)
 samples.numbers.training <- sample(proteins,5000)
 samples.numbers.test <- proteins[-c(samples.numbers.training)]
 
+random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,12)]
+colnames(random.samples.training) <- c("x","max","sum")
 
-random.samples.training <- abs_mat_both_q[samples.numbers.training,c(5,9,11,12,13)]
-colnames(random.samples.training) <- c("x","max","mea","sum","min")
+random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,12)]
+colnames(random.samples.test) <- c("x","max","sum")
 
-random.samples.test <- abs_mat_both_q[samples.numbers.test,c(5,9,11,12,13)]
-colnames(random.samples.test) <- c("x","max","mea","sum","min")
+#train the model 
+modell <- lm(x ~ sum + max, data = random.samples.training )
 
-modell <- lm(x ~ sum + mea  + max  , data = random.samples.training )
 summary(modell)
 
-plot(x_abs, maxi_RNAse, col ="blue", abline(modell))
+plot(random.samples.training$x,random.samples.training$max, col ="blue", abline(modell), ylim = c(0,15), xlab = "x-shift", ylab = " Maximum of quotients")
+plot(random.samples.training$x,random.samples.training$sum, col ="blue", abline(modell), ylim = c(0,15), xlab = "x-shift", ylab = "Sums of quotients"
+     
+```
 
-``` 
+## test regression 
+```{r test the regression}
+# use model to predict x-shifts for the test set
+predicted.x_shifts <- predict(modell, newdata = random.samples.test)
 
-```{r}
-
-c <- predict(modell, newdata = random.samples.test)
-
+# analyse predicted values 
 i <- c(1:2081)
 shift_direction.regression <- c()
-for(x in i){shift_direction.regression[x] <- if(c[x] < 1) {'no shift'
+for(x in i){shift_direction.regression[x] <- if(predicted.x_shifts[x] < 1) {'no shift'
 }else  {'shift'}
 }
 
-shifters <- x_shifts[samples.numbers.test]
+# identified x-shifts with the code
+x_shifters <- x_shifts[samples.numbers.test]
 shift_direction.code <- c()
-for(x in i){shift_direction.code[x] <- if(shifters[x] == 0) {'no shift'
+for(x in i){shift_direction.code[x] <- if(x_shifters[x] == 0) {'no shift'
 }else  {'shift'}
 }
 
-compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shifters, shift_direction[samples.numbers.test])
+# compare code and regression results 
+compare <- cbind(predicted.x_shifts, x_abs[samples.numbers.test], shift_direction.regression, shift_direction.code)
 
 compare.shifts <- (shift_direction.regression[i] == shift_direction.code[i])
 
-
 length (which(compare.shifts == TRUE))
 length (which(compare.shifts == FALSE))
-
-
 ```
