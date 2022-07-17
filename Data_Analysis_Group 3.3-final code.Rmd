@@ -689,14 +689,15 @@ For the next analysis, we further filtered out significant y-shifters that showe
 trash_no_x_1 <- c(rownames(abs_max_both_t_y0[which(abs(abs_max_both_t_y0$x_shifts) < 2), ]))
 abs_max_both_x_y_1 <- abs_max_both_t_y0[!rownames(abs_max_both_t_y0) %in% trash_no_x_1, ]
 abs_max_both_x_y_1
-nrow(abs_max_both_x_y_1)
 
 # All proteins that entered analysis
-All_potential_candidates <- row.names(HeLa_Ctrl_Norm)
+All_potential_candidates <- row.names(F_ctrl_norm)
 
 # Results t-test
 RBP_t <- c(rownames(abs_max_both_x_y_1)) # Proteins passing t-test = RBP
 Non_RBP_t <- All_potential_candidates[!All_potential_candidates %in% RBP_t] # Proteins failing t-test = non-RBP
+length(RBP_t)
+length(Non_RBP_t)
 ```
 
 ```{r}
