@@ -1,5 +1,5 @@
 ---
-title: "Proteome wide screen for RNA-dependent Proteins in interphase synchronized HeLa cells"
+title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells"
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "18.07.2022"
 output:
@@ -15,7 +15,6 @@ knitr::opts_chunk$set(echo = TRUE)
 **Abstract** Unraveling the protein-RNA interactome poses a highly dynamic field of research. Several approaches were undertaken and numerous RNA-binding and RNA-interacting proteins have been identified. Harnessing bioinformatics and statistical analysis, we propose a simple and swift way to screen RNA-protein interactome data for RNA-binding proteins obtained by sucrose gradient ultra-centrifugation. We included t-tests, k-means and linear regression modelling in our analysis. Efficiency of these methods is proven through the successful identification of MCM3 as a potential RBP. This was possible, because our unique data set consists of HeLa cells synchronized in the interphase of the cell cycle. Furthermore, we confirmed the detection of other previously identified RPBs.
 
 ****
-
 # Introduction
 
 RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). The opposite is also true, studies have shown that proteins need RNA for their catalytic activity, for instance in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA sequences depend on proteins for their synthesis and stability (Kishore *et al.*, 2010). A family of proteins which illustrates this symbiotic relationship are the RNA-binding proteins (RBPs). RBPs present a class of proteins whose interactome depends on RNA. They were shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022), and genetic disease (Gebauer *et al.*, 2021). Therefore, a deeper understanding of RNA binding and RNA-protein interaction strengthens our ability to adjust and manipulate the cellular mechanisms affected.
@@ -100,7 +99,7 @@ The two-tailed, unpaired t-test was used to identify proteins with significant y
 Since the t-test was performed on y-values of x-positions of global maxima for both conditions separately, the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for the ctrl and RNase maxima. Only proteins with positive t-tests (p-value < 0.01) for the global maximum in both conditions (TRUE/TRUE) were considered for further analysis.
 
 ## Identification of potential RBPs by analysis of x- and y-shift
-Potential RBPs were selected by filtering out proteins with significant y-shifts following the t-test but no significant x-shift in the global maxima fractions. The Cut-off condition was defined as: Significant y-shift and x-shift > 1.
+Potential RBPs were selected by filtering out proteins with significant y-shift following the t-test but no significant x-shift in the global maxima. Cut-Off conditions was defined as: significant y-shift and x-shift < 1.
 
 Proteins filtered out by this method were removed from the data frame and stored separately for further analysis.
 
@@ -109,11 +108,11 @@ False-positive and false-negative proteins were determined by cross-referencing 
 
 Precision is defined as:
 
-$$precision = \frac{TP}{TP+FP}$$
+$precision = \frac{TP}{TP+FP}$
 
 Accuracy is defined as: 
 
-$$accuracy = \frac{TP+TN}{TP+TN+FP+FN}$$
+$accuracy = \frac{TP+TN}{TP+TN+FP+FN}$
 
 TP = True positives, FP = False positives, TN = True negatives, FN = False negatives
 
@@ -121,10 +120,10 @@ TP = True positives, FP = False positives, TN = True negatives, FN = False negat
 Potential RNA-binding dependent (RBD) protein candidates were identified by cross-referencing false-positive proteins with the data set provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). 
 
 ## k-means clustering
-Using the libraries *corrplot*, *cluster* and *factoextra*, k-means clustering was conducted using the k-means algorithm. First, we defined a function that calculates the quotient by the following equation to all proteins.
+Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. First we defined a function that applies the following equation to all proteins
 
 $$Quotient =  \frac{mean\_RNase(Protein)}{mean\_ctrl(Protein)}$$
-The resulting values were stored in a matrix labeled *q_Hela_mat*. *mean_RNase(Protein)* describes the mean value for each protein and fraction in the RNase treated sample. *mean_ctrl(Protein)* describes the mean value for each protein and fraction in the ctrl sample. Then, we selected the maximum value (*maxi_RNase*) for each protein and calculated the overall quotient sum (*q_mat_sums*) for each protein and sample. These values were stored in the data frame *abs_max_both_q*.
+The resulting values were stored in a matrix labeld *q_Hela_mat*. *mean_RNase(Protein)* describes the mean value for each protein and fraction in RNase condition. *mena_ctrl(Protein)* describes the mean value for each protein and fraction in ctrl condition  Then we selected the maximum value (*maxi_RNase*) for each protein and also calculated the overall quotient sum (*q_mat_sums*) for each protein and condition. These values were stored in the data frame *abs_mat_both_q*
 
 Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to determine the optimal cluster number. With the built-in R function *k-means()* we clustered our proteins using the previous determined variables *q_mat_sums* and *maxi_RNase* into three clusters.
 
@@ -134,97 +133,57 @@ Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to
 
 **Cluster C** Sure-shifter
 
-To check the quality of our clustering, we created another silhouette plot using *factoextra*. To check our clustering results, we cross-referenced our determined RBP using our four functions including *Find_true_RBP*. 
-
+To check the quality of our clustering we created different silhouette plot using *factoextra*. To further analyse the results of our clustering we applied the functions created for cross-referencing our x-shift results. 
 ## Linear regression analysis
 
-To train our linear regression model, we selected 5000 random proteins from our raw data set. For these proteins, we took the values *maxi_RNase* and *q_mat_sums* from the data frame *abs_mat_both_q*. We created a model to predict the x-shift based on those values. To test our regression model, the remaining 2081 proteins were analyzed by the model. We cross-referenced the results with the data provided by Maiwen Caudron-Herger.
+To train our linear regression model we selected 5000 random proteins from our raw data set. For these proteins we selected the values *maxi_RNase* and *q_mat_sums* from the data frame *abs_mat_both_q*. We created a model to predict the x-shift based on those values. To test our regression model the remaining 2081 proteins were applied to the model. We crossreferenced the reuslts with the data provided by Maiwen Caudron-Herger.
 
 # Results
 
 ## Clean-Up and normalization
-The initial data set consisted of 7086 proteins. After clean-up, 7081 proteins remained for further analysis. Normalization was visualized for several reported sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins were:
+The initial data set consisted of 7086 proteins. After clean-up 7081 proteins remained for further analysis. Normalization was visualized for several reported sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins are:
 
 Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
 
 Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
 
-Through normalization, the arbitrary values were converted into a relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
+Through normalization the arbitrary values were converted into relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
 <center>
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
-include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\R\\2022-topic-03-team-03\\Figure2.png")
 ```
 </center>
 **Figure 1: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
 
 ## Calculation of mean with sd and Shapiro-Wilk Test
-With the proposed 1$\sigma$ cut-off, we excluded a single value for 122175 triplicates. The Shapiro-Wilk test concluded that all replicate values obtained were normally distributed for both samples. Therefore, we found the data suitable for statistical analysis with the F-Test and two-tailed unpaired T-test.
+With the proposed 1$\sigma$ rule we were able excluded one value for 122175 triplicates. Shapiro-Wilk Test concluded that all values obtained for each protein were normally distributed for both conditions. Therefore they were suitable for statistical analysis with F-Test and two-tailed unpaired T-test.
 
 ## Statisitcal analysis and Identification of potential RBPs by analysis of x- and y-shift
-The obtained x- and y-shifts, as well as the fractions of the global maxima, shift directions and y-shift values were stored in a data frame labeled *abs_max_both*.
+The obtained x- and y-shift as well as the fraction of the global maxima, shift direction and y-shift values were stored in a data frame labeled *abs_max_both*.
 
-7081 proteins were tested with the F-Test. Only the obtained p-values for global maxima fractions were deemed relevant for the identification of potential RBP candidates. Of 7081 proteins, 1196 failed the F-test and were excluded from further analysis. 5885 remained. Quantification of FALSE results in the F-Test showed, 10 % of all analyzed proteins failed the F-Test. This means that either one or both triplicates' variances at global maxima positions vary. Because some FALSE F-test results may originate from outlier values (see discussion) and otherwise we would have had to exclude too much of our data, the significance level was set to $\alpha$ = 0.01 instead of the previously used $\alpha$ = 0.05. With $\alpha$ = 0.01, closer to 5 % of the data was excluded based on a FALSE F-test result. With this compromise, some likely faulty data was still excluded, while we retained as much data for further analysis as possibly arguable.
+7081 proteins were tested with F-Test. Only the obtained p-values for fractions were a global maximum was detected were deemed relevant for identification of potential RBP candidates. Of 7081 proteins 1196 failed the test and were excluded from further analysis. 5885 remained. Quantification of FALSE Results in F-Test resulted that  10 % of all analyzed proteins fail F-Test. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  Because it seems like some FALSE F-test results originate from outlier values (see Discussion) and otherwise we would experience a Precisiongreat exclusion of data, significance level was set to $\alpha$ = 0.01 instead of the previously usual $\alpha$ = 0.05. With $\alpha$ = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable.
 
-The two-tailed unpaired t-test was applied to the remaining 5885 proteins per triplicate in the ctrl vs RNase treatment. P-Values were checked for significance at previous determined maxima positions. We identified 2929 potential shifters. Only 5838 proteins were annotated in the data set used for cross-referencing. The RBP prediction of these 5838 proteins was analyzed. The x-shift > 1 cut-off allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 identified RBP in total. Of the 121 false-positives, six were identified via cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed, 3600 proteins were false-negatives (FN) and 1614 were true-negatives (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2C**)
+Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters. 5838 proteins were annotated in the cross-referencing data set. These 5838 proteins were analysed for correct prediction. The cut-off >1 for the x-shift allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 total. Of the 121 false-positives six were identified with cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed that 3600 proteins were false-negative (FN) and 1614 were true-negative (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2**)
 
-With the t-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters. Additionally, MCM2_HUMAN - a belived non-shifter - was identified as an RBP with a significant shift (see **Fig.4D**). 
+With T-Test based analysis we were able to detect one out four previous selected sure-shifters and all non-shifters.
+
 ## K-Means Clustering
+Clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
 
-The clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
 
-The clustering analysis was conducted with three clusters (see **Fig. 2B**). For cluster 1 (in methods as cluster C) 53 true RBP (TP = 96.4%) and 2 false RBP (FP = 3.6%) were detected. Cluster 2 (B) presented a similar accuracy of 318 true RBP (TP = 96.7%) and 10 false RBP (FP = 3.1%). Therefore, we decided to combine cluster B and C, as both accurately predicted true RBPs. 
 
-For the combined cluster BC, 384 RBP were identified. 371 (TP = 96,6%) were true RBP and 12 false RBP (FP = 3,1%)  were found. One RBD was detected out of the false-RBP proteins. For cluster 3 (A) 2557 true non-RBP (TN = 38.2%) and 4089 false non-RBP (FN =61.1%) were detected. The results are displayed in **Fig. 2C**. This results in a precision of 96.87 % and an accuracy of 41.66 %.
-
-With the clustering, we detected none of our previously selected sure-shifters and all non-shifters.
-
-## K-means Clustering vs. Statistical Analysis
-
-Comparison of the identified true RBP via clustering and statistical analysis shows, that out of 371 RBP from the clustering analysis, 189 (50,9%) were not identified by the statistical tests with more identified RBP overall. 182 (49,1%) true RBP identified via clustering were also identified by the statistical tests.
-
-After combination of Cluster Band C out of 5398 unique proteins identified with both methods 183 true RBP were identical. 8 true non-RBPs, 3597 proteins falsely classified non-RBPs and 1610 proteins falsely classified RBPs were the same.
 
 ## Linear Regression model
-
-Since the regression takes different random proteins for the training every time, the shown results were generated once. $R^2= 0.2266$. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (TP = 59,4%) turned out as true RBPs and 347 (FP = 39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (TN = 39.2%) were true non-RBPs while 709 (FN = 59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C**. This results in a precision of 60.21 % and an accuracy of 48.51 %. With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
-
-## Connecting Statistical analysis, Clustering and Linear Regression
-
-2923 unique proteins all our methods resulted in the same classification.  723 True RBPs, 478  non RBPs were classifed as actual non-RBPs. 1020 proteins were falsely identified as true RBPs and  702 RBPs were not identified as RBPs. 
-
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure3.PNG")
 ```
-
-**Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima were plotted against each other, proteins can be classified as either right-shifter (green), left-shifter (red) or non-shifter (black). Density (blue) indicates that most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of identification results for Shift based identification = Shift identification, Linear Regression model and k-means clustering. (D) Pre and post-normalization plot of MCM3_HUMAN, clearly showing the occuring shift.
-
-
+**Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima were plotted against each other, proteins can be classified as either right-shifter (green), left-shifter (red) or non-shifter (black). Density (blue) indicates that most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of identification results for Shift based identification = Shift identification, Linear Regression model and k-means clustering.
 # Discussion
 
-Our methods detect potential RBPs that shift more than one fraction and accumulate in a single fraction after treatment with RNase. However, we detected absolute x-shifting values only because we decided against smoothening our data and did not apply a Gaussian fit model. Therefore, we were not able to detect RBPs that shift fewer then one absolute but more than zero fractions, for example RBP2_HUMAN. On R-Deep, RBP2_HUMAN is listed as an RBP but only shifts 0.1 fractions. Our method failed to detect this marginal shift. 
 
-Possibly, we also did not detect this protein because the chosen sample preparation method was not suitable. A more distinguished density gradient consisting of more than 25 fractions could have potentially resulted in a higher resolution. Hence, the shift could have been detected.
-
-Furthermore, we applied our selection method to global maxima only. This resulted in the inability of identifying proteins which mainly accumulated in local maxima fractions. Our method also failed to detect proteins, where the global maximum is not the shifting fraction upon treatment with RNase, resulting in a TRUE/FALSE y-shift in the t-test. This applied for HDAC1_HUMAN (see R-DeeP Database). We were left with a moderate precision (80.91 %) and a low accuracy when identifying RBPs via statistical tests.
-
-In comparison, our clustering had the highest precision (96.87 % compared to 80.91 % and 60.21 %) of all applied methods. Therefore, proteins which were located in Cluster B and C precisely identified RBPs. Not all RBPs were located in those two clusters which displayed our poor accuracy of 41.66 %. Perhaps, the accuracy of the clustering could be enhanced by choosing other clustering variables.
-
-The trained linear regression model worked with a low precision of 60.21 % and low accuracy of 48.51 %. This was caused by the insufficient $R^2$ of 0.2266 resulting in severe underfitting. Consequently, the assignment as RBP or non-RBP for the 2081 proteins tested lacked sophitication.
-Since the proteins are randomly selected, RBPS might be over- and under-represented in the training cohort of our model.
-
-Most of the identified RBPs plus the identified non-RBPs do not add up to 100 %. This is because  proteins listed in the provided data sets were cross-referenced only. For this reason, some potential RBPs were not evaluated and therefore not properly classified.
-
-
-
-Looking back at our previously selected and classified sure-shifters and non-shifters -  Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN and ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN - all are listed as RBPs on R-DeeP. However, some were classified as non-shifters by Caudron-Herger *et al.*. Our method detected one of those proteins formerly classified as a non-shifter - RBP MCM3_HUMAN.
-
-MCM3 is part of the MCM2-7 helicase complex which enables DNA-replication during the S-Phase (Todorov *et al.*, 1994) of the cell cycle. The DNA replication complex is associated with topoisomerase I which interacts with RNA when replication stalls or strand breaks during unwinding of the DNA strand occur (Takisawa *et al.*, 2000). Our data set was derived from HeLa cells synchronized in the interphase. The interphase consists of the $G_1$, $G_2$ and S-Phase (Malumbre & Barbacid, 2009). Therefore, it is plausible that expression levels of proteins playing a role in these phases such as MCM3 are elevated. RNA interaction would be present allowing for detection by our proposed methods.
-
-In conclusion, our method is suitable for the identification of RBPs. We were able to identify previously identified RBPs with a moderate accuracy and high precision. Additionally, we detected at least one RBP which was not previously mentioned with our methods. With the proposed changes such as a Gaussian fit, the accuracy could potentially be improved. Our technique proposes a simple, swift, initial way for analysis of ultra-centrifugation data but provides poor accuracy. For further analysis, a more accurate and precise method needs to be developed.
 \newpage
-
 # References
 
 Caudron-Herger, M., Jansen, R.E., Wassmer, E., and Diederichs, S. (2021). RBP2GO: a comprehensive pan-species database on RNA-binding proteins, their interactions and functions. Nucleic Acids Research 49.
@@ -243,19 +202,11 @@ Kishore, S., Luber, S., and Zavolan, M. (2010). Deciphering the role of RNA-bind
 
 Li, W., Deng, X., and Chen, J. (2022). RNA-binding proteins in regulating mRNA stability and translation: roles and mechanisms in cancer. Seminars in Cancer Biology.
 
-Malumbres, M., and Barbacid, M. (2009). Cell cycle, CDKs and cancer: a changing paradigm. Nature Reviews Cancer 9, 153-166.
-
-Mullari, M., Lyon, D., Jensen, L.J., and Nielsen, M.L. (2017). Specifying RNA-Binding Regions in Proteins by Peptide Cross-Linking and Affinity Purification. Journal of Proteome Research 16, 2762-2772.
-
 Pratt, A.J., and Macrae, I.J. (2009). The RNA-induced Silencing Complex: A Versatile Gene-silencing Machine. Journal of Biological Chemistry 284.
 
 Qin, W., Cho, K.F., Cavanagh, P.E., and Ting, A.Y. (2021). Deciphering molecular interactions by proximity labeling. Nature Methods 18, 133-143.
 
 Sternburg, E.L., and Karginov, F.V. (2020). Global Approaches in Studying RNA-Binding Protein Interaction Networks. Trends in Biochemical Sciences 45, 593-603.
-
-Takisawa, H., Mimura, S., and Kubota, Y. (2000). Eukaryotic DNA replication: from pre-replication complex to initiation complex. Current Opinion in Cell Biology 12, 690-696. 
-
-Todorov, I.T., Pepperkok, R., Philipova, R.N., Kearsey, S.E., Ansorge, W., and Werner, D. (1994). A human nuclear protein with sequence homology to a family of early S phase proteins is required for entry into S phase and for cell division. Journal of Cell Science 107, 253-265.
 
 Wilson, R.C., and Doudna, J.A. (2013). Molecular Mechanisms of RNA Interference. Annual Review of Biophysics 42, 217-239.
 
