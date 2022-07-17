@@ -95,7 +95,7 @@ The two-tailed, unpaired t-test was used to identify proteins with significant y
 Since the t-test was performed on y-values of x-positions of global maxima for both conditions separately, the returned results were either TRUE/TRUE, TRUE/FALSE, FALSE/TRUE or FALSE/FALSE for the ctrl and RNase maxima. Only proteins with positive t-tests (p-value < 0.01) for the global maximum in both conditions (TRUE/TRUE) were considered for further analysis.
 
 ## Identification of potential RBPs by analysis of x- and y-shift
-Potential RBPs were selected by filtering out proteins with significant y-shift following the t-test but no significant x-shift in the global maxima. Cut-Off conditions was defined as: significant y-shift and x-shift < 1.
+Potential RBPs were selected by filtering out proteins with significant y-shifts following the t-test but no significant x-shift in the global maxima fractions. The Cut-off condition was defined as: Significant y-shift and x-shift > 1.
 
 Proteins filtered out by this method were removed from the data frame and stored separately for further analysis.
 
@@ -116,10 +116,10 @@ TP = True positives, FP = False positives, TN = True negatives, FN = False negat
 Potential RNA-binding dependent (RBD) protein candidates were identified by cross-referencing false-positive proteins with the data set provided by Maiwen Caudron-Herger at Prof. Dr. Sven Diederichs Lab (DFKZ) (unpublished Data). 
 
 ## k-means clustering
-Using the libraries *corrplot*, *cluster* and *factoextra* k-means clustering was conducted using k-means algorithm. First we defined a function that applies the following equation to all proteins
+Using the libraries *corrplot*, *cluster* and *factoextra*, k-means clustering was conducted using the k-means algorithm. First, we defined a function that calculates the quotient by the following equation to all proteins.
 
 $$Quotient =  \frac{mean\_RNase(Protein)}{mean\_ctrl(Protein)}$$
-The resulting values were stored in a matrix labeld *q_Hela_mat*. *mean_RNase(Protein)* describes the mean value for each protein and fraction in RNase condition. *mena_ctrl(Protein)* describes the mean value for each protein and fraction in ctrl condition  Then we selected the maximum value (*maxi_RNase*) for each protein and also calculated the overall quotient sum (*q_mat_sums*) for each protein and condition. These values were stored in the data frame *abs_mat_both_q*
+The resulting values were stored in a matrix labeled *q_Hela_mat*. *mean_RNase(Protein)* describes the mean value for each protein and fraction in the RNase treated sample. *mean_ctrl(Protein)* describes the mean value for each protein and fraction in the ctrl sample. Then, we selected the maximum value (*maxi_RNase*) for each protein and calculated the overall quotient sum (*q_mat_sums*) for each protein and sample. These values were stored in the data frame *abs_max_both_q*.
 
 Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to determine the optimal cluster number. With the built-in R function *k-means()* we clustered our proteins using the previous determined variables *q_mat_sums* and *maxi_RNase* into three clusters.
 
@@ -129,21 +129,22 @@ Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to
 
 **Cluster C** Sure-shifter
 
-To check the quality of our clustering we created different silhouette plot using *factoextra*. To further analyse the results of our clustering we applied the functions created for cross-referencing our x-shift results. 
+To check the quality of our clustering, we created another silhouette plot using *factoextra*. To check our clustering results, we cross-referenced our determined RBP using our four functions including *Find_true_RBP*. 
+
 ## Linear regression analysis
 
-To train our linear regression model we selected 5000 random proteins from our raw data set. For these proteins we selected the values *maxi_RNase* and *q_mat_sums* from the data frame *abs_mat_both_q*. We created a model to predict the x-shift based on those values. To test our regression model the remaining 2081 proteins were applied to the model. We crossreferenced the reuslts with the data provided by Maiwen Caudron-Herger.
+To train our linear regression model, we selected 5000 random proteins from our raw data set. For these proteins, we took the values *maxi_RNase* and *q_mat_sums* from the data frame *abs_mat_both_q*. We created a model to predict the x-shift based on those values. To test our regression model, the remaining 2081 proteins were analyzed by the model. We cross-referenced the results with the data provided by Maiwen Caudron-Herger.
 
 # Results
 
 ## Clean-Up and normalization
-The initial data set consisted of 7086 proteins. After clean-up 7081 proteins remained for further analysis. Normalization was visualized for several reported sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins are:
+The initial data set consisted of 7086 proteins. After clean-up, 7081 proteins remained for further analysis. Normalization was visualized for several reported sure-shifters and non-shifters (see Caudron-Herger *et al.*, 2019). The selected proteins were:
 
 Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
 
 Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
 
-Through normalization the arbitrary values were converted into relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
+Through normalization, the arbitrary values were converted into a relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
 <center>
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
@@ -153,16 +154,16 @@ include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure2.png")
 **Figure 1: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
 
 ## Calculation of mean with sd and Shapiro-Wilk Test
-With the proposed 1$\sigma$ rule we were able excluded one value for 122175 triplicates. Shapiro-Wilk Test concluded that all values obtained for each protein were normally distributed for both conditions. Therefore they were suitable for statistical analysis with F-Test and two-tailed unpaired T-test.
+With the proposed 1$\sigma$ cut-off, we excluded a single value for 122175 triplicates. The Shapiro-Wilk test concluded that all replicate values obtained were normally distributed for both samples. Therefore, we found the data suitable for statistical analysis with the F-Test and two-tailed unpaired T-test.
 
 ## Statisitcal analysis and Identification of potential RBPs by analysis of x- and y-shift
-The obtained x- and y-shift as well as the fraction of the global maxima, shift direction and y-shift values were stored in a data frame labeled *abs_max_both*.
+The obtained x- and y-shifts, as well as the fractions of the global maxima, shift directions and y-shift values were stored in a data frame labeled *abs_max_both*.
 
-7081 proteins were tested with F-Test. Only the obtained p-values for fractions were a global maximum was detected were deemed relevant for identification of potential RBP candidates. Of 7081 proteins 1196 failed the test and were excluded from further analysis. 5885 remained. Quantification of FALSE Results in F-Test resulted that  10 % of all analyzed proteins fail F-Test. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  Because it seems like some FALSE F-test results originate from outlier values (see Discussion) and otherwise we would experience a Precisiongreat exclusion of data, significance level was set to $\alpha$ = 0.01 instead of the previously usual $\alpha$ = 0.05. With $\alpha$ = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable.
+7081 proteins were tested with the F-Test. Only the obtained p-values for global maxima fractions were deemed relevant for the identification of potential RBP candidates. Of 7081 proteins, 1196 failed the F-test and were excluded from further analysis. 5885 remained. Quantification of FALSE results in the F-Test showed, 10 % of all analyzed proteins failed the F-Test. This means that either one or both triplicates' variances at global maxima positions vary. Because some FALSE F-test results may originate from outlier values (see discussion) and otherwise we would have had to exclude too much of our data, the significance level was set to $\alpha$ = 0.01 instead of the previously used $\alpha$ = 0.05. With $\alpha$ = 0.01, closer to 5 % of the data was excluded based on a FALSE F-test result. With this compromise, some likely faulty data was still excluded, while we retained as much data for further analysis as possibly arguable.
 
-Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters. 5838 proteins were annotated in the cross-referencing data set. These 5838 proteins were analysed for correct prediction. The cut-off >1 for the x-shift allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 total. Of the 121 false-positives six were identified with cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed that 3600 proteins were false-negative (FN) and 1614 were true-negative (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2C**)
+The two-tailed unpaired t-test was applied to the remaining 5885 proteins per triplicate in the ctrl vs RNase treatment. P-Values were checked for significance at previous determined maxima positions. We identified 2929 potential shifters. Only 5838 proteins were annotated in the data set used for cross-referencing. The RBP prediction of these 5838 proteins was analyzed. The x-shift > 1 cut-off allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 identified RBP in total. Of the 121 false-positives, six were identified via cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed, 3600 proteins were false-negatives (FN) and 1614 were true-negatives (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2C**)
 
-With T-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters.
+With the t-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters. Additionally, MCM3_HUMAN - a belived non-shifter - was identified as an RBP with a significant shift. 
 
 ## K-Means Clustering
 
