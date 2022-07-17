@@ -288,6 +288,10 @@ HeLa_RNAse_mean = mean_HeLa %>% select(contains("RNA"))
 
 ```
 
+```{r}
+proteinnames <- rownames(mean_HeLa)
+```
+
 # Checking on the normalization
 
 Next, the results of the clean-up were compared. We plotted the data pre- and post-normalization for six proteins. Three of which were sure "shifters" and three that were found not to be RNA-dependent.
@@ -1356,7 +1360,7 @@ The none of the RBD positive proteins from the t-test were identified again via 
 ( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
 ```
 
-Approximately 80% of identified RBP in Cluster C were true RBP. 
+Approximately 96.9% of identified RBP in Cluster C were true RBP. 
 
 #### Cluster B  
 
@@ -1416,9 +1420,9 @@ length(True_RBP_t1)
 table(True_RBP_BC %in% True_RBP_t1)
 ```
 
-It turns out, that most 229 out of 353 proteins in Cluster B+C were not present in identified proteins via t-test etc. 
+It turns out, that most 217 out of 411 proteins in Cluster B+C were not present in identified proteins via t-test etc. 
 
-#### Cluster
+## Visualization
 
 ```{r plotting library}
 library(ggplot2)
@@ -1465,45 +1469,9 @@ p3 <- p_right + labs(title = "Right shifters")
 p3
 ```
 
-```{r heatmap correlation}
-heatmap(cor(HeLa_Ctrl_mean, HeLa_RNAse_mean))
-```
-
-```{r RBP - new data}
-proteins.new.RBPs <- c(HS_RBPs$Entry_Name.x)
-proteins.new.non.RBPs <- c(HS_non_RBPs$Entry_Name.x)
-
-non.RBPs.same <- proteins.new.non.RBPs %in% rownames
-non <-  which(non.RBPs.same == TRUE)
-non.RBPs <- data.frame( mean_HeLa[non,],abs_max_both[non,], HS_non_RBPs[ non,])
-
-RBPs.same <- proteins.new.RBPs %in% rownames
-bp <-  which(RBPs.same == TRUE)
-RBPs <- data.frame(mean_HeLa[ bp,], abs_mat_both_q[bp,], HS_RBPs[ bp,])
-```
-
-
 
 
 ## Tests for linear regression
-
-```{r}
-
-cor(abs_max_both)
-
-plot(abs_max_both$y_shifts, abs_max_both$shifts)
-
-plot (abs_max_both)
-  
-cor(sums20_value, abs_max_both$y_shifts2)
-```
-
-
-```{r}
-#Here we are generating a list of all proteinnames, which have a quotient sum value higher than 20 (around 900 proteins).
-likely_shifters <- proteinnames[sums20_index]
-likely_shifters
-```
 
 ```{r}
 modell <- lm(x_shifts ~ maxi_RNAse)
