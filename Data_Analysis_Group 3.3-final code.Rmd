@@ -121,7 +121,6 @@ Quotient <- Spalten_Norm_2(HeLa_cleaned, ColSumme, maxcolsums)
 Hela_Col_Norm <- sweep(HeLa_cleaned, 2, Quotient, "*")
 
 # Remove excess objects
-rm(Spalten_Norm, Spalten_Norm_1, Spalten_Norm_2)
 rm(ColSumme, maxcolsums, Quotient)
 ```
 
@@ -791,8 +790,10 @@ rm(HeLa_cleaned, HeLa_cleaned_NA)
 
 
 # Clustering
+
+First, we derived clustering variables from our data.
 ```{r}
-# Define function for Quotient for Clustering variables
+# Define function to calculate quotient for clustering variables
 quoti <- function(data1, data2){
   
 Quotienten = c()
@@ -812,39 +813,43 @@ Quotienten = c()
   return(Quotienten)
 }
 
-# Selecting highest quotient sum values
-#Here we checked the quotient sum value of each protein and selected only thos above 20 (random value), as those above 20 seem to contain many RBP's (comparison to RDeep database). 
+# Select highest quotient sum values
+# We checked the quotient sum value of each protein and selected only those above 20 (random value). Those above 20, seemed to contain many RBP's compared to the RDeep database. 
 
 quotienten_HeLa_RNase <- quoti(HeLa_RNase_mean, HeLa_Ctrl_mean)
 q_HeLa_mat <- matrix(unlist(quotienten_HeLa_RNase), ncol=25, byrow=FALSE)
 
-
-# Variables derived from Quotient
+# Variables derived from quotient
 maxi_RNase <- apply(q_HeLa_mat,1, max)
 mean <- rowMeans(q_HeLa_mat)
 x_abs <- abs(x_shifts)
 q_mat_sums <- rowSums(q_HeLa_mat, na.rm=TRUE)
 abs_mat_both_q <- cbind(abs_max_both, maxi_RNase, x_abs, mean,q_mat_sums)
+```
 
+With the new variables, we created three clusters to predict RBPs.
 
-# Creating Cluster data frame
+```{r}
+# Create cluster data frame
 cluster_data <- data.frame(maxi_RNase, q_mat_sums)
 
-# Calculating optimal number of Clusters
+# Calculate optimal number of clusters
 fviz_nbclust(cluster_data, kmeans, method='silhouette')
 
 # Cluster
 kmeans_fancy <- kmeans(scale(cluster_data), 3, nstart = 25)
 kmeans_fancy
 
-# Plot the cluster
+# Plot cluster
 fviz_cluster(kmeans_fancy, data = scale(cluster_data), geom = c("point"),ellipse.type = "euclid")
 
-# Shilouette plot for cluster quality
+# Silhouette plot for cluster quality
 sil <- silhouette(kmeans_fancy$cluster, dist(cluster_data))
 fviz_silhouette(sil)
 ```
+
 ## Clustering results
+
 First, we created vectors containing the assigned protein names of each cluster.
 ```{r}
 # Extract information on cluster centers
@@ -864,6 +869,7 @@ Cluster_A <- proteinnames[which(kmeans_fancy$cluster==Cluster_A_number)]
 # All tested
 Cluster_total <- c(Cluster_C, Cluster_B, Cluster_A)
 ```
+
 ### Cluster C
 Cluster C was supposed to be a safe "true RBP" cluster. This was tested:
 ```{r}
@@ -883,8 +889,11 @@ length(False_RBP_true_RBD_C)
 ( length(True_RBP_C) / length(Cluster_C) ) * 100 # True positive quote
 ( length(False_RBP_C) / length(Cluster_C) ) * 100 # False positive quote
 ```
+Cluster C included mostly true RBPs.
+
 ### Cluster B  
-We anticipate Cluster B to suggest more RBP, although with reduced precision.
+
+We anticipated Cluster B to suggest more RBP, although with reduced precision.
 ```{r True}
 # True RBP
 True_RBP_B <- Find_true_RBP(Cluster_B)
@@ -902,8 +911,11 @@ length(False_RBP_true_RBD_B)
 ( length(True_RBP_B) / length(Cluster_B) ) * 100 # True positive quote
 ( length(False_RBP_B) / length(Cluster_B) ) * 100 # False positive quote
 ```
+Cluster B included mostly true RBPs.
+
 ### Cluster A
-We anticipate Cluster A to suggest mostly non-RBP.
+
+We anticipated Cluster A to suggest mostly non-RBP.
 ```{r}
 # True non-RBP
 True_non_RBP_A <- Find_true_non_RBP(Cluster_A)
@@ -917,11 +929,37 @@ length(False_non_RBP_A)
 ( length(True_non_RBP_A) / length(Cluster_A) ) * 100 # True positive quote
 ( length(False_non_RBP_A) / length(Cluster_A) ) * 100 # False positive quote
 ```
+<<<<<<< HEAD
 
+=======
+Cluster A included both several non-RBP and RBP.
+
+### Clustering vs Statistical Tests
+
+We compared the true RBP detected via clustering and statistical tests.
+```{r}
+# Comparing potential "true RBPs" identified by statistical analysis and Clustering  
+True_RBP_BC <- c(True_RBP_B, True_RBP_C)
+length(True_RBP_BC)
+length(True_RBP_t)
+
+# How many cluster true RBP also in statistical test true RBP?
+table(True_RBP_BC %in% True_RBP_t)
+
+# How many cluster RBP also in statistical test RBP?
+length(Cluster_BC)
+length(RBP_t)
+table(Cluster_BC %in% RBP_t)
+```
+About half of true RBP identified via clustering also identified via statistical tests.
+
+>>>>>>> 56d8ea33f34ec42b74086cd39d9bca0cef455107
 ### Summarizing Cluster B + C
 
+Cluster B and C were combined because they both predicted RBPs accurately. 
 ```{r}
-Cluster_BC <- c(Cluster_B, Cluster_C)
+Cluster_BC <- c(Cluster_B, Cluster_C) # Combined cluster BC
+length(Cluster_BC)
 
 # True RBP
 True_RBP_BC <- Find_true_RBP(Cluster_BC)
@@ -941,14 +979,17 @@ length(False_RBP_true_RBD_BC)
 ```
 
 ## Plotting Shifters
+
+Based on the x-shifts, we plotted our proteins as three groups: Those with x-shift = 0, x-shift > 0 or x-shift < 0. 
+
 ```{r plotting shifters}
 # Assign numbers for shift behavior
 i <- c(1:7081)
 ID <- c()
 for(x in i){
-ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1
-} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2
-} else {abs_mat_both_q$ID[x] =3}
+ID[x] <- if (abs_mat_both_q$x_shifts[x] == 0){abs_mat_both_q$ID[x] =1 # x-shift = 0
+} else if(abs_mat_both_q$x_shifts[x] > 0){abs_mat_both_q$ID[x] =2 # x-shift > 0
+} else {abs_mat_both_q$ID[x] =3} # x-shift < 0 
 }
 # Plot all proteins
 control_fraction <- as.matrix(abs_mat_both_q$fracs_ctrl)
@@ -967,7 +1008,12 @@ p0
 ```
 
 #Linear regression 
+
+Lastly, we used our data for a linear regression model.
+
 ## Train the model
+
+We used 5000 randomly chosen proteins to train the model.
 ```{r linear regression}
 # Select 5000 proteins from raw data randomly
 proteins <- c(1:7081)
@@ -987,7 +1033,10 @@ plot(random.samples.training$x,random.samples.training$max, col ="blue", abline(
 plot(random.samples.training$x,random.samples.training$sum, col ="blue", abline(lm(x ~ sum, data = random.samples.training )), ylim = c(0,15), xlab = "x-shift", ylab = "Sums of quotients", main = "Regression value Sum")
 
 ``` 
+
 ## Test the model
+
+We then tested the model on the remaining 2081 proteins.
 ```{r}
 # Use remaining 2081 proteins to test the regression model
 c <- predict(modell, newdata = random.samples.test)
@@ -1011,14 +1060,17 @@ compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shi
 ```{r}
 
 ```
+
 ## Results Regression
-Now we will compare the results with the additional data.
+
+Now we will compare the results of the linear regression with the additional data.
 ```{r}
 Regression_data <- data.frame(compare)
 
-RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "shift")]
-non_RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "no shift")]
+RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "shift")] # identified RBP
+non_RBP_regression <- proteinnames[which(Regression_data$shift_direction.regression == "no shift")] # indentified non-RBP
 
+# Number of RBP and non-RBP identified
 length(RBP_regression)
 length(non_RBP_regression)
 
@@ -1050,7 +1102,6 @@ length(False_RBP_true_RBD_reg)
 ( length(False_non_RBP_reg) / length(non_RBP_regression) ) * 100 # False negative quote
 ```
 
-
 ## Check on 7 previously selected control proteins
 
 Lastly, we wanted to check, if the methods were able to correctly identify our selected shifters and non-shifters.
@@ -1064,14 +1115,18 @@ non_shifters <- c("ASNS_HUMAN", "ASNS_HUMAN", "MCM3_HUMAN")
 # t-test
 table(shifters %in% RBP_t)
 table(non_shifters %in% Non_RBP_t)
+table(non_shifters %in% RBP_t) # non-shifters in shifters?
+non_shifters[non_shifters %in% RBP_t]
 
 # Clustering
 table(shifters %in% Cluster_BC)
 table(non_shifters %in% Cluster_A)
+table(non_shifters %in% Cluster_BC) # non-shifters in shifters?
 
 # Regression
 table(shifters %in% RBP_regression)
 table(non_shifters %in% non_RBP_regression)
+<<<<<<< HEAD
 ```
 
 ```{r overlap three methods}
@@ -1180,3 +1235,13 @@ length(True_non_RBP_overlap)
 False_non_RBP_overlap <- Find_false_non_RBP(overlap.potential.non.RBP.id.clus)
 length(False_non_RBP_overlap)
 ```
+=======
+table(non_shifters %in% RBP_regression) # non-shifters in shifters?
+```
+
+
+```{r}
+compare_pre_post("MCM3_HUMAN", 40000000, 30)
+```
+
+>>>>>>> 56d8ea33f34ec42b74086cd39d9bca0cef455107
