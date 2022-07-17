@@ -917,15 +917,7 @@ length(False_non_RBP_A)
 ( length(True_non_RBP_A) / length(Cluster_A) ) * 100 # True positive quote
 ( length(False_non_RBP_A) / length(Cluster_A) ) * 100 # False positive quote
 ```
-### Clustering vs Statistical Tests
-```{r}
-# Comparing potential "true RBPs" identified by statistical analysis and Clustering  
-True_RBP_BC <- c(True_RBP_B, True_RBP_C)
-length(True_RBP_BC)
-length(True_RBP_t)
 
-table(True_RBP_BC %in% True_RBP_t)
-```
 ### Summarizing Cluster B + C
 
 ```{r}
@@ -1014,10 +1006,10 @@ for(x in i){shift_direction.code[x] <- if(shifters[x] == 0) {'no shift'
 
 compare <- cbind(c, x_abs[samples.numbers.test], shift_direction.regression, shifters, shift_direction[samples.numbers.test])
 
-compare.shifts <- (shift_direction.regression[i] == shift_direction.code[i])
+```
 
-length (which(compare.shifts == TRUE))
-length (which(compare.shifts == FALSE))
+```{r}
+
 ```
 ## Results Regression
 Now we will compare the results with the additional data.
@@ -1080,4 +1072,111 @@ table(non_shifters %in% Cluster_A)
 # Regression
 table(shifters %in% RBP_regression)
 table(non_shifters %in% non_RBP_regression)
+```
+
+```{r overlap three methods}
+#Results identification 
+i <- c(1:7081)
+shift_direction.identification <- c()
+for(x in i){shift_direction.identification[x] <- if(rownames(abs_mat_both_q)[x] %in% Non_RBP_t) {'no shift'
+}else  {'shift'}
+}
+
+#results clustering
+i <- 1:7081
+shift_direction.clustering <- c()
+for(x in i){shift_direction.clustering[x] <- if(rownames(abs_mat_both_q)[x] %in% Cluster_A) {'no shift'
+}else  {'shift'}
+}
+
+
+#Results regression
+all.samples <- abs_mat_both_q[,c(5,9,12)]
+colnames(all.samples) <- c("x","max","sum")
+
+results_regression <- predict(modell, newdata = all.samples)
+
+i <- c(1:7081)
+shift_direction.regression.all <- c()
+for(x in i){shift_direction.regression.all[x] <- if(results_regression[x] < 1) {'no shift'
+}else  {'shift'}
+}
+
+overlap <- data.frame(shift_direction.identification,shift_direction.clustering, shift_direction.regression.all)
+
+compare.identification.clustering <-(shift_direction.identification[i] == shift_direction.clustering[i])
+compare.identification.regression <- (shift_direction.identification[i] == shift_direction.regression.all[i])
+compare.regression.clustering <- (shift_direction.regression.all[i] == shift_direction.clustering[i])
+
+compare.shifts.all <- c() 
+for (x in 1:7081) {
+ a <- (shift_direction.identification[x] == shift_direction.clustering[x] & shift_direction.clustering[x] == shift_direction.regression.all[x])
+ compare.shifts.all <- c(compare.shifts.all, a)
+}
+
+overlap <- cbind(overlap, compare.identification.clustering, compare.identification.regression, compare.regression.clustering, compare.shifts.all)
+
+length (which(compare.identification.regression == TRUE))
+length (which(compare.identification.clustering == TRUE))
+length (which(compare.regression.clustering == TRUE))
+length (which(compare.shifts.all == TRUE))
+```
+
+```{r test overlap}
+#select overlap proteinnames 
+over.prot <- which(compare.shifts.all == TRUE)
+overlap_proteins <- proteinnames[over.prot]
+
+overlap.potential.non.RBP <-overlap_proteins[results_regression < 1]
+overlap.potential.RBPn <- overlap_proteins[results_regression > 1]
+
+
+# True RBP
+True_RBP_overlap <- Find_true_RBP(overlap.potential.RBPn)
+length(True_RBP_overlap)
+
+# False RBP
+False_RBP_overlap <- Find_false_RBP(overlap.potential.RBPn)
+length(False_RBP_overlap)
+
+# True non-RBP
+True_non_RBP_overlap <- Find_true_non_RBP(overlap.potential.non.RBP)
+length(True_non_RBP_overlap)
+
+# False non-RBP
+False_non_RBP_overlap <- Find_false_non_RBP(overlap.potential.non.RBP)
+length(False_non_RBP_overlap)
+``` 
+### Clustering vs Statistical Tests
+```{r}
+#select overlap proteinnames 
+over.prot.id.clus <- which( compare.identification.clustering == TRUE)
+overlap_proteins.id.clus <- proteinnames[over.prot.id.clus]
+
+i <- 1:5240
+overlap_potential.id.clus <- c()
+for(x in i){overlap_potential.id.clus[x] <- if(overlap_proteins.id.clus[x] %in% Cluster_A) {TRUE
+}else  {FALSE}
+}
+
+
+overlap_potential.non.RBP.id.clus <- overlap_proteins.id.clus[c(overlap_potential.id.clus == TRUE)]
+overlap_potential.RBP.id.clus <- overlap_proteins.id.clus[c(overlap_potential.id.clus == FALSE)]
+
+
+# True RBP
+True_RBP_overlap <- Find_true_RBP(overlap_potential.RBP.id.clus)
+length(True_RBP_overlap)
+
+# False RBP
+False_RBP_overlap <- Find_false_RBP(overlap_potential.RBP.id.clus)
+length(False_RBP_overlap)
+
+# True non-RBP
+True_non_RBP_overlap <- Find_true_non_RBP(overlap.potential.non.RBP.id.clus)
+length(True_non_RBP_overlap)
+
+# False non-RBP
+False_non_RBP_overlap <- Find_false_non_RBP(overlap.potential.non.RBP.id.clus)
+length(False_non_RBP_overlap)
 ```
