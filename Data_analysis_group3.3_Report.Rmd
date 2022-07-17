@@ -1,10 +1,10 @@
 ---
 title: "Proteome wide screen for RNA-dependent Proteins in interphasic HeLa cells"
-subtitle: "Data Analysis"
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "18.07.2022"
 output:
   pdf_document: default
+subtitle: "Data Analysis project Summer Term 2022 supervised by Dr. Caudron-Herger"
 df_print: paged
 ---
 ```{r setup, include=FALSE}
@@ -54,7 +54,7 @@ The mean and standard deviation of the triplicates for each protein in each frac
 To test the normal distribution of the triplicate values, the Shapiro-Wilk test was chosen due to its high power in small populations compared to other tests. The test was performed using the built-in R function *shapiro_test()*. 
 
 ## Determination of Maxima
-We determined the global maximum for the RNase-treated and untreated sample for all proteins. The protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position). For fractions 1 and 25 only the neighbors right or left of the fraction could be compared due to border limitations. For fractions 2 and 24 only one neighbor could be compared left or right. Obtained values were stored in a seperate data frame.
+We determined the global maximum for the RNase-treated and untreated sample for all proteins. The protein content (y-value) was compared to the two neighbors right and left of the analyzed fraction (x-position). For fractions 1 and 25 only the neighbors right or left of the fraction could be compared due to border limitations. For fractions 2 and 24 only one neighbor could be compared left or right. Obtained values were stored in a separate data frame.
 
 ## Detection of Protein Shifts
 In our analysis, we considered shifts in the global maximum comparing RNA-treated and untreated samples as a proxy for the presence of RNA. We required "shifting proteins" show both a significant x-shift and y-shift to improve precision.
@@ -145,12 +145,12 @@ Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
 
 Through normalization the arbitrary values were converted into relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
 <center>
-```{r, echo = FALSE, fig.width=4, fig.height=2}
+```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\R\\2022-topic-03-team-03\\Figure2.png")
 ```
 </center>
-**Figure 2: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
+**Figure 1: Comparing pre and post normalization** (A): Comparison of the sure-shifter RFC2_HUMAN prior to and post normalization. (B): Comparison of the non-shifter MCM3_HUMAN prior to and post normalization. For both selected proteins, the overall trend of distribution remains comparable.
 
 ## Calculation of mean with sd and Shapiro-Wilk Test
 With the proposed 1$\sigma$ rule we were able excluded one value for 122175 triplicates. Shapiro-Wilk Test concluded that all values obtained for each protein were normally distributed for both conditions. Therefore they were suitable for statistical analysis with F-Test and two-tailed unpaired T-test.
@@ -160,14 +160,24 @@ The obtained x- and y-shift as well as the fraction of the global maxima, shift 
 
 7081 proteins were tested with F-Test. Only the obtained p-values for fractions were a global maximum was detected were deemed relevant for identification of potential RBP candidates. Of 7081 proteins 1196 failed the test and were excluded from further analysis. 5885 remained. Quantification of FALSE Results in F-Test resulted that  10 % of all analyzed proteins fail F-Test. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  Because it seems like some FALSE F-test results originate from outlier values (see Discussion) and otherwise we would experience a Precisiongreat exclusion of data, significance level was set to $\alpha$ = 0.01 instead of the previously usual $\alpha$ = 0.05. With $\alpha$ = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable.
 
-Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters. 5838 proteins were annotated in the cross-referencing data set. These 5838 proteins were analysed for correct prediction. The cut-off >1 for the x-shift allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 total. Of the 121 false-positives six were identified with cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed that 3600 proteins were false-negative (FN) and 1614 were true-negative (TN). This results in a precision of 80.914 % and an accuracy of 36.43 %.
+Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters. 5838 proteins were annotated in the cross-referencing data set. These 5838 proteins were analysed for correct prediction. The cut-off >1 for the x-shift allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 total. Of the 121 false-positives six were identified with cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed that 3600 proteins were false-negative (FN) and 1614 were true-negative (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2**)
+
+With T-Test based analysis we were able to detect one out four previous selected sure-shifters and all non-shifters.
 
 ## K-Means Clustering
+Clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
+
+
+
 
 ## Linear Regression model
-
+```{r, echo = FALSE, fig.width=2, fig.height=2}
+library(knitr)
+include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure3.PNG")
+```
+**Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima were plotted against each other, proteins can be classified as either right-shifter (green), left-shifter (red) or non-shifter (black). Density (blue) indicates that most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of identification results for Shift based identification = Shift identification, Linear Regression model and k-means clustering.
 # Discussion
-Lorem ipsum set dolor
+
 
 \newpage
 # References
@@ -196,5 +206,3 @@ Sternburg, E.L., and Karginov, F.V. (2020). Global Approaches in Studying RNA-Bi
 
 Wilson, R.C., and Doudna, J.A. (2013). Molecular Mechanisms of RNA Interference. Annual Review of Biophysics 42, 217-239.
 
-\newpage
-# Supplementary Data
