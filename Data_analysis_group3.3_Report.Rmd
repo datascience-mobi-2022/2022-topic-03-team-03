@@ -160,22 +160,34 @@ The obtained x- and y-shift as well as the fraction of the global maxima, shift 
 
 7081 proteins were tested with F-Test. Only the obtained p-values for fractions were a global maximum was detected were deemed relevant for identification of potential RBP candidates. Of 7081 proteins 1196 failed the test and were excluded from further analysis. 5885 remained. Quantification of FALSE Results in F-Test resulted that  10 % of all analyzed proteins fail F-Test. This means that either one or both obtained maxima for triplicate measurements vary in their variance in one treatment compared to the other.  Because it seems like some FALSE F-test results originate from outlier values (see Discussion) and otherwise we would experience a Precisiongreat exclusion of data, significance level was set to $\alpha$ = 0.01 instead of the previously usual $\alpha$ = 0.05. With $\alpha$ = 0.01 closer to 5 % of data will be excluded based on a FALSE F-test result. In this compromise some more likely faulty data will still be excluded while retaining as much data for further analysis as logically arguable.
 
-Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters. 5838 proteins were annotated in the cross-referencing data set. These 5838 proteins were analysed for correct prediction. The cut-off >1 for the x-shift allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 total. Of the 121 false-positives six were identified with cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed that 3600 proteins were false-negative (FN) and 1614 were true-negative (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2**)
+Two-tailed unpaired t-test was applied to the remaining 5885 proteins per fraction ctrl vs RNase. P-Values were checked for significance at previous determined maxima positions.  We identified 2929 potential shifters. 5838 proteins were annotated in the cross-referencing data set. These 5838 proteins were analysed for correct prediction. The cut-off >1 for the x-shift allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 total. Of the 121 false-positives six were identified with cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed that 3600 proteins were false-negative (FN) and 1614 were true-negative (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2C**)
 
-With T-Test based analysis we were able to detect one out four previous selected sure-shifters and all non-shifters.
+With T-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters.
 
 ## K-Means Clustering
-Clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
 
+The clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
 
+The clustering analysis was conducted with three clusters (see **Fig. 2B**). For Cluster 1 (C) 53 true RBP (96.4%) and 2 false RBP (3.6%) were detected. Cluster 2 (B) presented a similar accuracy of 318 true RBP (96.7%) and 10 false RBP (3%). Therefore, we decided to summarize Cluster B and C, as both accurately predicted true RBPs. For Cluster 3 (A) 2557 true non-RBP (38.2%) and 4089 false RBP (61.1%) were detected. 1 RBD was detected out of the false-RBP proteins. The results are displayed in **Fig. 2C - Clustering**. 
 
+With the clustering, we detected none of our previously selected sure-shifters and all non-shifters.
+
+## K-means Clustering vs. Statistical Analysis
+
+Comparison of the identified true RBP via clustering and statistical analysis shows, that out of 371 RBP from the clustering analysis, 189 (50,9%) were not identified by the statistical tests with more identified RBP overall. 182 (49,1%) true RBP identified via clustering were also identified by the statistical tests.
 
 ## Linear Regression model
+
+Since the regression takes different random proteins for the training every time, the shown results were generated once. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (59,4%) turned out as true RBPs and 347 (39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (39.2%) were true non-RBPs while 709 (59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C - Linear Regression**. 
+
+With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
+
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure3.PNG")
 ```
 **Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima were plotted against each other, proteins can be classified as either right-shifter (green), left-shifter (red) or non-shifter (black). Density (blue) indicates that most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of identification results for Shift based identification = Shift identification, Linear Regression model and k-means clustering.
+
 # Discussion
 
 
