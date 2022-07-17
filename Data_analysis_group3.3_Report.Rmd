@@ -11,6 +11,9 @@ df_print: paged
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+---
+Lorem Ipsum Set Dolorium
+---
 # Introduction
 
 RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). The opposite is also true, studies have shown that proteins need RNA for their catalytic activity, for instance in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA sequences depend on proteins for their synthesis and stability (Kishore *et al.*, 2010). A family of proteins which illustrates this symbiotic relationship are the RNA-binding proteins (RBPs). RBPs present a class of proteins whose interactome depends on RNA. They were shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022), and genetic disease (Gebauer *et al.*, 2021). Therefore, a deeper understanding of RNA binding and RNA-protein interaction strengthens our ability to adjust and manipulate the cellular mechanisms affected.
@@ -163,8 +166,7 @@ The obtained x- and y-shifts, as well as the fractions of the global maxima, shi
 
 The two-tailed unpaired t-test was applied to the remaining 5885 proteins per triplicate in the ctrl vs RNase treatment. P-Values were checked for significance at previous determined maxima positions. We identified 2929 potential shifters. Only 5838 proteins were annotated in the data set used for cross-referencing. The RBP prediction of these 5838 proteins was analyzed. The x-shift > 1 cut-off allowed us to identify 513 true RBP (TP) with 121 false-positives (FP) out of 634 identified RBP in total. Of the 121 false-positives, six were identified via cross-referencing as RBD proteins. 5214 proteins were predicted as non-RBP. Cross-referencing revealed, 3600 proteins were false-negatives (FN) and 1614 were true-negatives (TN). This results in a precision of 80.914 % and an accuracy of 36.43 % (see **Fig.2C**)
 
-With the t-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters. Additionally, MCM2_HUMAN - a belived non-shifter - was identified as an RBP with a significant shift. 
-
+With the t-Test based analysis, we detected one out of four previously selected sure-shifters and all non-shifters. Additionally, MCM2_HUMAN - a belived non-shifter - was identified as an RBP with a significant shift (see **Fig.4D**). 
 ## K-Means Clustering
 
 The clustering analysis concluded that 73.88 % of our data was represented. Values were assigned with 81 % accuracy to our cluster.
@@ -183,14 +185,17 @@ Comparison of the identified true RBP via clustering and statistical analysis sh
 
 Since the regression takes different random proteins for the training every time, the shown results were generated once. $R^2= 0.2266$. Out of 2081 tested proteins, 883 RBP were predicted of which 525 (TP = 59,4%) turned out as true RBPs and 347 (FP = 39,3%) were false RBPs. 1198 non-RBPs were predicted. 470 (TN = 39.2%) were true non-RBPs while 709 (FN = 59.2%) were false non-RBPs. 8 RBDs were detected out of the false-RBP proteins. The results are displayed in **Fig. 2C**. This results in a precision of 60.21 % and an accuracy of 48.51 %. With the regression, we detected none of our previously selected sure-shifters and one out of three non-shifters.
 
-## Comapring Statistical Analysis vs. Clustering vs. Linear Regression
+## Connecting Statistical analysis, Clustering and Linear Regression
 
+or 2923 unique proteins all our methods resulted in the same classification.  723 True RBPs (TP), 478  non RBPs were classifed as actual non-RBPs (TN). 1020 proteins were falsely identified as true RBPs (FP) and  702 RBPs were not identified as RBPs (FN). This results in an overall precision of 41.48% and an accuracy of 41.09%.
 
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
 include_graphics("C:\\Daten\\Uni\\4. Fachsemester\\Data Analysis\\Figure3.PNG")
 ```
-**Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima in either treatment were plotted against each other, proteins can be classified as either right-shifters (green), left-shifters (red) or non-shifters (black). Density (blue) indicates, most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of the identification success for different methods, Shift based identification via statistical tests, Linear Regression model and k-means clustering.
+
+**Figure 3: Overview of obtained results** (A) Plot of all 7081 proteins, calculated global maxima were plotted against each other, proteins can be classified as either right-shifter (green), left-shifter (red) or non-shifter (black). Density (blue) indicates that most proteins are non-shifters. (B) k-means clustering of our proteins as described in methods, three distinct clusters can be visualized, Cluster 1 = sure-shifters (red), Cluster 2 = possible shifters (green), Cluster 3 = non-shifters (blue). (C) Overview of identification results for Shift based identification = Shift identification, Linear Regression model and k-means clustering. (D) Pre and post-normalization plot of MCM3_HUMAN, clearly showing the occuring shift.
+
 
 # Discussion
 
@@ -207,9 +212,11 @@ Since the proteins are randomly selected, RBPS might be over- and under-represen
 
 Most of the identified RBPs plus the identified non-RBPs do not add up to 100 %. This is because  proteins listed in the provided data sets were cross-referenced only. For this reason, some potential RBPs were not evaluated and therefore not properly classified.
 
-Looking back at our previously selected and classified sure-shifters and non-shifters -  Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN and ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN - all are listed as RBPs on R-DeeP. However, some were classified as non-shifters by Caudron-Herger *et al.*. Our method detected one of those proteins formerly classified as a non-shifter - RBP MCM2_HUMAN.
+Looking back at our previously selected and classified sure-shifters and non-shifters -  Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN and ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN - all are listed as RBPs on R-DeeP. However, some were classified as non-shifters by Caudron-Herger *et al.*. Our method detected one of those proteins formerly classified as a non-shifter - RBP MCM3_HUMAN.
 
-MCM2 serves as a S-Phase 
+MCM3 is part of the MCM2-7 helicase complex which enables DNA-replication during S-Phase (Todorov *et al.*, 1994). The DNA replication complex is associated with Topoisomerae I which interacts with RNAs upon stalled replication or strand breaks during unwinding of the DNA strand (Takisawa *et al.*, 2000). Our dataset was derived from in Interphase synchronized HeLa cells. Inteprhase consist of $G_1$, $G_2$ and S-Phase (Malumbre & Barbacid, 2009). Therefore it is plausible that the expression levels of proteins related to those phases such as MCM3 are elevated and RNA interaction is present allowing detection by our proposed way of analysis.
+
+In conclusion with our method is suitable for identification of RBPs since we were able to identify previously identified RBPs with a moderate accuracy as well as at least one RBP which was not previously identified with this method. The results can be further enhanced as mentioned before. Our technique proposes a simple and swift initial way for analysis of data obtained by ultra-centrifugation method but given the poor accuracy of our results further analysis with a more accurate and precise mehthod has to be conducted.
 \newpage
 
 # References
@@ -230,11 +237,19 @@ Kishore, S., Luber, S., and Zavolan, M. (2010). Deciphering the role of RNA-bind
 
 Li, W., Deng, X., and Chen, J. (2022). RNA-binding proteins in regulating mRNA stability and translation: roles and mechanisms in cancer. Seminars in Cancer Biology.
 
+Malumbres, M., and Barbacid, M. (2009). Cell cycle, CDKs and cancer: a changing paradigm. Nature Reviews Cancer 9, 153-166.
+
+Mullari, M., Lyon, D., Jensen, L.J., and Nielsen, M.L. (2017). Specifying RNA-Binding Regions in Proteins by Peptide Cross-Linking and Affinity Purification. Journal of Proteome Research 16, 2762-2772.
+
 Pratt, A.J., and Macrae, I.J. (2009). The RNA-induced Silencing Complex: A Versatile Gene-silencing Machine. Journal of Biological Chemistry 284.
 
 Qin, W., Cho, K.F., Cavanagh, P.E., and Ting, A.Y. (2021). Deciphering molecular interactions by proximity labeling. Nature Methods 18, 133-143.
 
 Sternburg, E.L., and Karginov, F.V. (2020). Global Approaches in Studying RNA-Binding Protein Interaction Networks. Trends in Biochemical Sciences 45, 593-603.
+
+Takisawa, H., Mimura, S., and Kubota, Y. (2000). Eukaryotic DNA replication: from pre-replication complex to initiation complex. Current Opinion in Cell Biology 12, 690-696. 
+
+Todorov, I.T., Pepperkok, R., Philipova, R.N., Kearsey, S.E., Ansorge, W., and Werner, D. (1994). A human nuclear protein with sequence homology to a family of early S phase proteins is required for entry into S phase and for cell division. Journal of Cell Science 107, 253-265.
 
 Wilson, R.C., and Doudna, J.A. (2013). Molecular Mechanisms of RNA Interference. Annual Review of Biophysics 42, 217-239.
 
