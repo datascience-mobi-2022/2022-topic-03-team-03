@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 RNA and proteins represent a symbiotic system. Proteins need RNA as a template for their biosynthesis as stated by Francis Crick in his “Central Dogma of Molecular Biology” (Crick, 1970). The opposite is also true, studies have shown that proteins need RNA for their catalytic activity, for instance in the RNA-induced silencing complex (Pratt and Macrae, 2009; Wilson and Doudna, 2013). Additionally, some RNA sequences depend on proteins for their synthesis and stability (Kishore *et al.*, 2010). A family of proteins which illustrates this symbiotic relationship are the RNA-binding proteins (RBPs). RBPs present a class of proteins whose interactome depends on RNA. They were shown to play a crucial role in RNA metabolism (Kishore *et al.*, 2010), cancer development (Wei *et al.*, 2022), and genetic disease (Gebauer *et al.*, 2021). Therefore, a deeper understanding of RNA binding and RNA-protein interaction strengthens our ability to adjust and manipulate the cellular mechanisms affected.
 
-RBPs can be categorized into “true” RBPs (e.g. DICER, NPM3), those RNA-binding proteins which directly bind to RNA, and “RBP interacting proteins” which merely interact with “true” RBPs (eg. RBBP7). Furthermore, “true" RBPs can be subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function (eg. DICER), and “partially RNA dependent”, those that only require RNA for specific functions or transport (eg. NPM3) (see Fig. 1) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
+RBPs can be categorized into “true” RBPs (e.g. DICER, NPM3), those RNA-binding proteins which directly bind to RNA, and “RBP interacting proteins” which merely interact with “true” RBPs (eg. RBBP7). Furthermore, “true" RBPs can be subcategorized into “RNA-dependent”, meaning relying on RNA for their whole and correct function (eg. DICER), and “partially RNA dependent”, those that only require RNA for specific functions or transport (eg. NPM3) (Caudron-Herger *et al.*, 2019; Corley *et al.*, 2020).
 
 Several approaches to study RNA-protein interaction and to identify new RBPs were established, such as RaPID and CLIP-Seq. These methods either analyze the interaction between the RNA of interest and additional proteins (RaPID) or the interaction between a protein of interest and the different RNA with which it is interacting (CLIP-Seq) (Qin *et al.*, 2021). Therefore, approaching the global study of RNA-binding protein, interaction networks (Sternburg and Karginov, 2020) has become a matter of interest. A method published by Caudron-Herger *et al.* enables analysis and quantification of whole cell interactomes. Furthermore, this method allows for the identification of new RBPs through RNase treatment and density gradient ultracentrifugation. Subsequently, the resulting fraction shifts of proteins identified via mass spectrometry were analyzed using bioinformatic techniques (Caudron-Herger *et al.*, 2019, Caudron-Herger *et al.*, 2020).
 
@@ -28,7 +28,7 @@ In this project, we identified RBPs and possible RBP candidates using bioinforma
 
 # Methods
 ## Generation of the dataset
-Interphasic HeLa S3 cells were processed as published before (see: Caudron-Herger *et al.*, 2019). The data for the amount of protein per fraction, condition, and replicate were collected in arbitrary units and stored in a .csv-file.
+Interphasic HeLa S3 cells were processed as published before (see Caudron-Herger *et al.*, 2019). The data for the amount of protein per fraction, condition, and replicate were collected in arbitrary units and stored in a .csv-file.
 
 ## Clean-Up and sorting of the dataset
 Using the R package tidyverse, two separate data frames were generated containing either all untreated ("_ctrl") or RNase treated ("_RNA") replicates. Both data frames, as well as the raw data set, were screened for rows containing zeros only. Those zero rows were removed from the data frame and stored in a new data frame.
@@ -132,7 +132,7 @@ Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to
 
 **Cluster B**: Potential shifter
 
-**Cluster C** Sure-shifter
+**Cluster C**: Sure-shifter
 
 To check the quality of our clustering, we created another silhouette plot using *factoextra*. To check our clustering results, we cross-referenced our determined RBP using our four functions including *Find_true_RBP*. 
 
@@ -149,7 +149,7 @@ Sure-shifters: Sin3A_HUMAN, HDAC1_HUMAN, HNRPU_HUMAN, RFC2_HUMAN
 
 Non-shifters: ASNS_HUMAN, MCM2_HUMAN, MCM3_HUMAN
 
-Through normalization, the arbitrary values were converted into a relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 2 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
+Through normalization, the arbitrary values were converted into a relative percentage scale. Yet, the overall distribution of the protein amount per fraction remained comparable to the distribution prior to normalization. Therefore, the normalization worked for sure-shifters as well as non-shifters. For instance, figure 1 displays the normalization of a sure-shifter (RFC2_HUMAN) and a non-shifter (MCM2_HUMAN).
 <center>
 ```{r, echo = FALSE, fig.width=2, fig.height=2}
 library(knitr)
