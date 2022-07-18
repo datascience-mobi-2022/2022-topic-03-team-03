@@ -1,5 +1,5 @@
 ---
-title: "Proteome wide screen for RNA-dependent Proteins in interphase synchronized HeLa cells"
+title: "Proteome wide screening for RNA-dependent proteins in HeLa cells synchronized in the interphase of the cell cycle"
 author: "Bolz, C., Bonsen, M., Pott, M., Simon, M."
 date: "18.07.2022"
 output:
@@ -128,7 +128,7 @@ The resulting values were stored in a matrix labeled *q_Hela_mat*. *mean_RNase(P
 
 Using the *factoextra* function *fviz_nbclust()* we created a silhouette plot to determine the optimal cluster number. With the built-in R function *k-means()* we clustered our proteins using the previous determined variables *q_mat_sums* and *maxi_RNase* into three clusters.
 
-**CLuster A**: Non-shifter
+**Cluster A**: Non-shifter
 
 **Cluster B**: Potential shifter
 
