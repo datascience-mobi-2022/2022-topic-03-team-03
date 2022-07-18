@@ -1161,9 +1161,9 @@ overlap <- cbind(overlap, compare.identification.clustering, compare.identificat
 
 length (which(compare.shifts.all == TRUE))
 ```
-The same 5259 Proteins were identified as RBPs or non-RBPs respectively using statistical tests and clustering.
-The same 3310 Proteins were identified as RBPs or non-RBPs respectively using statistical tests and regression.
-The same 4470 Proteins were identified as RBPs or non-RBPs respectively using regression and clustering.
+The same 5259 proteins were identified as RBPs or non-RBPs respectively using statistical tests and clustering.
+The same 3310 proteins were identified as RBPs or non-RBPs respectively using statistical tests and regression.
+The same 4470 proteins were identified as RBPs or non-RBPs respectively using regression and clustering.
 
 All three methods identified the same 2979 RBPs or non-RBPs respectively.
 
